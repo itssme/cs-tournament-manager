@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block header %}
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" crossorigin="anonymous"></script>
+{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="container">
+            <div class="row justify-content-center">
+                {% for server in gameserver %}
+                    <div class="col-lg-5">
+                        <div class="card shadow-lg border-0 rounded-lg mt-3">
+                            <div class="card-header"><h3 class="text-center font-weight-light my-4">Server #{{ server.id }} Info</h3>
+                            </div>
+                            <div class="card-body">
+                                Server is probably running or something
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <script onload="getInfo();">
+        function getInfo() {
+            let xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("GET", "http://127.0.0.1:5000/status/info", false);
+            xmlHttp.send(null);
+
+            let res = JSON.parse(xmlHttp.responseText);
+
+            // TODO: update stats
+        }
+
+        setInterval(getInfo, 1000);
+    </script>
+{% endblock %}
+{% block foot %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+            crossorigin="anonymous"></script>
+    <script src="/js/scripts.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/1.10.20/js/dataTables.bootstrap4.min.js" crossorigin="anonymous"></script>
+{% endblock %}

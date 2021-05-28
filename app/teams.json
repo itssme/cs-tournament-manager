@@ -1,0 +1,30 @@
+[
+  {
+    "name": "test1",
+    "tag": "test1",
+    "players": [
+      {
+        "steamid": "STEAM_0:0:64160074",
+        "name": "Jöl"
+      },
+      {
+        "steamid": "STEAM_0:1:57027738",
+        "name": "Koka"
+      }
+    ]
+  },
+  {
+    "name": "test2",
+    "tag": "test2",
+    "players": [
+      {
+        "steamid": "STEAM_0:1:57164321",
+        "name": "Honies"
+      },
+      {
+        "steamid": "STEAM_0:1:419252527",
+        "name": "Niklas"
+      }
+    ]
+  }
+]

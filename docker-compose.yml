@@ -1,0 +1,13 @@
+version: '3'
+services:
+  csgomngr:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+    - MODULE_NAME=server
+    - PYTHONUNBUFFERED=1
+    - SERVER=0.0.0.0:80
+    - TELEGRAM_BOT_TOKEN=YOUR_TOKEN
+    ports:
+    - 80:80

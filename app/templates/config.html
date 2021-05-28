@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block header %}
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" crossorigin="anonymous"></script>
+{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-5">
+                    <div class="card shadow-lg border-0 rounded-lg mt-3">
+                        <div class="card-header"><h3 class="text-center font-weight-light my-4">Create a match</h3>
+                        </div>
+                        <div class="card-body">
+                            <label for="team1">Choose Team #1:</label>
+                            <select name="team1" id="team1">
+                                {% for team in teams %}
+                                    <option value="{{ team.name }}">{{ team.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <br>
+                            <label for="team1">Choose Team #2:</label>
+                            <select name="team2" id="team2">
+                                {% for team in teams %}
+                                    <option value="{{ team.name }}">{{ team.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <hr>
+                            <label for="server">Choose a Server:</label>
+                            <select name="server" id="server">
+                                {% for server in gameserver %}
+                                    <option value="{{ server.id }}">{{ server.id }}</option>
+                                {% endfor %}
+                            </select>
+                            <hr>
+                            <input class="btn btn-primary" type="submit" value="Start Match" onclick="startMatch()"
+                                   name="submit">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function startMatch() {
+
+        }
+    </script>
+{% endblock %}
+{% block foot %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
+            crossorigin="anonymous"></script>
+    <script src="/js/scripts.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.datatables.net/1.10.20/js/dataTables.bootstrap4.min.js" crossorigin="anonymous"></script>
+{% endblock %}
