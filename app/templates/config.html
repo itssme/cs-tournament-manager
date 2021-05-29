@@ -14,14 +14,14 @@
                             <label for="team1">Choose Team #1:</label>
                             <select name="team1" id="team1">
                                 {% for team in teams %}
-                                    <option value="{{ team.name }}">{{ team.name }}</option>
+                                    <option value="{{ team.id }}">{{ team.name }}</option>
                                 {% endfor %}
                             </select>
                             <br>
-                            <label for="team1">Choose Team #2:</label>
+                            <label for="team2">Choose Team #2:</label>
                             <select name="team2" id="team2">
                                 {% for team in teams %}
-                                    <option value="{{ team.name }}">{{ team.name }}</option>
+                                    <option value="{{ team.id }}">{{ team.name }}</option>
                                 {% endfor %}
                             </select>
                             <hr>
@@ -32,7 +32,7 @@
                                 {% endfor %}
                             </select>
                             <hr>
-                            <input class="btn btn-primary" type="submit" value="Start Match" onclick="startMatch()"
+                            <input class="btn btn-primary" type="submit" value="Start Match" onclick="startTeamMatch()"
                                    name="submit">
                         </div>
                     </div>
@@ -41,8 +41,16 @@
         </div>
     </div>
     <script>
-        function startMatch() {
+        function startTeamMatch() {
+            let xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("POST", "http://127.0.0.1:5000/config/startTeamMatch", true);
 
+            xmlHttp.setRequestHeader("Content-Type", "application/json");
+            xmlHttp.send(JSON.stringify({
+                "team1": document.getElementById("team1").value,
+                "team2": document.getElementById("team2").value,
+                "server": document.getElementById("server").value
+            }));
         }
     </script>
 {% endblock %}

@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import os
+import time
 
 import aiorcon
 from flask import Flask, request, render_template, redirect
@@ -47,6 +48,40 @@ for server in tqdm(config):
 gameservers = []
 for server in connections:
     gameservers.append({"id": server.id})
+
+for i in range(0, len(teams)):
+    teams[i]["id"] = i
+
+
+@app.route("/config/startTeamMatch", methods=["POST"])
+def startTeamMatch():
+    print(request.json)
+    req = request.json
+
+    req["team1"] = int(req["team1"])
+    req["team2"] = int(req["team2"])
+
+    team1 = {"name": teams[req["team1"]]["name"], "tag": teams[req["team1"]]["tag"],
+             "players": teams[req["team1"]]["players"]}
+    team2 = {"name": teams[req["team2"]]["name"], "tag": teams[req["team2"]]["tag"],
+             "players": teams[req["team2"]]["players"]}
+
+    matchcfg = render_template("match.cfg", team1=team1, team2=team2, serverid=req["server"],
+                               matchname=f"{teams[req['team1']]['name']} vs {teams[req['team2']]['name']}")
+
+    print(matchcfg)
+    os.makedirs("match_config", exist_ok=True)
+    filename = os.path.join("match_config", str(time.time()).replace(".", "_") + ".cfg")
+    open(filename)
+
+    return "{'status': 'ok'}"
+
+
+@app.route("/config/startPlayerMatch", methods=["POST"])
+def startPlayerMatch():
+    print(request.json)
+
+    return ""
 
 
 @app.route("/")

@@ -4,7 +4,6 @@
     "port": 27015,
     "rcon_pw": "r4ugs00",
     "ssh_user": "joel",
-    "ssh_password": "djwkald23mopm3",
-    "ssh_path_to_conf": "/home/steam/csgosl/csgosl/server/csgo/match_config"
+    "ssh_path_to_conf_folder": "/home/steam/csgosl/csgosl/server/csgo/match_config"
   }
 ]
