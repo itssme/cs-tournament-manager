@@ -21,11 +21,11 @@ class RCONConnection:
 
 
 try:
-    config = json.loads(open("config.json", "r").read())
+    server_config = json.loads(open("config.json", "r").read())
     teams = json.loads(open("teams.json", "r").read())
 except:
     logging.warning("Could not open config file in . context, trying app/config")
-    config = json.loads(open("app/config.json", "r").read())
+    server_config = json.loads(open("app/config.json", "r").read())
     teams = json.loads(open("app/teams.json", "r").read())
 
 os.makedirs(f"configs", exist_ok=True)
@@ -33,7 +33,7 @@ os.makedirs(f"configs", exist_ok=True)
 # https://github.com/skmendez/aiorcon
 connections = []
 id = 0
-for server in tqdm(config):
+for server in tqdm(server_config):
     connections.append(RCONConnection())
     connections[-1].id = id
     connections[-1].loop = asyncio.get_event_loop()
@@ -66,13 +66,26 @@ def startTeamMatch():
     team2 = {"name": teams[req["team2"]]["name"], "tag": teams[req["team2"]]["tag"],
              "players": teams[req["team2"]]["players"]}
 
+    matchname = f"{teams[req['team1']]['name']} vs {teams[req['team2']]['name']}"
     matchcfg = render_template("match.cfg", team1=team1, team2=team2, serverid=req["server"],
-                               matchname=f"{teams[req['team1']]['name']} vs {teams[req['team2']]['name']}")
+                               matchname=matchname)
 
-    print(matchcfg)
+    logging.debug(matchcfg)
     os.makedirs("match_config", exist_ok=True)
     filename = os.path.join("match_config", str(time.time()).replace(".", "_") + ".cfg")
-    open(filename)
+    with open(filename, "w") as matchfile:
+        matchfile.write(matchcfg)
+
+    server_conf = server_config[int(req["server"])]
+    logging.debug(server_conf)
+    os.system(
+        f"scp -P {server_conf['ssh_port']} {filename} {server_conf['ssh_user']}@{server_conf['ip']}:{server_conf['ssh_path_to_conf_folder']}")
+
+    connection = connections[int(req["server"])]
+    loadmatch_res = connection.loop.run_until_complete(connection.rcon(f"get5_loadmatch {filename}"))
+    logging.debug(loadmatch_res)
+
+    logging.info(f"Created an loaded match {matchname}")
 
     return "{'status': 'ok'}"
 

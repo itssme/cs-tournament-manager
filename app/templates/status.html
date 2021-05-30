@@ -9,17 +9,44 @@
                 {% for server in gameserver %}
                     <div class="col-lg-5">
                         <div class="card shadow-lg border-0 rounded-lg mt-3">
-                            <div class="card-header"><h3 class="text-center font-weight-light my-4">Server #{{ server.id }} Info</h3>
+                            <div class="card-header"><h3 class="text-center font-weight-light my-4">Server
+                                #{{ server.id }} Info</h3>
                             </div>
                             <div class="card-body">
-                                Server is probably running or something
+                                <h2 class="text-center" id="{{ server.id }}get5_matchname"></h2>
+                                <hr>
+
+                                <h3>Gamestate:</h3>
+                                <div id="{{ server.id }}get5_gamestring"></div>
+                                <hr>
+                                <h3>Game Paused?</h3>
+                                <div id="{{ server.id }}get5_paused"></div>
+                                <hr>
+
+                                <table style="width:100%">
+                                    <tr>
+                                        <th>Map Number</th>
+                                        <th id="{{ server.id }}get5_map_number"></th>
+                                    </tr>
+                                    <tr>
+                                        <th>Team #1 Players Connected</th>
+                                        <th id="{{ server.id }}get5_team1_players"></th>
+                                    </tr>
+                                    <tr>
+                                        <th>Team #2 Players Connected</th>
+                                        <th id="{{ server.id }}get5_team2_players"></th>
+                                    </tr>
+                                </table>
+
                             </div>
+
                         </div>
                     </div>
                 {% endfor %}
             </div>
         </div>
     </div>
+
     <script onload="getInfo();">
         function getInfo() {
             let xmlHttp = new XMLHttpRequest();
@@ -27,6 +54,32 @@
             xmlHttp.send(null);
 
             let res = JSON.parse(xmlHttp.responseText);
+
+            {% for server in gameserver %}
+                json_res = res[{{ server.id }}]["get5_stats"];
+                document.getElementById("{{ server.id }}get5_gamestring").innerText = json_res["gamestate_string"];
+
+                if (json_res.hasOwnProperty('matchid')) {
+                    document.getElementById("{{ server.id }}get5_matchname").innerText = json_res["matchid"];
+                }
+
+                if (json_res.hasOwnProperty('paused')) {
+                    document.getElementById("{{ server.id }}get5_paused").innerText = json_res["paused"];
+                }
+
+                if (json_res.hasOwnProperty('map_number')) {
+                    document.getElementById("{{ server.id }}get5_map_number").innerText = json_res["map_number"];
+                }
+
+                if (json_res.hasOwnProperty('team1')) {
+                    document.getElementById("{{ server.id }}get5_team1_players").innerText = json_res["team1"]["connected_clients"];
+                }
+
+                if (json_res.hasOwnProperty('team2')) {
+                    document.getElementById("{{ server.id }}get5_team2_players").innerText = json_res["team2"]["connected_clients"];
+                }
+
+            {% endfor %}
 
             // TODO: update stats
         }
