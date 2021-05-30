@@ -19,27 +19,76 @@
                                 <h3>Gamestate:</h3>
                                 <div id="{{ server.id }}get5_gamestring"></div>
                                 <hr>
-                                <h3>Game Paused?</h3>
-                                <div id="{{ server.id }}get5_paused"></div>
-                                <hr>
 
                                 <table style="width:100%">
+                                    <tr>
+                                        <th>Game Paused?</th>
+                                        <th id="{{ server.id }}get5_paused"></th>
+                                    </tr>
                                     <tr>
                                         <th>Map Number</th>
                                         <th id="{{ server.id }}get5_map_number"></th>
                                     </tr>
+                                </table>
+                                <hr>
+
+                                <h3>Team#1</h3>
+                                <table style="width:100%">
                                     <tr>
-                                        <th>Team #1 Players Connected</th>
-                                        <th id="{{ server.id }}get5_team1_players"></th>
+                                        <th>Players Connected</th>
+                                        <th id="{{ server.id }}get5_team1_connected_clients"></th>
                                     </tr>
                                     <tr>
-                                        <th>Team #2 Players Connected</th>
-                                        <th id="{{ server.id }}get5_team2_players"></th>
+                                        <th>Current Map Score</th>
+                                        <th id="{{ server.id }}get5_team1_current_map_score"></th>
+                                    </tr>
+                                    <tr>
+                                        <th>Ready</th>
+                                        <th id="{{ server.id }}get5_team1_ready"></th>
+                                    </tr>
+                                    <tr>
+                                        <th>Teamname</th>
+                                        <th id="{{ server.id }}get5_team1_name"></th>
+                                    </tr>
+                                    <tr>
+                                        <th>Series Score</th>
+                                        <th id="{{ server.id }}get5_team1_series_score"></th>
+                                    </tr>
+                                    <tr>
+                                        <th>Side</th>
+                                        <th id="{{ server.id }}get5_team1_side"></th>
                                     </tr>
                                 </table>
+                                <hr>
 
+                                <h3>Team#2</h3>
+                                <table style="width:100%">
+                                    <tr>
+                                        <th>Team #2 Players Connected</th>
+                                        <th id="{{ server.id }}get5_team2_connected_clients"></th>
+                                    </tr>
+                                    <tr>
+                                        <th>Current Map Score</th>
+                                        <th id="{{ server.id }}get5_team2_current_map_score"></th>
+                                    </tr>
+                                    <tr>
+                                        <th>Ready</th>
+                                        <th id="{{ server.id }}get5_team2_ready"></th>
+                                    </tr>
+                                    <tr>
+                                        <th>Teamname</th>
+                                        <th id="{{ server.id }}get5_team2_name"></th>
+                                    </tr>
+                                    <tr>
+                                        <th>Series Score</th>
+                                        <th id="{{ server.id }}get5_team2_series_score"></th>
+                                    </tr>
+                                    <tr>
+                                        <th>Side</th>
+                                        <th id="{{ server.id }}get5_team2_side"></th>
+                                    </tr>
+                                </table>
                             </div>
-
                         </div>
                     </div>
                 {% endfor %}
@@ -71,17 +120,14 @@
                     document.getElementById("{{ server.id }}get5_map_number").innerText = json_res["map_number"];
                 }
 
-                if (json_res.hasOwnProperty('team1')) {
-                    document.getElementById("{{ server.id }}get5_team1_players").innerText = json_res["team1"]["connected_clients"];
+                for (key in json_res["team1"]) {
+                    document.getElementById("{{ server.id }}get5_team1_" + key).innerText = json_res["team1"][key];
                 }
 
-                if (json_res.hasOwnProperty('team2')) {
-                    document.getElementById("{{ server.id }}get5_team2_players").innerText = json_res["team2"]["connected_clients"];
+                for (key in json_res["team2"]) {
+                    document.getElementById("{{ server.id }}get5_team2_" + key).innerText = json_res["team2"][key];
                 }
-
             {% endfor %}
-
-            // TODO: update stats
         }
 
         setInterval(getInfo, 1000);
