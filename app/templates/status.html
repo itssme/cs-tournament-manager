@@ -22,6 +22,10 @@
 
                                 <table style="width:100%">
                                     <tr>
+                                        <th>IP:</th>
+                                        <th id="{{ server.id }}ip"></th>
+                                    </tr>
+                                    <tr>
                                         <th>Game Paused?</th>
                                         <th id="{{ server.id }}get5_paused"></th>
                                     </tr>
@@ -105,6 +109,8 @@
             let res = JSON.parse(xmlHttp.responseText);
 
             {% for server in gameserver %}
+                document.getElementById("{{ server.id }}ip").innerText = res[{{ server.id }}]["ip"];
+
                 json_res = res[{{ server.id }}]["get5_stats"];
                 document.getElementById("{{ server.id }}get5_gamestring").innerText = json_res["gamestate_string"];
 
