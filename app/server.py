@@ -93,6 +93,20 @@ def startTeamMatch():
 @app.route("/config/startPlayerMatch", methods=["POST"])
 def startPlayerMatch():
     print(request.json)
+    req = request.json
+
+    return ""
+
+
+@app.route("/config/endMatch", methods=["POST"])
+def endMatch():
+    print(request.json)
+    req = request.json
+
+    connection = connections[int(req["server"])]
+
+    endmatch_res = connection.loop.run_until_complete(connection.rcon(f"get5_endmatch"))
+    logging.debug(endmatch_res)
 
     return ""
 

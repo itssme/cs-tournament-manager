@@ -92,6 +92,10 @@
                                         <th id="{{ server.id }}get5_team2_side"></th>
                                     </tr>
                                 </table>
+                                <hr>
+                                <input class="btn btn-primary" type="submit" value="End Match"
+                                       onclick="endMatch({{ server.id }})"
+                                       name="submit">
                             </div>
                         </div>
                     </div>
@@ -116,6 +120,8 @@
 
                 if (json_res.hasOwnProperty('matchid')) {
                     document.getElementById("{{ server.id }}get5_matchname").innerText = json_res["matchid"];
+                } else {
+                    document.getElementById("{{ server.id }}get5_matchname").innerText = "";
                 }
 
                 if (json_res.hasOwnProperty('paused')) {
@@ -124,16 +130,42 @@
 
                 if (json_res.hasOwnProperty('map_number')) {
                     document.getElementById("{{ server.id }}get5_map_number").innerText = json_res["map_number"];
+                } else {
+                    document.getElementById("{{ server.id }}get5_map_number").innerText = "";
                 }
 
-                for (key in json_res["team1"]) {
-                    document.getElementById("{{ server.id }}get5_team1_" + key).innerText = json_res["team1"][key];
+                if (json_res.hasOwnProperty("team1")) {
+                    for (key in json_res["team1"]) {
+                        document.getElementById("{{ server.id }}get5_team1_" + key).innerText = json_res["team1"][key];
+                    }
+                } else {
+                    get5_team1 = document.querySelectorAll('[id^="{{ server.id }}get5_team1_"]');
+                    get5_team1.forEach(function (value) {
+                        value.innerText = "";
+                    });
                 }
 
-                for (key in json_res["team2"]) {
-                    document.getElementById("{{ server.id }}get5_team2_" + key).innerText = json_res["team2"][key];
+                if (json_res.hasOwnProperty("team1")) {
+                    for (key in json_res["team2"]) {
+                        document.getElementById("{{ server.id }}get5_team2_" + key).innerText = json_res["team2"][key];
+                    }
+                } else {
+                    get5_team2 = document.querySelectorAll('[id^="{{ server.id }}get5_team2_"]');
+                    get5_team2.forEach(function (value) {
+                        value.innerText = "";
+                    });
                 }
             {% endfor %}
+        }
+
+        function endMatch(id) {
+            let xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("POST", "http://127.0.0.1:5000/config/endMatch", true);
+
+            xmlHttp.setRequestHeader("Content-Type", "application/json");
+            xmlHttp.send(JSON.stringify({
+                "server": id
+            }));
         }
 
         setInterval(getInfo, 1000);
