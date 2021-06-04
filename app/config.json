@@ -6,5 +6,21 @@
     "ssh_user": "joel",
     "ssh_port": 5555,
     "ssh_path_to_conf_folder": "/home/steam/csgosl/csgosl/server/csgo/match_config"
+  },
+  {
+    "ip": "10.30.0.151",
+    "port": 27016,
+    "rcon_pw": "r4ugs00",
+    "ssh_user": "joel",
+    "ssh_port": 5555,
+    "ssh_path_to_conf_folder": "/home/steam/csgosl/csgosl/server/csgo/match_config"
+  },
+  {
+    "ip": "10.30.0.152",
+    "port": 27017,
+    "rcon_pw": "r4ugs00",
+    "ssh_user": "joel",
+    "ssh_port": 5555,
+    "ssh_path_to_conf_folder": "/home/steam/csgosl/csgosl/server/csgo/match_config"
   }
 ]

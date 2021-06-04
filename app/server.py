@@ -123,7 +123,7 @@ def info():
         # because get5 is awesome they already return json
         get5_stats = json.loads(connection.loop.run_until_complete(connection.rcon("get5_status")))
         status.append(
-            {"id": connection.id, "ip": server_config[connection.id]["ip"], "get5_stats": get5_stats, "stats": [float(value) for value in stats.split("\n")[1].split(" ") if value != '']})
+            {"id": connection.id, "ip": server_config[connection.id]["ip"] + ":" + str(server_config[connection.id]["port"]), "get5_stats": get5_stats, "stats": [float(value) for value in stats.split("\n")[1].split(" ") if value != '']})
 
         print(status)
 

@@ -13,7 +13,7 @@ transferred and loaded to the csgo server. It also displays some basic statistic
 
 It is recommended to install a [csgosl](https://github.com/lenosisnickerboa/csgosl) server on a virtual machine.
 (in our setup we use proxmox and clone our "template" machine with csgo installed until we have enough servers running).
-We also though about using our kubernetes cluster and creating csgo servers on demand but that would be overkill for a
+We also thought about using our kubernetes cluster and creating csgo servers on demand but that would be overkill for a
 small project like this.
 
 This software is completely standalone and is **NOT** part of your csgo server installation. It simply communicates with
