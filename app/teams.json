@@ -1,33 +1,53 @@
 [
   {
-    "name": "test1",
-    "tag": "test1",
+    "name": "airplebs",
+    "tag": "airplebs",
     "players": [
       {
         "steamid": "STEAM_0:0:64160074",
         "name": "Jöl"
       },
       {
-        "steamid": "STEAM_0:1:124584389",
-        "name": "Servermanager"
-      },
-      {
         "steamid": "STEAM_0:1:57164321",
         "name": "Honies"
-      }
-    ]
-  },
-  {
-    "name": "test2",
-    "tag": "test2",
-    "players": [
+      },
       {
         "steamid": "STEAM_0:1:419252527",
         "name": "Niklas"
       },
       {
+        "steamid": "STEAM_0:1:79835562",
+        "name": "Nico"
+      },
+      {
         "steamid": "STEAM_0:1:57027738",
         "name": "Koka"
+      }
+    ]
+  },
+  {
+    "name": "qBit",
+    "tag": "qBit",
+    "players": [
+      {
+        "steamid": "STEAM_0:0:195148371",
+        "name": "Lessi"
+      },
+      {
+        "steamid": "STEAM_0:1:148684053",
+        "name": "ItsL3o"
+      },
+      {
+        "steamid": "STEAM_0:1:129280053",
+        "name": "Dancerestriction"
+      },
+      {
+        "steamid": "STEAM_0:1:34967721",
+        "name": "Christoph"
+      },
+      {
+        "steamid": "STEAM_0:0:174495808",
+        "name": "TOFU331"
       }
     ]
   }

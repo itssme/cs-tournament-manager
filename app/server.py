@@ -28,6 +28,14 @@ except:
     server_config = json.loads(open("app/config.json", "r").read())
     teams = json.loads(open("app/teams.json", "r").read())
 
+players = []
+player_counter = 0
+for team in teams:
+    for player in team["players"]:
+        player["id"] = player_counter
+        players.append(player)
+        player_counter += 1
+
 os.makedirs(f"configs", exist_ok=True)
 
 # https://github.com/skmendez/aiorcon
@@ -95,7 +103,46 @@ def startPlayerMatch():
     print(request.json)
     req = request.json
 
-    return ""
+    team1_players = [players[int(req["team1_player1"])],
+                     players[int(req["team1_player2"])],
+                     players[int(req["team1_player3"])],
+                     players[int(req["team1_player4"])],
+                     players[int(req["team1_player5"])]]
+
+    team1 = {"name": req["team1"], "tag": req["team1"],
+             "players": team1_players}
+
+    team2_players = [players[int(req["team2_player1"])],
+                     players[int(req["team2_player2"])],
+                     players[int(req["team2_player3"])],
+                     players[int(req["team2_player4"])],
+                     players[int(req["team2_player5"])]]
+
+    team2 = {"name": req["team2"], "tag": req["team2"],
+             "players": team2_players}
+
+    matchname = f"{team1['name']} vs {team2['name']}"
+    matchcfg = render_template("match.cfg", team1=team1, team2=team2, serverid=req["server"],
+                               matchname=matchname)
+
+    logging.debug(matchcfg)
+    os.makedirs("match_config", exist_ok=True)
+    filename = os.path.join("match_config", str(time.time()).replace(".", "_") + ".cfg")
+    with open(filename, "w") as matchfile:
+        matchfile.write(matchcfg)
+
+    server_conf = server_config[int(req["server"])]
+    logging.debug(server_conf)
+    os.system(
+        f"scp -P {server_conf['ssh_port']} {filename} {server_conf['ssh_user']}@{server_conf['ip']}:{server_conf['ssh_path_to_conf_folder']}")
+
+    connection = connections[int(req["server"])]
+    loadmatch_res = connection.loop.run_until_complete(connection.rcon(f"get5_loadmatch {filename}"))
+    logging.debug(loadmatch_res)
+
+    logging.info(f"Created an loaded match {matchname}")
+
+    return "{'status': 'ok'}"
 
 
 @app.route("/config/endMatch", methods=["POST"])
@@ -123,7 +170,7 @@ def status():
 
 @app.route('/config')
 def config():
-    return render_template("config.html", gameserver=gameservers, teams=teams)
+    return render_template("config.html", gameserver=gameservers, teams=teams, players=players)
 
 
 @app.route('/status/info')

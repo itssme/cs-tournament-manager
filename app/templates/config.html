@@ -39,6 +39,58 @@
                 </div>
             </div>
         </div>
+
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-5">
+                    <div class="card shadow-lg border-0 rounded-lg mt-3">
+                        <div class="card-header"><h3 class="text-center font-weight-light my-4">Create a match</h3>
+                        </div>
+                        <div class="card-body">
+                            <h2>Team #1</h2>
+                            <label for="player_team1">Teamname :</label>
+                            <input type="text" id="player_team1"> <br>
+
+                            {% for i in range(1, 6) %}
+                                <label for="team1_player{{ i }}">Choose Player #{{ i }}:</label>
+                                <select name="team1_player{{ i }}" id="team1_player{{ i }}">
+                                    {% for player in players %}
+                                        <option value="{{ player.id }}">{{ player.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <br>
+                            {% endfor %}
+                            <br>
+
+                            <h2>Team #2</h2>
+                            <label for="player_team2">Teamname :</label>
+                            <input type="text" id="player_team2"> <br>
+
+                            {% for i in range(1, 6) %}
+                                <label for="team2_player{{ i }}">Choose Player #{{ i }}:</label>
+                                <select name="team2_player{{ i }}" id="team2_player{{ i }}">
+                                    {% for player in players %}
+                                        <option value="{{ player.id }}">{{ player.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <br>
+                            {% endfor %}
+                            <hr>
+                            <label for="server_player">Choose a Server:</label>
+                            <select name="server_player" id="server_player">
+                                {% for server in gameserver %}
+                                    <option value="{{ server.id }}">{{ server.id }}</option>
+                                {% endfor %}
+                            </select>
+                            <hr>
+                            <input class="btn btn-primary" type="submit" value="Start Match"
+                                   onclick="startPlayerMatch()"
+                                   name="submit">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     <script>
         function startTeamMatch() {
@@ -48,8 +100,27 @@
             xmlHttp.setRequestHeader("Content-Type", "application/json");
             xmlHttp.send(JSON.stringify({
                 "team1": document.getElementById("team1").value,
+
                 "team2": document.getElementById("team2").value,
                 "server": document.getElementById("server").value
+            }));
+        }
+
+        function startPlayerMatch() {
+            let xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("POST", "http://127.0.0.1:5000/config/startPlayerMatch", true);
+
+            xmlHttp.setRequestHeader("Content-Type", "application/json");
+            xmlHttp.send(JSON.stringify({
+                {% for i in range(1, 6) %}
+                    "team1_player{{ i }}": document.getElementById("team1_player{{ i }}").value,
+                {% endfor %}
+                {% for i in range(1, 6) %}
+                    "team2_player{{ i }}": document.getElementById("team2_player{{ i }}").value,
+                {% endfor %}
+                "team1": document.getElementById("player_team1").value,
+                "team2": document.getElementById("player_team2").value,
+                "server": document.getElementById("server_player").value
             }));
         }
     </script>
