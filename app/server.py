@@ -75,8 +75,9 @@ def startTeamMatch():
              "players": teams[req["team2"]]["players"]}
 
     matchname = f"{teams[req['team1']]['name']} vs {teams[req['team2']]['name']}"
+    mapnumbers = int(req["mapnumbers"])
     matchcfg = render_template("match.cfg", team1=team1, team2=team2, serverid=req["server"],
-                               matchname=matchname)
+                               matchname=matchname, mapnumbers=mapnumbers)
 
     logging.debug(matchcfg)
     os.makedirs("match_config", exist_ok=True)
@@ -122,8 +123,9 @@ def startPlayerMatch():
              "players": team2_players}
 
     matchname = f"{team1['name']} vs {team2['name']}"
+    mapnumbers = int(req["mapnumbers"])
     matchcfg = render_template("match.cfg", team1=team1, team2=team2, serverid=req["server"],
-                               matchname=matchname)
+                               matchname=matchname, mapnumbers=mapnumbers)
 
     logging.debug(matchcfg)
     os.makedirs("match_config", exist_ok=True)

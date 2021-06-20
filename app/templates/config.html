@@ -31,6 +31,9 @@
                                     <option value="{{ server.id }}">{{ server.id }}</option>
                                 {% endfor %}
                             </select>
+                            <br>
+                            <label for="best_out_of_teams">Best out of:</label>
+                            <input type="number" id="best_out_of_teams" value="3"> <br>
                             <hr>
                             <input class="btn btn-primary" type="submit" value="Start Match" onclick="startTeamMatch()"
                                    name="submit">
@@ -82,6 +85,9 @@
                                     <option value="{{ server.id }}">{{ server.id }}</option>
                                 {% endfor %}
                             </select>
+                            <br>
+                            <label for="best_out_of_players">Best out of:</label>
+                            <input type="number" id="best_out_of_players" value="3"> <br>
                             <hr>
                             <input class="btn btn-primary" type="submit" value="Start Match"
                                    onclick="startPlayerMatch()"
@@ -100,9 +106,9 @@
             xmlHttp.setRequestHeader("Content-Type", "application/json");
             xmlHttp.send(JSON.stringify({
                 "team1": document.getElementById("team1").value,
-
                 "team2": document.getElementById("team2").value,
-                "server": document.getElementById("server").value
+                "server": document.getElementById("server").value,
+                "mapnumbers": document.getElementById("best_out_of_teams").value
             }));
         }
 
@@ -120,7 +126,8 @@
                 {% endfor %}
                 "team1": document.getElementById("player_team1").value,
                 "team2": document.getElementById("player_team2").value,
-                "server": document.getElementById("server_player").value
+                "server": document.getElementById("server_player").value,
+                "mapnumbers": document.getElementById("best_out_of_players").value
             }));
         }
     </script>
