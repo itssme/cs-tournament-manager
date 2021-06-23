@@ -92,10 +92,12 @@
                                         <th id="{{ server.id }}get5_team2_side"></th>
                                     </tr>
                                 </table>
+                                {% if ableToEndMatch %}
                                 <hr>
                                 <input class="btn btn-primary" type="submit" value="End Match"
                                        onclick="endMatch({{ server.id }})"
                                        name="submit">
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -121,7 +123,7 @@
                 if (json_res.hasOwnProperty('matchid')) {
                     document.getElementById("{{ server.id }}get5_matchname").innerText = json_res["matchid"];
                 } else {
-                    document.getElementById("{{ server.id }}get5_matchname").innerText = "";
+                    document.getElementById("{{ server.id }}get5_matchname").innerText = "No Match";
                 }
 
                 if (json_res.hasOwnProperty('paused')) {
@@ -157,7 +159,7 @@
                 }
             {% endfor %}
         }
-
+        {% if ableToEndMatch %}
         function endMatch(id) {
             let xmlHttp = new XMLHttpRequest();
             xmlHttp.open("POST", "http://127.0.0.1:5000/config/endMatch", true);
@@ -167,6 +169,7 @@
                 "server": id
             }));
         }
+        {% endif %}
 
         setInterval(getInfo, 1000);
     </script>

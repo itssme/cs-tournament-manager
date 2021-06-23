@@ -3,9 +3,10 @@ import json
 import logging
 import os
 import time
+from functools import wraps
 
 import aiorcon
-from flask import Flask, request, render_template, redirect
+from flask import Flask, request, render_template, redirect, Response
 from tqdm import tqdm
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -59,6 +60,32 @@ for server in connections:
 
 for i in range(0, len(teams)):
     teams[i]["id"] = i
+
+
+def check_auth(username, password):
+    """This function is called to check if a username /
+    password combination is valid.
+    """
+    return username == 'admin' and password == 'kokoisapleb'
+
+
+def authenticate():
+    """Sends a 401 response that enables basic auth"""
+    return Response(
+        'Could not verify your access level for that URL.\n'
+        'You have to login with proper credentials', 401,
+        {'WWW-Authenticate': 'Basic realm="Login Required"'})
+
+
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not check_auth(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+
+    return decorated
 
 
 @app.route("/config/startTeamMatch", methods=["POST"])
@@ -167,10 +194,17 @@ def index():
 
 @app.route('/status')
 def status():
-    return render_template("status.html", gameserver=gameservers)
+    return render_template("status.html", gameserver=gameservers, ableToEndMatch=False)
+
+
+@app.route('/adminStatus')
+@requires_auth
+def adminStatus():
+    return render_template("status.html", gameserver=gameservers, ableToEndMatch=True)
 
 
 @app.route('/config')
+@requires_auth
 def config():
     return render_template("config.html", gameserver=gameservers, teams=teams, players=players)
 
@@ -188,7 +222,7 @@ def info():
         status.append(
             {"id": connection.id, "ip": server_config[connection.id]["ip"] + ":" + str(server_config[connection.id]["port"]), "get5_stats": get5_stats, "stats": [float(value) for value in stats.split("\n")[1].split(" ") if value != '']})
 
-        print(status)
+    print(status)
 
     return json.dumps(status)
 
