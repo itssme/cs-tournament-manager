@@ -192,6 +192,8 @@ def endMatch():
 
     endmatch_res = connection.loop.run_until_complete(connection.rcon(f"get5_endmatch"))
     logging.debug(endmatch_res)
+    kickall_res = connection.loop.run_until_complete(connection.rcon(f"sm_kick @all Match was ended by an admin"))
+    logging.debug(kickall_res)
 
     return ""
 
