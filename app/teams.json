@@ -50,5 +50,31 @@
         "name": "TOFU331"
       }
     ]
+  },
+  {
+    "name": "FaceitLvL1",
+    "tag": "FaceitLvL1",
+    "players": [
+      {
+        "steamid": "STEAM_0:1:189884824",
+        "name": "XX_WÖHRER_ALEX_XX"
+      },
+      {
+        "steamid": "STEAM_0:0:577683722",
+        "name": "INDIANA JHON"
+      },
+      {
+        "steamid": "STEAM_0:1:505786367",
+        "name": "FSAJKFDKLJFKLJ"
+      },
+      {
+        "steamid": "STEAM_0:1:523224064",
+        "name": "SNAW3"
+      },
+      {
+        "steamid": "STEAM_0:0:197622965",
+        "name": "JÜRGEN"
+      }
+    ]
   }
 ]

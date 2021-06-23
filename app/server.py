@@ -7,12 +7,21 @@ from functools import wraps
 
 import aiorcon
 from flask import Flask, request, render_template, redirect, Response
+from flask_caching import Cache
 from tqdm import tqdm
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logging.info("server running")
 
+config = {
+    "DEBUG": True,
+    "CACHE_TYPE": "SimpleCache",
+    "CACHE_DEFAULT_TIMEOUT": 30000
+}
+
 app = Flask(__name__, static_url_path="", static_folder="static")
+app.config.from_mapping(config)
+cache = Cache(app)
 
 
 class RCONConnection:
@@ -188,28 +197,35 @@ def endMatch():
 
 
 @app.route("/")
+@cache.cached(timeout=0)
 def index():
     return redirect("/status")
 
 
 @app.route('/status')
+@cache.cached(timeout=0)
 def status():
     return render_template("status.html", gameserver=gameservers, ableToEndMatch=False)
 
 
 @app.route('/adminStatus')
 @requires_auth
+@cache.cached(timeout=0)
 def adminStatus():
     return render_template("status.html", gameserver=gameservers, ableToEndMatch=True)
 
 
 @app.route('/config')
 @requires_auth
+@cache.cached(timeout=0)
 def config():
     return render_template("config.html", gameserver=gameservers, teams=teams, players=players)
 
 
 @app.route('/status/info')
+# it is important that this is cached and
+# essentially only executed every x seconds instead of every second by every client
+@cache.cached(timeout=5)
 def info():
     status = []
 
