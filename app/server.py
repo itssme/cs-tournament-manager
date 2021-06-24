@@ -10,9 +10,6 @@ from flask import Flask, request, render_template, redirect, Response
 from flask_caching import Cache
 from tqdm import tqdm
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-logging.info("server running")
-
 config = {
     "DEBUG": True,
     "CACHE_TYPE": "SimpleCache",
@@ -22,6 +19,9 @@ config = {
 app = Flask(__name__, static_url_path="", static_folder="static")
 app.config.from_mapping(config)
 cache = Cache(app)
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.INFO)
+log.info("starting server")
 
 
 class RCONConnection:
@@ -34,7 +34,7 @@ try:
     server_config = json.loads(open("config.json", "r").read())
     teams = json.loads(open("teams.json", "r").read())
 except:
-    logging.warning("Could not open config file in . context, trying app/config")
+    log.warning("Could not open config file in . context, trying app/config")
     server_config = json.loads(open("app/config.json", "r").read())
     teams = json.loads(open("app/teams.json", "r").read())
 
@@ -99,7 +99,6 @@ def requires_auth(f):
 
 @app.route("/config/startTeamMatch", methods=["POST"])
 def startTeamMatch():
-    print(request.json)
     req = request.json
 
     req["team1"] = int(req["team1"])
@@ -115,22 +114,33 @@ def startTeamMatch():
     matchcfg = render_template("match.cfg", team1=team1, team2=team2, serverid=req["server"],
                                matchname=matchname, mapnumbers=mapnumbers)
 
-    logging.debug(matchcfg)
+    log.debug(matchcfg)
     os.makedirs("match_config", exist_ok=True)
     filename = os.path.join("match_config", str(time.time()).replace(".", "_") + ".cfg")
     with open(filename, "w") as matchfile:
         matchfile.write(matchcfg)
 
     server_conf = server_config[int(req["server"])]
-    logging.debug(server_conf)
+    log.debug(server_conf)
     os.system(
         f"scp -P {server_conf['ssh_port']} {filename} {server_conf['ssh_user']}@{server_conf['ip']}:{server_conf['ssh_path_to_conf_folder']}")
 
     connection = connections[int(req["server"])]
     loadmatch_res = connection.loop.run_until_complete(connection.rcon(f"get5_loadmatch {filename}"))
-    logging.debug(loadmatch_res)
+    log.debug(loadmatch_res)
 
-    logging.info(f"Created an loaded match {matchname}")
+    time.sleep(2)
+
+    if str(req["overtime"]).lower() == "true":
+        log.info(f"Enabling overtime for match {matchname}")
+        overtime_res = connection.loop.run_until_complete(connection.rcon("mp_overtime_enable 1"))
+        log.info(overtime_res)
+    else:
+        log.info(f"Disabling overtime for match {matchname}")
+        overtime_res = connection.loop.run_until_complete(connection.rcon("mp_overtime_enable 0"))
+        log.info(overtime_res)
+
+    log.info(f"Created an loaded match {matchname}")
 
     return "{'status': 'ok'}"
 
@@ -163,22 +173,33 @@ def startPlayerMatch():
     matchcfg = render_template("match.cfg", team1=team1, team2=team2, serverid=req["server"],
                                matchname=matchname, mapnumbers=mapnumbers)
 
-    logging.debug(matchcfg)
+    log.debug(matchcfg)
     os.makedirs("match_config", exist_ok=True)
     filename = os.path.join("match_config", str(time.time()).replace(".", "_") + ".cfg")
     with open(filename, "w") as matchfile:
         matchfile.write(matchcfg)
 
     server_conf = server_config[int(req["server"])]
-    logging.debug(server_conf)
+    log.debug(server_conf)
     os.system(
         f"scp -P {server_conf['ssh_port']} {filename} {server_conf['ssh_user']}@{server_conf['ip']}:{server_conf['ssh_path_to_conf_folder']}")
 
     connection = connections[int(req["server"])]
     loadmatch_res = connection.loop.run_until_complete(connection.rcon(f"get5_loadmatch {filename}"))
-    logging.debug(loadmatch_res)
+    log.debug(loadmatch_res)
 
-    logging.info(f"Created an loaded match {matchname}")
+    time.sleep(2)
+
+    if str(req["overtime"]).lower() == "true":
+        log.info(f"Enabling overtime for match {matchname}")
+        overtime_res = connection.loop.run_until_complete(connection.rcon("mp_overtime_enable 1"))
+        log.info(overtime_res)
+    else:
+        log.info(f"Disabling overtime for match {matchname}")
+        overtime_res = connection.loop.run_until_complete(connection.rcon("mp_overtime_enable 0"))
+        log.info(overtime_res)
+
+    log.info(f"Created an loaded match {matchname}")
 
     return "{'status': 'ok'}"
 
@@ -191,9 +212,11 @@ def endMatch():
     connection = connections[int(req["server"])]
 
     endmatch_res = connection.loop.run_until_complete(connection.rcon(f"get5_endmatch"))
-    logging.debug(endmatch_res)
+    log.debug(endmatch_res)
     kickall_res = connection.loop.run_until_complete(connection.rcon(f"sm_kick @all Match was ended by an admin"))
-    logging.debug(kickall_res)
+    log.debug(kickall_res)
+    mapchange_res = connection.loop.run_until_complete(connection.rcon(f"sm_map cs_agency"))
+    log.debug(mapchange_res)
 
     return ""
 
@@ -247,21 +270,21 @@ def info():
 
 @app.errorhandler(401)
 def error401(err):
-    logging.error(f"401 error -> {err}")
+    log.error(f"401 error -> {err}")
     return render_template("401.html"), 401
 
 
 @app.errorhandler(404)
 def error404(err):
-    logging.error(f"404 error -> {err} caused by {request.url}")
+    log.error(f"404 error -> {err} caused by {request.url}")
     return render_template("404.html"), 404
 
 
 @app.errorhandler(500)
 def error500(err):
-    logging.error(f"500 error -> {err}")
+    log.error(f"500 error -> {err}")
     return render_template("500.html"), 500
 
 
 if __name__ == '__main__':
-    app.run(os.getenv("SERVER"))
+    app.run(os.getenv("SERVER"), debug=True)

@@ -32,6 +32,8 @@
                                 {% endfor %}
                             </select>
                             <br>
+                            <label for="overtime">Enable Overtime: </label>
+                            <input type="checkbox" id="overtime"> <br>
                             <label for="best_out_of_teams">Best out of:</label>
                             <input type="number" id="best_out_of_teams" value="3"> <br>
                             <hr>
@@ -86,6 +88,8 @@
                                 {% endfor %}
                             </select>
                             <br>
+                            <label for="overtime_players">Enable Overtime: </label>
+                            <input type="checkbox" id="overtime_players"> <br>
                             <label for="best_out_of_players">Best out of:</label>
                             <input type="number" id="best_out_of_players" value="3"> <br>
                             <hr>
@@ -108,6 +112,7 @@
                 "team1": document.getElementById("team1").value,
                 "team2": document.getElementById("team2").value,
                 "server": document.getElementById("server").value,
+                "overtime": document.getElementById("overtime").checked,
                 "mapnumbers": document.getElementById("best_out_of_teams").value
             }));
         }
@@ -127,6 +132,7 @@
                 "team1": document.getElementById("player_team1").value,
                 "team2": document.getElementById("player_team2").value,
                 "server": document.getElementById("server_player").value,
+                "overtime": document.getElementById("overtime_players").checked,
                 "mapnumbers": document.getElementById("best_out_of_players").value
             }));
         }
