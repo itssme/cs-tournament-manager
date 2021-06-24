@@ -2,12 +2,15 @@ import asyncio
 import json
 import logging
 import os
+import sqlite3
 import time
 from functools import wraps
 
 import aiorcon
+import telegram
 from flask import Flask, request, render_template, redirect, Response
 from flask_caching import Cache
+from telegram.ext import Updater, CommandHandler
 from tqdm import tqdm
 
 config = {
@@ -23,6 +26,7 @@ log = logging.getLogger('werkzeug')
 log.setLevel(logging.INFO)
 log.info("starting server")
 
+chat_ids = []
 
 class RCONConnection:
     id = -1
@@ -247,11 +251,7 @@ def config():
     return render_template("config.html", gameserver=gameservers, teams=teams, players=players)
 
 
-@app.route('/status/info')
-# it is important that this is cached and
-# essentially only executed every x seconds instead of every second by every client
-@cache.cached(timeout=5)
-def info():
+def rcon_get_status():
     status = []
 
     for connection in connections:
@@ -261,11 +261,22 @@ def info():
         # because get5 is awesome they already return json
         get5_stats = json.loads(connection.loop.run_until_complete(connection.rcon("get5_status")))
         status.append(
-            {"id": connection.id, "ip": server_config[connection.id]["ip"] + ":" + str(server_config[connection.id]["port"]), "get5_stats": get5_stats, "stats": [float(value) for value in stats.split("\n")[1].split(" ") if value != '']})
+            {"id": connection.id,
+             "ip": server_config[connection.id]["ip"] + ":" + str(server_config[connection.id]["port"]),
+             "get5_stats": get5_stats,
+             "stats": [float(value) for value in stats.split("\n")[1].split(" ") if value != '']})
 
-    print(status)
+    log.info(status)
 
     return json.dumps(status)
+
+
+@app.route('/status/info')
+# it is important that this is cached and
+# essentially only executed every x seconds instead of every second by every client
+@cache.cached(timeout=5)
+def info():
+    return rcon_get_status()
 
 
 @app.errorhandler(401)
