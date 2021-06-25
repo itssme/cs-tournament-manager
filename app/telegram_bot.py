@@ -16,6 +16,8 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 log = logging.getLogger(__name__)
 chat_ids = []
 
+last_status = []
+
 
 class RCONConnection:
     id = -1
@@ -88,7 +90,26 @@ def help(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text="Usage:\n"
                                                                     "/help - prints this help\n"
                                                                     "/register - saves your chat id for getting "
-                                                                    "messages")
+                                                                    "messages\n"
+                                                                    "/current_games - prints info about currently "
+                                                                    "running games")
+
+
+def current_games(update, context):
+    msg = ""
+    server = 0
+    status = last_status[:]
+    for game in status:
+        get5_stats = game["get5_stats"]
+
+        if get5_stats['gamestate'] == 1:
+            msg += f"Server {server}: {get5_stats['matchid']}\nState: {get5_stats['gamestate_string']}\nMap Number: {get5_stats['map_number']}\n{get5_stats['team1']['name']}: {get5_stats['team1']['current_map_score']}\n  Series Score: {get5_stats['team1']['series_score']}\n{get5_stats['team2']['name']}: {get5_stats['team2']['current_map_score']}\n  Series Score: {get5_stats['team2']['series_score']}\n--------\n"
+        else:
+            msg += f"Server {server}: No Game\n--------\n"
+
+        server += 1
+
+    context.bot.send_message(chat_id=update.effective_chat.id, text=msg)
 
 
 def add_chat_id(update, context):
@@ -126,6 +147,7 @@ def update_ids():
 def error(update, context):
     log.warning('Update "%s" caused error "%s"', update, context.error)
 
+
 if __name__ == '__main__':
     db = None
     if not os.path.isfile("chats.db"):
@@ -161,22 +183,49 @@ if __name__ == '__main__':
                                   pass_args=True,
                                   pass_job_queue=True,
                                   pass_chat_data=True))
+    dp.add_handler(CommandHandler("current_games", current_games,
+                                  pass_args=True,
+                                  pass_job_queue=True,
+                                  pass_chat_data=True))
 
     dp.add_error_handler(error)
     updater.start_polling()
 
-    matches = {}
+
+    class Server:
+        def __init__(self):
+            self.reset()
+
+        def reset(self):
+            self.game_running = False
+            self.matchid = ""
+            self.team1_name = ""
+            self.team2_name = ""
+            self.team1_series_score = 0
+            self.team2_series_score = 0
+            self.team1_current_map_score = 0
+            self.team2_current_map_score = 0
+            self.mapnumber = 0
+
+
+    matches = []
     log.info("getting rcon")
     status = json.loads(rcon_get_status())
     print(status)
 
-    for i in range(0, len(matches)):
-        matches[i] = False
-
+    for i in range(0, len(status)):
+        matches.append(Server())
 
     while True:
         log.info("getting rcon")
-        status = json.loads(rcon_get_status())
+        try:
+            status = json.loads(rcon_get_status())
+        except Exception as e:
+            log.error(f"Error getting rcon: {e}")
+            continue
+
+        last_status = status
+
         print(status)
 
         server = 0
@@ -184,14 +233,26 @@ if __name__ == '__main__':
             get5_stats = game["get5_stats"]
             gamestate = game["get5_stats"]["gamestate"]
 
-            if gamestate == 0:
-                matches[server] = False
+            if matches[server].game_running:
+                if gamestate == 0:
+                    send_all(
+                        f"Game on Server #{server} has finished: {matches[server].matchid}\n\n{matches[server].team1_name} scored {matches[server].team1_current_map_score}, series score {matches[server].team1_series_score}\n{matches[server].team2_name} scored {matches[server].team2_current_map_score}, series score {matches[server].team2_series_score}\nGame was decided on map {matches[server].mapnumber}")
+                    matches[server].game_running = False
+                    matches[server].reset()
+                else:
+                    matches[server].matchid = get5_stats['matchid']
+                    matches[server].team1_name = get5_stats['team1']['name']
+                    matches[server].team2_name = get5_stats['team2']['name']
+                    matches[server].team1_series_score = get5_stats['team1']['series_score']
+                    matches[server].team2_series_score = get5_stats['team2']['series_score']
+                    matches[server].team1_current_map_score = get5_stats['team1']['current_map_score']
+                    matches[server].team2_current_map_score = get5_stats['team2']['current_map_score']
+                    matches[server].mapnumber = get5_stats['map_number']
             else:
-                if not matches[server]:
+                if gamestate == 1:
                     send_all(f"Game on Server #{server} has been started: {get5_stats['matchid']}")
-
+                    matches[server].game_running = True
 
             server += 1
-
 
         time.sleep(5)
