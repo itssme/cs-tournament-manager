@@ -2,15 +2,12 @@ import asyncio
 import json
 import logging
 import os
-import sqlite3
 import time
 from functools import wraps
 
 import aiorcon
-import telegram
 from flask import Flask, request, render_template, redirect, Response
 from flask_caching import Cache
-from telegram.ext import Updater, CommandHandler
 from tqdm import tqdm
 
 config = {
@@ -234,14 +231,20 @@ def index():
 @app.route('/status')
 @cache.cached(timeout=0)
 def status():
-    return render_template("status.html", gameserver=gameservers, ableToEndMatch=False)
+    return render_template("status.html", gameserver=gameservers, ableToEndMatch=False, simple=False)
+
+
+@app.route('/statusSimple')
+@cache.cached(timeout=0)
+def statusSimple():
+    return render_template("status.html", gameserver=gameservers, ableToEndMatch=False, simple=True)
 
 
 @app.route('/adminStatus')
 @requires_auth
 @cache.cached(timeout=0)
 def adminStatus():
-    return render_template("status.html", gameserver=gameservers, ableToEndMatch=True)
+    return render_template("status.html", gameserver=gameservers, ableToEndMatch=True, simple=False)
 
 
 @app.route('/config')

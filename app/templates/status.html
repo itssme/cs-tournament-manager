@@ -25,6 +25,7 @@
                                         <th>IP:</th>
                                         <th id="{{ server.id }}ip"></th>
                                     </tr>
+                                    {% if not simple %}
                                     <tr>
                                         <th>Game Paused?</th>
                                         <th id="{{ server.id }}get5_paused"></th>
@@ -33,9 +34,11 @@
                                         <th>Map Number</th>
                                         <th id="{{ server.id }}get5_map_number"></th>
                                     </tr>
+                                    {% endif %}
                                 </table>
                                 <hr>
 
+                                {% if not simple %}
                                 <h3>Team#1</h3>
                                 <table style="width:100%">
                                     <tr>
@@ -92,6 +95,7 @@
                                         <th id="{{ server.id }}get5_team2_side"></th>
                                     </tr>
                                 </table>
+                                {% endif %}
                                 {% if ableToEndMatch %}
                                     <hr>
                                     <input class="btn btn-primary" type="submit" value="End Match"
@@ -126,6 +130,7 @@
                     document.getElementById("{{ server.id }}get5_matchname").innerText = "No Match";
                 }
 
+                {% if not simple %}
                 if (json_res.hasOwnProperty('paused')) {
                     document.getElementById("{{ server.id }}get5_paused").innerText = json_res["paused"];
                 }
@@ -157,6 +162,7 @@
                         value.innerText = "";
                     });
                 }
+                {% endif %}
             {% endfor %}
         }
         {% if ableToEndMatch %}
