@@ -113,7 +113,7 @@
     <script onload="getInfo();">
         function getInfo() {
             let xmlHttp = new XMLHttpRequest();
-            xmlHttp.open("GET", "http://127.0.0.1:5000/status/info", false);
+            xmlHttp.open("GET", "http://{{ server_ip }}/status/info", false);
             xmlHttp.send(null);
 
             let res = JSON.parse(xmlHttp.responseText);
@@ -168,7 +168,7 @@
         {% if ableToEndMatch %}
         function endMatch(id) {
             let xmlHttp = new XMLHttpRequest();
-            xmlHttp.open("POST", "http://127.0.0.1:5000/config/endMatch", true);
+            xmlHttp.open("POST", "http://{{ server_ip }}/config/endMatch", true);
 
             xmlHttp.setRequestHeader("Content-Type", "application/json");
             xmlHttp.send(JSON.stringify({

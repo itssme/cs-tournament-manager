@@ -231,20 +231,20 @@ def index():
 @app.route('/status')
 @cache.cached(timeout=0)
 def status():
-    return render_template("status.html", gameserver=gameservers, ableToEndMatch=False, simple=False)
+    return render_template("status.html", gameserver=gameservers, ableToEndMatch=False, simple=False, server_ip="10.20.86.174:5000")
 
 
 @app.route('/statusSimple')
 @cache.cached(timeout=0)
 def statusSimple():
-    return render_template("status.html", gameserver=gameservers, ableToEndMatch=False, simple=True)
+    return render_template("status.html", gameserver=gameservers, ableToEndMatch=False, simple=True, server_ip="10.20.86.174:5000")
 
 
 @app.route('/adminStatus')
 @requires_auth
 @cache.cached(timeout=0)
 def adminStatus():
-    return render_template("status.html", gameserver=gameservers, ableToEndMatch=True, simple=False)
+    return render_template("status.html", gameserver=gameservers, ableToEndMatch=True, simple=False, server_ip="10.20.86.174:5000")
 
 
 @app.route('/config')
