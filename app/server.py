@@ -1,14 +1,13 @@
-import asyncio
 import json
 import logging
 import os
 import time
 from functools import wraps
 
-import aiorcon
 from flask import Flask, request, render_template, redirect, Response
 from flask_caching import Cache
 from tqdm import tqdm
+from valve.rcon import RCON
 
 config = {
     "DEBUG": True,
@@ -25,11 +24,19 @@ log.info("starting server")
 
 chat_ids = []
 
-class RCONConnection:
-    id = -1
-    loop = None
-    rcon = None
 
+class RCONConnection:
+    def __init__(self, id, ip, port, rcon_pw):
+        self.id = id
+        self.ip = ip
+        self.port = port
+        self.server_address = (self.ip, self.port)
+        self.rcon_pw = rcon_pw
+
+    def run(self, command: str):
+        with RCON(self.server_address, self.rcon_pw) as rcon:
+            response = rcon(command)
+        return response
 
 try:
     server_config = json.loads(open("config.json", "r").read())
@@ -47,21 +54,11 @@ for team in teams:
         players.append(player)
         player_counter += 1
 
-os.makedirs(f"configs", exist_ok=True)
-
 # https://github.com/skmendez/aiorcon
 connections = []
 id = 0
 for server in tqdm(server_config):
-    connections.append(RCONConnection())
-    connections[-1].id = id
-    connections[-1].loop = asyncio.get_event_loop()
-
-    # initialize the RCON connection with ip, port, password and the event loop.
-    connections[-1].rcon = connections[-1].loop.run_until_complete(
-        aiorcon.RCON.create(server["ip"], server["port"],
-                            server["rcon_pw"],
-                            connections[-1].loop))
+    connections.append(RCONConnection(id, server["ip"], server["port"], server["rcon_pw"]))
     id += 1
 
 gameservers = []
@@ -120,25 +117,27 @@ def startTeamMatch():
     filename = os.path.join("match_config", str(time.time()).replace(".", "_") + ".cfg")
     with open(filename, "w") as matchfile:
         matchfile.write(matchcfg)
+    print(filename)
 
     server_conf = server_config[int(req["server"])]
     log.debug(server_conf)
+
     os.system(
         f"scp -P {server_conf['ssh_port']} {filename} {server_conf['ssh_user']}@{server_conf['ip']}:{server_conf['ssh_path_to_conf_folder']}")
 
     connection = connections[int(req["server"])]
-    loadmatch_res = connection.loop.run_until_complete(connection.rcon(f"get5_loadmatch {filename}"))
-    log.debug(loadmatch_res)
+    loadmatch_res = connection.run(f"get5_loadmatch {filename}")
+    print(loadmatch_res)
 
     time.sleep(2)
 
     if str(req["overtime"]).lower() == "true":
         log.info(f"Enabling overtime for match {matchname}")
-        overtime_res = connection.loop.run_until_complete(connection.rcon("mp_overtime_enable 1"))
+        overtime_res = connection.run("mp_overtime_enable 1")
         log.info(overtime_res)
     else:
         log.info(f"Disabling overtime for match {matchname}")
-        overtime_res = connection.loop.run_until_complete(connection.rcon("mp_overtime_enable 0"))
+        overtime_res = connection.run("mp_overtime_enable 0")
         log.info(overtime_res)
 
     log.info(f"Created an loaded match {matchname}")
@@ -186,18 +185,18 @@ def startPlayerMatch():
         f"scp -P {server_conf['ssh_port']} {filename} {server_conf['ssh_user']}@{server_conf['ip']}:{server_conf['ssh_path_to_conf_folder']}")
 
     connection = connections[int(req["server"])]
-    loadmatch_res = connection.loop.run_until_complete(connection.rcon(f"get5_loadmatch {filename}"))
+    loadmatch_res = connection.run(f"get5_loadmatch {filename}")
     log.debug(loadmatch_res)
 
     time.sleep(2)
 
     if str(req["overtime"]).lower() == "true":
         log.info(f"Enabling overtime for match {matchname}")
-        overtime_res = connection.loop.run_until_complete(connection.rcon("mp_overtime_enable 1"))
+        overtime_res = connection.run("mp_overtime_enable 1")
         log.info(overtime_res)
     else:
         log.info(f"Disabling overtime for match {matchname}")
-        overtime_res = connection.loop.run_until_complete(connection.rcon("mp_overtime_enable 0"))
+        overtime_res = connection.run("mp_overtime_enable 0")
         log.info(overtime_res)
 
     log.info(f"Created an loaded match {matchname}")
@@ -212,11 +211,11 @@ def endMatch():
 
     connection = connections[int(req["server"])]
 
-    endmatch_res = connection.loop.run_until_complete(connection.rcon(f"get5_endmatch"))
+    endmatch_res = connection.run(f"get5_endmatch")
     log.debug(endmatch_res)
-    kickall_res = connection.loop.run_until_complete(connection.rcon(f"sm_kick @all Match was ended by an admin"))
+    kickall_res = connection.run(f"sm_kick @all Match was ended by an admin")
     log.debug(kickall_res)
-    mapchange_res = connection.loop.run_until_complete(connection.rcon(f"sm_map cs_agency"))
+    mapchange_res = connection.run(f"sm_map cs_agency")
     log.debug(mapchange_res)
 
     return ""
@@ -231,27 +230,31 @@ def index():
 @app.route('/status')
 @cache.cached(timeout=0)
 def status():
-    return render_template("status.html", gameserver=gameservers, ableToEndMatch=False, simple=False, server_ip="10.20.86.174:5000")
+    return render_template("status.html", gameserver=gameservers, ableToEndMatch=False, simple=False,
+                           server_ip="127.0.0.1:5000")
 
 
 @app.route('/statusSimple')
 @cache.cached(timeout=0)
 def statusSimple():
-    return render_template("status.html", gameserver=gameservers, ableToEndMatch=False, simple=True, server_ip="10.20.86.174:5000")
+    return render_template("status.html", gameserver=gameservers, ableToEndMatch=False, simple=True,
+                           server_ip="127.0.0.1:5000")
 
 
 @app.route('/adminStatus')
 @requires_auth
 @cache.cached(timeout=0)
 def adminStatus():
-    return render_template("status.html", gameserver=gameservers, ableToEndMatch=True, simple=False, server_ip="10.20.86.174:5000")
+    return render_template("status.html", gameserver=gameservers, ableToEndMatch=True, simple=False,
+                           server_ip="127.0.0.1:5000")
 
 
 @app.route('/config')
 @requires_auth
 @cache.cached(timeout=0)
 def config():
-    return render_template("config.html", gameserver=gameservers, teams=teams, players=players)
+    return render_template("config.html", gameserver=gameservers, teams=teams, players=players,
+                           server_ip="127.0.0.1:5000")
 
 
 def rcon_get_status():
@@ -259,10 +262,10 @@ def rcon_get_status():
 
     for connection in connections:
         # need to parse values: CPU   NetIn   NetOut    Uptime  Maps   FPS   Players  Svms    +-ms   ~tick
-        stats = connection.loop.run_until_complete(connection.rcon("stats"))
+        stats = connection.run("stats")
 
         # because get5 is awesome they already return json
-        get5_stats = json.loads(connection.loop.run_until_complete(connection.rcon("get5_status")))
+        get5_stats = json.loads(connection.run("get5_status"))
         status.append(
             {"id": connection.id,
              "ip": server_config[connection.id]["ip"] + ":" + str(server_config[connection.id]["port"]),
@@ -301,4 +304,4 @@ def error500(err):
 
 
 if __name__ == '__main__':
-    app.run("0.0.0.0", port=5000, debug=True)
+    app.run("0.0.0.0", port=5000, debug=False, use_reloader=False)

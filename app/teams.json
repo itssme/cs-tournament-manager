@@ -1,105 +1,27 @@
 [
     {
-        "name": "airplebs",
-        "tag": "airplebs",
+        "name": "Unranked",
+        "tag": "Unranked",
         "players": [
             {
-                "steamid": "STEAM_0:0:64160074",
-                "name": "Jöl"
+                "steamid": "STEAM_0:1:177215629",
+                "name": "Florian Schröder"
             },
             {
-                "steamid": "STEAM_0:1:57164321",
-                "name": "Honies"
+                "steamid": "STEAM_0:0:430334076",
+                "name": "Yunus Emre Güclü"
             },
             {
-                "steamid": "STEAM_0:1:419252527",
-                "name": "Niklas"
+                "steamid": "STEAM_0:1:507159404",
+                "name": "Elvin Sabani"
             },
             {
-                "steamid": "STEAM_0:1:79835562",
-                "name": "Nico"
+                "steamid": "STEAM_0:1:126790607",
+                "name": "Florian Szabo"
             },
             {
-                "steamid": "STEAM_0:1:57027738",
-                "name": "Koka"
-            }
-        ]
-    },
-    {
-        "name": "Die Wappla",
-        "tag": "WAP",
-        "players": [
-            {
-                "steamid": "STEAM_0:1:159989635",
-                "name": "Marcel Dinhof"
-            },
-            {
-                "steamid": "STEAM_0:1:606899902",
-                "name": "Niklas Wieser"
-            },
-            {
-                "steamid": "STEAM_0:1:121451698",
-                "name": "Florian Zachsl"
-            },
-            {
-                "steamid": "STEAM_0:0:53855365",
-                "name": "Florian Riegler"
-            },
-            {
-                "steamid": "STEAM_0:1:3656369",
-                "name": "Jeremy Sztavinovszki"
-            }
-        ]
-    },
-    {
-        "name": "sykCSGO",
-        "tag": "SYK",
-        "players": [
-            {
-                "steamid": "STEAM_0:0:195148371",
-                "name": "Lessi"
-            },
-            {
-                "steamid": "STEAM_0:1:129280053",
-                "name": "Matthias Faustbeck"
-            },
-            {
-                "steamid": "STEAM_0:0:174495808",
-                "name": "Tobias Fuchs"
-            },
-            {
-                "steamid": "STEAM_0:1:148684053",
-                "name": "Leo Bruckner"
-            },
-            {
-                "steamid": "STEAM_0:1:159656029",
-                "name": "Lukas Peta"
-            }
-        ]
-    },
-    {
-        "name": "Die Globale Elite",
-        "tag": "SUS",
-        "players": [
-            {
-                "steamid": "STEAM_0:1:234150477",
-                "name": "Sebastian Kawicher"
-            },
-            {
-                "steamid": "STEAM_0:0:235564480",
-                "name": "Eric Gut"
-            },
-            {
-                "steamid": "STEAM_0:0:194233295",
-                "name": "Dominik Ecimovic"
-            },
-            {
-                "steamid": "STEAM_0:1:94333040",
-                "name": "Christoph Fellner"
-            },
-            {
-                "steamid": "STEAM_0:1:242223893",
-                "name": "Simon Groiss"
+                "steamid": "STEAM_0:0:155822817",
+                "name": "Juian Riedinger"
             }
         ]
     },
@@ -130,28 +52,132 @@
         ]
     },
     {
-        "name": "Unranked",
-        "tag": "Unranked",
+        "name": "airplebs",
+        "tag": "airplebs",
         "players": [
             {
-                "steamid": "STEAM_0:1:177215629",
-                "name": "Florian Schröder"
+                "steamid": "STEAM_0:0:64160074",
+                "name": "Jöl"
             },
             {
-                "steamid": "STEAM_0:0:430334076",
-                "name": "Yunus Emre Güclü"
+                "steamid": "STEAM_0:1:57164321",
+                "name": "Honies"
             },
             {
-                "steamid": "STEAM_0:1:507159404",
-                "name": "Elvin Sabani"
+                "steamid": "STEAM_0:1:419252527",
+                "name": "Niklas"
             },
             {
-                "steamid": "STEAM_0:1:126790607",
-                "name": "Florian Szabo"
+                "steamid": "STEAM_0:1:79835562",
+                "name": "Nico"
             },
             {
-                "steamid": "STEAM_0:0:155822817",
-                "name": "Juian Riedinger"
+                "steamid": "STEAM_0:1:57027738",
+                "name": "Koka"
+            }
+        ]
+    },
+    {
+        "name": "Die Globale Elite",
+        "tag": "SUS",
+        "players": [
+            {
+                "steamid": "STEAM_0:1:234150477",
+                "name": "Sebastian Kawicher"
+            },
+            {
+                "steamid": "STEAM_0:0:235564480",
+                "name": "Eric Gut"
+            },
+            {
+                "steamid": "STEAM_0:0:194233295",
+                "name": "Dominik Ecimovic"
+            },
+            {
+                "steamid": "STEAM_0:1:94333040",
+                "name": "Christoph Fellner"
+            },
+            {
+                "steamid": "STEAM_0:1:242223893",
+                "name": "Simon Groiss"
+            }
+        ]
+    },
+    {
+        "name": "CS:LOW",
+        "tag": "CSLOW",
+        "players": [
+            {
+                "steamid": "STEAM_0:0:567741633",
+                "name": "Larissa Kornthaler"
+            },
+            {
+                "steamid": "STEAM_0:0:454213216",
+                "name": "Daniel Pajer"
+            },
+            {
+                "steamid": "STEAM_0:1:188303912",
+                "name": "Jan Mostböck"
+            },
+            {
+                "steamid": "STEAM_0:0:419789039",
+                "name": "Gregor Zadrazil"
+            },
+            {
+                "steamid": "STEAM_0:0:575427419",
+                "name": "Berfin Karayel"
+            }
+        ]
+    },
+    {
+        "name": "Die Wappla",
+        "tag": "WAP",
+        "players": [
+            {
+                "steamid": "STEAM_0:1:159989635",
+                "name": "Marcel Dinhof"
+            },
+            {
+                "steamid": "STEAM_0:1:57284688",
+                "name": "Niklas Wieser"
+            },
+            {
+                "steamid": "STEAM_0:1:121451698",
+                "name": "Florian Zachsl"
+            },
+            {
+                "steamid": "STEAM_0:0:53855365",
+                "name": "Florian Riegler"
+            },
+            {
+                "steamid": "STEAM_0:0:451258848",
+                "name": "Jeremy Sztavinovszki"
+            }
+        ]
+    },
+    {
+        "name": "sykCSGO",
+        "tag": "SYK",
+        "players": [
+            {
+                "steamid": "STEAM_0:0:195148371",
+                "name": "Lessi"
+            },
+            {
+                "steamid": "STEAM_0:1:129280053",
+                "name": "Matthias Faustbeck"
+            },
+            {
+                "steamid": "STEAM_0:0:82390298",
+                "name": "David Baumgartner"
+            },
+            {
+                "steamid": "STEAM_0:1:148684053",
+                "name": "Leo Bruckner"
+            },
+            {
+                "steamid": "STEAM_0:1:159656029",
+                "name": "Lukas Peta"
             }
         ]
     }
