@@ -1,13 +1,21 @@
 version: '3'
 services:
-  csgomngr:
+  db:
+    image: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: pass
+  adminer:
+    image: adminer
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+  csgo_manager:
+    depends_on:
+    - db
     build:
       context: .
       dockerfile: Dockerfile
-    environment:
-    - MODULE_NAME=server
-    - PYTHONUNBUFFERED=1
-    - SERVER=0.0.0.0:80
-    - TELEGRAM_BOT_TOKEN=YOUR_TOKEN
-    ports:
-    - 80:80
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/benchmarks:/tmp/benchmarks

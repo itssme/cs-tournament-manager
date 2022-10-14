@@ -1,5 +1,13 @@
-FROM tiangolo/meinheld-gunicorn-flask:python3.7
+FROM python:3.9
 
-RUN pip install flask python-telegram-bot requests Flask-Limiter Flask-Caching Flask-Compress aiorcon tqdm
+WORKDIR /
 
-COPY /app /app
+COPY requirements.txt requirements.txt
+
+RUN apt install libpq-dev
+RUN pip install --no-cache-dir --upgrade -r requirements.txt
+
+COPY app app
+
+EXPOSE 80 80
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]

@@ -1,0 +1,8 @@
+jinja2
+fastapi
+uvicorn[standard]
+requests
+python-telegram-bot
+aiorcon
+psycopg2
+pysrcds

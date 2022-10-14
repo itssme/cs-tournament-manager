@@ -25,7 +25,7 @@
                                         <th>IP:</th>
                                         <th id="{{ server.id }}ip"></th>
                                     </tr>
-                                    {% if not simple %}
+                                    {% if admin %}
                                     <tr>
                                         <th>Game Paused?</th>
                                         <th id="{{ server.id }}get5_paused"></th>
@@ -38,7 +38,7 @@
                                 </table>
                                 <hr>
 
-                                {% if not simple %}
+                                {% if admin %}
                                 <h3>Team#1</h3>
                                 <table style="width:100%">
                                     <tr>
@@ -124,18 +124,18 @@
                 json_res = res[{{ server.id }}]["get5_stats"];
                 document.getElementById("{{ server.id }}get5_gamestring").innerText = json_res["gamestate_string"];
 
-                if (json_res.hasOwnProperty('matchid')) {
+                if (json_res.hasOwnProperty("matchid")) {
                     document.getElementById("{{ server.id }}get5_matchname").innerText = json_res["matchid"];
                 } else {
                     document.getElementById("{{ server.id }}get5_matchname").innerText = "No Match";
                 }
 
-                {% if not simple %}
-                if (json_res.hasOwnProperty('paused')) {
+                {% if admin %}
+                if (json_res.hasOwnProperty("paused")) {
                     document.getElementById("{{ server.id }}get5_paused").innerText = json_res["paused"];
                 }
 
-                if (json_res.hasOwnProperty('map_number')) {
+                if (json_res.hasOwnProperty("map_number")) {
                     document.getElementById("{{ server.id }}get5_map_number").innerText = json_res["map_number"];
                 } else {
                     document.getElementById("{{ server.id }}get5_map_number").innerText = "";
@@ -165,10 +165,10 @@
                 {% endif %}
             {% endfor %}
         }
-        {% if ableToEndMatch %}
+        {% if admin %}
         function endMatch(id) {
             let xmlHttp = new XMLHttpRequest();
-            xmlHttp.open("POST", "http://127.0.0.1:5000/config/endMatch", true);
+            xmlHttp.open("POST", "/api/endMatch", true);
 
             xmlHttp.setRequestHeader("Content-Type", "application/json");
             xmlHttp.send(JSON.stringify({
