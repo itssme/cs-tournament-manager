@@ -12,10 +12,12 @@ services:
       - 8080:8080
   csgo_manager:
     depends_on:
-    - db
+      - db
     build:
       context: .
       dockerfile: Dockerfile
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /tmp/benchmarks:/tmp/benchmarks
+      - ./teams.json:/app/teams.json
+    ports:
+      - 80:80

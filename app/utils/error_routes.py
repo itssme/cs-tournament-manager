@@ -1,12 +1,14 @@
 import logging
 
-from fastapi import HTTPException, Request
+import uvicorn
+from fastapi import Request
 from fastapi.responses import HTMLResponse
+from starlette.exceptions import HTTPException
 
 
 def set_routes(app, templates):
-    @app.exception_handler(HTTPException, response_class=HTMLResponse)
-    def error401(request: Request, exc: HTTPException):
+    @app.exception_handler(HTTPException)
+    def errors(request: Request, exc: HTTPException):
         logging.error(f"{exc.status_code} error -> {exc.detail}")
         if exc.status_code == 404:
             return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
