@@ -5,9 +5,7 @@
 The software has been in developed for the airlan21 (25.06.2021). A small csgo tournament organized for
 team-building by robo4you.at.
 
-**Currently, it is being updated and rewritten** for the 'airlan Winter Edition' which will take place in early january
-
-2023.
+**Currently, it is being updated and rewritten** for the 'airlan Winter Edition' which will take place in early january 2023.
 
 ## What does this software do?
 
