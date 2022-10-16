@@ -21,3 +21,11 @@ services:
       - ./teams.json:/app/teams.json
     ports:
       - 80:80
+  telegram_bot:
+    depends_on:
+      - csgo_manager
+    build:
+      context: telegram_bot
+      dockerfile: Dockerfile
+    env_file:
+      - telegram_bot/.env

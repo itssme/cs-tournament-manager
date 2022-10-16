@@ -14,7 +14,7 @@ class MatchGen:
         pass
 
     @staticmethod
-    def matchcfg_from_team_ids(team1: int, team2: int):
+    def matchcfg_from_team_ids(team1: int, team2: int, best_out_of=1):
         team1 = db.get_team(team1)
         team2 = db.get_team(team2)
 
@@ -24,7 +24,7 @@ class MatchGen:
         data = {"team1": team1.to_json(), "team2": team2.to_json()}
         data["team1"]["players"] = [db.get_team_players(team1.id)]
         data["team2"]["players"] = [db.get_team_players(team2.id)]
-
-        logging.info(data)
+        data["matchname"] = f"{data['team1']['name']} vs {data['team2']['name']}"
+        data["mapnumbers"] = best_out_of
 
         return template.render(**data)

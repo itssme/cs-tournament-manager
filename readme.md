@@ -20,6 +20,17 @@ transferred and loaded to the csgo server. It also displays some basic statistic
 + Goto `http://127.0.0.1` and add created matches.
 + The match will be started in a docker container and be visible in the `/status` page.
 
+### Telegram BOT
+
++ Create .env file in the folder `telegram_bot/.env`
++ Fill it with the following content:
+```env
+BOT_TOKEN=your_token_here
+CHAT_IDS="chat_id_1,chat_id_2..."
+```
+
++ The first line is the telegram bot token of you bot. The second line specifies who has access to the bot and can send it messages/ commands.
+
 ## Banned Players
 
 | SteamID              | Reason                              |

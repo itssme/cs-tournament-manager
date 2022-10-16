@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import time
+from typing import Union
 
 from utils.match_conf_gen import MatchGen
 from utils import db
@@ -13,6 +14,9 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
+
+from fastapi.encoders import jsonable_encoder
+from pydantic import BaseModel
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logging.info("server running")
@@ -41,6 +45,14 @@ async def status(request: Request):
     return templates.TemplateResponse("status.html", {"request": request})
 
 
+class MatchInfo(BaseModel):
+    team1: int
+    team2: int
+    best_of: Union[int, None] = None
+
+
 @api.post("/createMatch")
-async def createMatch(request: Request):
-    return MatchGen.matchcfg_from_team_ids(1, 2)
+async def createMatch(request: Request, match: MatchInfo):
+    match_json = jsonable_encoder(match)
+
+    return MatchGen.matchcfg_from_team_ids(match_json["team1"], match_json["team2"], match_json["best_of"])
