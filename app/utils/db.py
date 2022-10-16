@@ -1,6 +1,7 @@
 import json
 import logging
 import time
+from typing import List
 
 import psycopg2
 
@@ -13,6 +14,10 @@ class Player(object):
     @staticmethod
     def from_json(dict: dict) -> Player:
         return Player(dict["id"] if "id" in dict.keys() else None, dict["name"], dict["steam_id"])
+
+    @staticmethod
+    def from_tuple(tuple: tuple) -> Player:
+        return Player(tuple[0], tuple[1], tuple[2])
 
     def __init__(self, id, name, steam_id):
         self.id = id
@@ -40,6 +45,10 @@ class Team(object):
     @staticmethod
     def from_json(dict: dict) -> Team:
         return Team(dict["id"] if "id" in dict.keys() else None, dict["tag"], dict["name"])
+
+    @staticmethod
+    def from_tuple(tuple: tuple) -> Team:
+        return Team(tuple[0], tuple[1], tuple[2])
 
     def __init__(self, id, tag, name):
         self.id = id
@@ -73,9 +82,9 @@ def setup_db():
 
             with conn.cursor() as cursor:
                 try:
-                    cursor.execute("drop table team_assignments;")
-                    cursor.execute("drop table teams;")
-                    cursor.execute("drop table players;")
+                    cursor.execute("drop table if exists team_assignments;")
+                    cursor.execute("drop table if exists teams;")
+                    cursor.execute("drop table if exists players;")
                     cursor.execute(open("utils/sql/db.sql", "r").read())
                 except Exception as e:
                     # for some reason postgres has some trouble handling "create table if not exists"
@@ -139,25 +148,39 @@ def insert_team_assignment(team: Team, player: Player):
             cursor.execute("insert into team_assignments values(%s, %s)", (team.id, player.id))
 
 
-def get_player(id: int):
+def get_player(player_id: int) -> Player:
     with psycopg2.connect(
             host="db",
             database="postgres",
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
-            cursor.execute("select * from players where id = %s", (id,))
-            player_tuple = cursor.fetchall()
-            return Player(player_tuple[0], player_tuple[1], player_tuple[2])
+            cursor.execute("select * from players where id = %s", (player_id,))
+            player_tuple = cursor.fetchall()[0]
+            return Player.from_tuple(player_tuple)
 
 
-def get_team(id: int):
+def get_team(team_id: int) -> Team:
     with psycopg2.connect(
             host="db",
             database="postgres",
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
-            cursor.execute("select * from teams where id = %s", (id,))
-            team_tuple = cursor.fetchall()
-            return Team(team_tuple[0], team_tuple[1])
+            cursor.execute("select * from teams where id = %s", (team_id,))
+            team_tuple = cursor.fetchall()[0]
+            return Team.from_tuple(team_tuple)
+
+
+def get_team_players(team_id: int) -> List[Player]:
+    with psycopg2.connect(
+            host="db",
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "select * from players join team_assignments on players.id = team_assignments.player where team_assignments.team = %s",
+                (team_id,))
+            players = cursor.fetchall()
+            return [Player.from_tuple(player) for player in players]
