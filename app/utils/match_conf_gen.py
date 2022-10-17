@@ -1,12 +1,57 @@
+import json
 import logging
 
 from utils import db
-from jinja2 import Environment, select_autoescape, FileSystemLoader
 
-env = Environment(loader=FileSystemLoader("templates"),
-                  autoescape=select_autoescape()
-                  )
-template = env.get_template("match.cfg")
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+
+
+class MatchConfig(dict):
+    def __init__(self, json_str: str = "", json_obj: dict = None):
+        if json_str:
+            super(MatchConfig, self).__init__(json.loads(json_str))
+        elif json_obj is not None:
+            super(MatchConfig, self).__init__(json_obj)
+        else:
+            super(MatchConfig, self).__init__()
+
+        self["skip_veto"] = False
+        self["veto_first"] = "team1"
+        self["side_type"] = "standard"
+        self["players_per_team"] = 5
+        self["min_players_to_ready"] = 1
+        self["min_spectators_to_ready"] = 0
+
+    # override print and to str because json uses " and not ' to represent strings
+    def __repr__(self):
+        return self.to_json()
+
+    def __str__(self):
+        return self.to_json()
+
+    def to_json(self):
+        return json.dumps(self)
+
+    def set_match_id(self, matchid: str):
+        self["matchid"] = matchid
+
+    def set_num_of_maps(self, maps: int):
+        self["num_maps"] = maps
+
+    def add_team(self, team_id: int):
+        team = db.get_team(team_id)
+        key = "team1"
+        if "team1" in self.keys():
+            key = "team2"
+        self[key] = team.to_json()
+        self[key]["flag"] = "AT"
+        self[key]["players"] = dict((player.steam_id, player.name) for player in db.get_team_players(team_id))
+
+    def generate_match_name(self):
+        if "team1" in self.keys() and "team2" in self.keys():
+            self.set_match_id(f"{self['team1']['name']} vs {self['team2']['name']}")
+        else:
+            raise ValueError("Cannot generate teamname, as team1 or team2 are not added yet.")
 
 
 class MatchGen:
@@ -14,17 +59,11 @@ class MatchGen:
         pass
 
     @staticmethod
-    def matchcfg_from_team_ids(team1: int, team2: int, best_out_of=1):
-        team1 = db.get_team(team1)
-        team2 = db.get_team(team2)
+    def from_team_ids(team1: int, team2: int, best_out_of=1):
+        matchcfg = MatchConfig()
+        matchcfg.add_team(team1)
+        matchcfg.add_team(team2)
+        matchcfg.set_num_of_maps(best_out_of)
+        matchcfg.generate_match_name()
 
-        logging.info(team1)
-        logging.info(team2)
-
-        data = {"team1": team1.to_json(), "team2": team2.to_json()}
-        data["team1"]["players"] = [db.get_team_players(team1.id)]
-        data["team2"]["players"] = [db.get_team_players(team2.id)]
-        data["matchname"] = f"{data['team1']['name']} vs {data['team2']['name']}"
-        data["mapnumbers"] = best_out_of
-
-        return template.render(**data)
+        return matchcfg

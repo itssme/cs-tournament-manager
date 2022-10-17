@@ -55,4 +55,4 @@ class MatchInfo(BaseModel):
 async def createMatch(request: Request, match: MatchInfo):
     match_json = jsonable_encoder(match)
 
-    return MatchGen.matchcfg_from_team_ids(match_json["team1"], match_json["team2"], match_json["best_of"])
+    return MatchGen.from_team_ids(match_json["team1"], match_json["team2"], match_json["best_of"])
