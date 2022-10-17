@@ -18,6 +18,6 @@ class ServerManager:
             "cvars": str({"hostname": match_cfg["matchid"]})
         }
 
-        container = client.containers.run("csgo_server", name=match_cfg["matchid"], environment=container_variables,
+        container = client.containers.run("theobrown/csgo-get5-docker:latest", name=match_cfg["matchid"], environment=container_variables,
                                           detach=True, timestamps=True)
         return container
