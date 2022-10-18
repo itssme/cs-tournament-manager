@@ -4,6 +4,7 @@ import os
 import time
 from typing import Union
 
+from utils.servers import ServerManager
 from utils.match_conf_gen import MatchGen
 from utils import db
 from functools import wraps
@@ -34,6 +35,8 @@ db.setup_db()
 error_routes.set_routes(app, templates)
 error_routes.set_api_routes(api)
 
+server_manger = ServerManager()
+
 
 @app.get("/", response_class=RedirectResponse)
 async def redirect_index():
@@ -55,4 +58,8 @@ class MatchInfo(BaseModel):
 async def createMatch(request: Request, match: MatchInfo):
     match_json = jsonable_encoder(match)
 
-    return MatchGen.from_team_ids(match_json["team1"], match_json["team2"], match_json["best_of"])
+    match_cfg = MatchGen.from_team_ids(match_json["team1"], match_json["team2"], match_json["best_of"])
+
+    server_manger.create_match(match_cfg)
+
+    return match_cfg
