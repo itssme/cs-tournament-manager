@@ -6,3 +6,4 @@ python-telegram-bot
 aiorcon
 psycopg2
 pysrcds
+docker
