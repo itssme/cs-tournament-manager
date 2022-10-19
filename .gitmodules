@@ -1,3 +1,0 @@
-[submodule "get5_image/csgo-get5-docker"]
-	path = get5_image/csgo-get5-docker
-	url = https://github.com/theo-brown/csgo-get5-docker.git

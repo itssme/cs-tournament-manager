@@ -60,16 +60,16 @@ RUN apt-get -qq update \
         rsync \
     && su user -c  \
        "mkdir $CSGO_DIR \
-       && bash $HOME_DIR/server-update.sh
+       && bash $HOME_DIR/server-update.sh"
 
 RUN su user -c  \
-       && wget -q -O - $METAMOD_URL | tar -xz -C $CSGO_DIR/csgo \
+       "wget -q -O - $METAMOD_URL | tar -xz -C $CSGO_DIR/csgo \
        && wget -q -O - $SOURCEMOD_URL | tar -xz -C $CSGO_DIR/csgo \
        && wget -q -O get5.zip $GET5_URL \
        && unzip -q get5.zip \
-       && rsync -aq get5/addons/ $CSGO_DIR/csgo/addons \
-       && rsync -aq get5/cfg/ $CSGO_DIR/csgo/cfg \
-       && rm -rf get5 get5.zip" \
+       && mv addons/ $CSGO_DIR/csgo/addons \
+       && mv cfg/ $CSGO_DIR/csgo/cfg \
+       && rm -rf addons cfg get5.zip" \
     && apt-get -qq purge -y unzip rsync wget \
     && apt-get -qq autoremove -y \
     && apt-get -qq clean \
