@@ -1,9 +1,9 @@
-echo "running server-launch.sh"
+echo "running server-launch.sh 5.0"
 
 ######################
 # Set launch options #
 ######################
-ARGS="-game csgo -console -usercon -steam_dir $STEAMCMD_DIR -steamcmd_script $STEAMCMD_DIR/steamcmd.sh -ip 0.0.0.0"
+ARGS="-game csgo -console -usercon"
 
 if [ -v SERVER_TOKEN ]
 then
@@ -105,9 +105,14 @@ then
 fi
 if [ -v MATCH_CONFIG ]
 then
+    echo "Found match_config, writing to $CSGO_DIR/csgo/cfg/sourcemod/get5.cfg"
     echo $MATCH_CONFIG > $CSGO_DIR/csgo/match_config.json
     echo 'get5_autoload_config match_config.json' > $CSGO_DIR/csgo/cfg/sourcemod/get5.cfg
+    cat $CSGO_DIR/csgo/match_config.json
+    cat $CSGO_DIR/csgo/cfg/sourcemod/get5.cfg
+    echo "Done adding match_config to server"
 else
+    echo "No match_config supplied, running without one."
     echo 'get5_check_auths 0' > $CSGO_DIR/csgo/cfg/sourcemod/get5.cfg
 fi
 

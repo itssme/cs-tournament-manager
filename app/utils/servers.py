@@ -24,9 +24,11 @@ class ServerManager:
             "cvars": str({"hostname": match_cfg["matchid"]})
         }
 
-        container = client.containers.run("theobrown/csgo-get5-docker:latest",
-                                          name=match_cfg["matchid"].replace(" ", "_"),
+        container_name = f"CSGO_{match_cfg['team1']['id']}_{match_cfg['team2']['id']}"
+
+        container = client.containers.run("get5-csgo:latest",
+                                          name=container_name,
                                           environment=container_variables,
-                                          detach=False, network_mode="host")
-        logging.info(container)
+                                          detach=True, network="host")
+        logging.info(f"Started container: {container_name} -> {container}")
         return container

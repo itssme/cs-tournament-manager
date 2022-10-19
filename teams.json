@@ -154,5 +154,25 @@
                 "name": "Jeremy Sztavinovszki"
             }
         ]
+    },
+    {
+        "name": "TestingOne",
+        "tag": "T1",
+        "players": [
+            {
+                "steam_id": "STEAM_0:1:124584389",
+                "name": "Jöl"
+            }
+        ]
+    },
+    {
+        "name": "TestingTwo",
+        "tag": "T2",
+        "players": [
+            {
+                "steam_id": "STEAM_0:1:523224064",
+                "name": "Bernhard Klauninger"
+            }
+        ]
     }
 ]

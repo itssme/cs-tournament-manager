@@ -67,8 +67,8 @@ RUN su user -c  \
        && wget -q -O - $SOURCEMOD_URL | tar -xz -C $CSGO_DIR/csgo \
        && wget -q -O get5.zip $GET5_URL \
        && unzip -q get5.zip \
-       && mv addons/ $CSGO_DIR/csgo/addons \
-       && mv cfg/ $CSGO_DIR/csgo/cfg \
+       && rsync -aq addons/ $CSGO_DIR/csgo/addons \
+       && rsync -aq cfg/ $CSGO_DIR/csgo/cfg \
        && rm -rf addons cfg get5.zip" \
     && apt-get -qq purge -y unzip rsync wget \
     && apt-get -qq autoremove -y \

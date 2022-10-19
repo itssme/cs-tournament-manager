@@ -7,7 +7,10 @@ import psycopg2
 
 
 class Player:
-    pass
+    def __init__(self):
+        self.id: int = 0
+        self.name: str = ""
+        self.steam_id: str = ""
 
 
 class Player(object):
@@ -38,7 +41,10 @@ class Player(object):
 
 
 class Team:
-    pass
+    def __init__(self):
+        self.id: int = 0
+        self.tag: str = ""
+        self.name: str = ""
 
 
 class Team(object):
@@ -110,7 +116,10 @@ def setup_db():
         insert_team(team_obj)
         for player in team["players"]:
             player_obj = Player.from_json(player)
-            insert_player(player_obj)
+            try:
+                insert_player(player_obj)
+            except psycopg2.errors.UniqueViolation:
+                player_obj = get_player_by_steam_id(player_obj.steam_id)
             insert_team_assignment(team_obj, player_obj)
 
 
@@ -156,6 +165,18 @@ def get_player(player_id: int) -> Player:
             password="pass") as conn:
         with conn.cursor() as cursor:
             cursor.execute("select * from players where id = %s", (player_id,))
+            player_tuple = cursor.fetchall()[0]
+            return Player.from_tuple(player_tuple)
+
+
+def get_player_by_steam_id(player_steam_id: str):
+    with psycopg2.connect(
+            host="db",
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("select * from players where steam_id = %s", (player_steam_id,))
             player_tuple = cursor.fetchall()[0]
             return Player.from_tuple(player_tuple)
 
