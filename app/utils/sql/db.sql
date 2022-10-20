@@ -18,3 +18,11 @@ create table if not exists team_assignments
     player integer references players,
     primary key (team, player)
 );
+
+create table if not exists servers
+(
+    id serial primary key,
+    name text not null,
+    status int default 0,
+    port int not null
+)

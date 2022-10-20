@@ -1,12 +1,13 @@
 import json
 import logging
+from threading import Lock
 
 import docker
 
 
 class ServerManager:
     def __init__(self):
-        pass
+        self.port_lock = Lock()
 
     def create_match(self, match_cfg: dict):
         self.__start_container(match_cfg)

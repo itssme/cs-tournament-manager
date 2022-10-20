@@ -1,7 +1,7 @@
 import json
 import logging
 import time
-from typing import List
+from typing import List, Tuple
 
 import psycopg2
 
@@ -205,3 +205,25 @@ def get_team_players(team_id: int) -> List[Player]:
                 (team_id,))
             players = cursor.fetchall()
             return [Player.from_tuple(player) for player in players]
+
+
+def get_servers() -> List[Tuple]:
+    with psycopg2.connect(
+            host="db",
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("select * from servers")
+            return cursor.fetchall()
+
+
+def insert_server(server: Tuple):
+    with psycopg2.connect(
+            host="db",
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("insert into servers values(default, %s, %s, %s) returning id", server)
+            return cursor.fetchall()[0][0]
