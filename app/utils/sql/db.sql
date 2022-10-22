@@ -24,5 +24,5 @@ create table if not exists servers
     id serial primary key,
     name text not null,
     status int default 0,
-    port int not null
+    port int default -1
 )

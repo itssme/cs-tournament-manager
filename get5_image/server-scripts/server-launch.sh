@@ -77,7 +77,7 @@ if [ -v MAP ]
 then
     ARGS="$ARGS +map $MAP"
 else
-    ARGS="$ARGS +map de_mirage"
+    ARGS="$ARGS +map cs_agecny"
 fi
 if [ -v HOST_WORKSHOP_COLLECTION ]
 then

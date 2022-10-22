@@ -227,3 +227,34 @@ def insert_server(server: Tuple):
         with conn.cursor() as cursor:
             cursor.execute("insert into servers values(default, %s, %s, %s) returning id", server)
             return cursor.fetchall()[0][0]
+
+
+def insert_basic_server(name: str):
+    with psycopg2.connect(
+            host="db",
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("insert into servers values(default, %s, default, default) returning id", (name,))
+            return cursor.fetchall()[0][0]
+
+
+def set_server_port(server_id: int, port: int):
+    with psycopg2.connect(
+            host="db",
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("update servers set port = %s where id = %s", (port, server_id))
+
+
+def set_server_status(server_id: int, status: int):
+    with psycopg2.connect(
+            host="db",
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("update servers set status = %s where id = %s", (status, server_id))
