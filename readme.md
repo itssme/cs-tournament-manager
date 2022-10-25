@@ -10,11 +10,13 @@ team-building by robo4you.at.
 
 ## What does this software do?
 
-It manages a number of get5 servers for small to medium lan parties. E.g. the webinterface lets you define new matches
-by selecting players and creating teams. You can then select a free server, and the match config file will be
+It manages a number of get5 servers for small to medium lan parties. E.g. the webinterface (and the telegram bot) lets you define new matches
+by selecting players and creating teams. A new get5 server will then be started in a dicker container and the match config file will be
 transferred and loaded to the csgo server. It also displays some basic statistics about the servers.
 
-## How to use this software?
+## How to use this software
+
+TODO: add instructions on how to build the dockerfile for the get5 server
 
 + Edit the `teams.json` file to include all your teams and players. This file will be mounted in the dockerfile.
 + Then start the server like: `docker-compose up --build`
@@ -32,9 +34,9 @@ CHAT_IDS="chat_id_1,chat_id_2..."
 ```
 
 + The first line is the telegram bot token of you bot. The second line specifies who has access to the bot and can send
-  it messages/ commands. If you are not sure what your chat_id is, then leave the field empty for the time being and run
-  the bot only with the bot token. Then add your bot and type `/help` in the chat. Look at the log files of the
-  software, and you will se your chat_id printed there.
+  messages/ commands to it. If you are not sure what your chat_id is, then leave the field empty for the time being and run
+  the bot only with the bot token. Then add your bot and type `/help` in the chat. Look at the log output of the
+  software, and you will see your chat_id printed there.
 
 ## Banned Players
 
