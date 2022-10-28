@@ -5,25 +5,28 @@
 The software has been developed for the airlan21 (25.06.2021). A small csgo tournament organized for
 team-building by robo4you.at.
 
-**Currently, it is being updated and rewritten** for the 'airlan Winter Edition' which will take place in early january
-2023.
+**Currently, it is being updated and rewritten** for the 'airlan Winter Edition' which will take place in early january 2023.
 
 ## What does this software do?
 
-It manages a number of get5 servers for small to medium lan parties. E.g. the webinterface (and the telegram bot) lets you define new matches
-by selecting players and creating teams. A new get5 server will then be started in a dicker container and the match config file will be
+It manages a number of get5 servers for small to medium lan parties. E.g. the webinterface (and the telegram bot) lets
+you define new matches
+by selecting players and creating teams. A new get5 server will then be started in a dicker container and the match
+config file will be
 transferred and loaded to the csgo server. It also displays some basic statistics about the servers.
 
 ## How to use this software
 
-TODO: add instructions on how to build the dockerfile for the get5 server
+### 1. Create csgo docker container
+
++ Go to the folder `get5_image` and run the `build_image.sh` script.
++ This will download the csgo server and automatically install get5. (this step may take some time)
+
+### 2. Create Teams
 
 + Edit the `teams.json` file to include all your teams and players. This file will be mounted in the dockerfile.
-+ Then start the server like: `docker-compose up --build`
-+ Goto `http://127.0.0.1` and add created matches.
-+ The match will be started in a docker container and be visible in the `/status` page.
 
-### Telegram BOT
+### 3. Telegram BOT
 
 + Create .env file in the folder `telegram_bot/.env`
 + Fill it with the following content:
@@ -34,9 +37,16 @@ CHAT_IDS="chat_id_1,chat_id_2..."
 ```
 
 + The first line is the telegram bot token of you bot. The second line specifies who has access to the bot and can send
-  messages/ commands to it. If you are not sure what your chat_id is, then leave the field empty for the time being and run
+  messages/ commands to it. If you are not sure what your chat_id is, then leave the field empty for the time being and
+  run
   the bot only with the bot token. Then add your bot and type `/help` in the chat. Look at the log output of the
   software, and you will see your chat_id printed there.
+
+### 4. Start the software
+
++ Then start the server like: `docker-compose up --build`
++ Goto `http://127.0.0.1` and create matches. (TODO)
++ The match will be started in a docker container and be visible in the `/status` page. (TODO)
 
 ## Banned Players
 
