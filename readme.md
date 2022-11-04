@@ -47,6 +47,7 @@ CHAT_IDS="chat_id_1,chat_id_2..."
 + Then start the server like: `docker-compose up --build`
 + Goto `http://127.0.0.1` and create matches. (TODO)
 + The match will be started in a docker container and be visible in the `/status` page. (TODO)
++ (currebtly matches can olny be started by directly calling the API)
 
 ## Banned Players
 
