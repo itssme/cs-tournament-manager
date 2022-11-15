@@ -21,8 +21,10 @@ create table if not exists team_assignments
 
 create table if not exists servers
 (
-    id serial primary key,
-    name text not null,
+    id     serial primary key,
+    name   text not null,
     status int default 0,
-    port int default -1
+    port   int default -1,
+    team1  integer references teams,
+    team2  integer references teams
 )

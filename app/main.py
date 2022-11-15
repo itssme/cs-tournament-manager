@@ -4,6 +4,8 @@ import os
 import time
 from typing import Union
 
+from starlette.responses import JSONResponse
+
 from utils.servers import ServerManager
 from utils.match_conf_gen import MatchGen
 from utils import db
@@ -46,6 +48,25 @@ async def redirect_index():
 @app.get("/status", response_class=HTMLResponse)
 async def status(request: Request):
     return templates.TemplateResponse("status.html", {"request": request})
+
+
+@api.get("/info", response_class=JSONResponse)
+async def status(request: Request):
+    matches = db.get_servers()
+    print(matches)
+    servers = [db.Server.from_tuple(server) for server in db.get_servers()]
+
+    return servers
+
+
+class ServerID(BaseModel):
+    id: int
+
+
+@api.post("/stopMatch", response_class=JSONResponse)
+async def status(request: Request, server: ServerID):
+    server_manger.stop_match(server.id)
+    return {"status": 0}
 
 
 class MatchInfo(BaseModel):

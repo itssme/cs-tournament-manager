@@ -31,9 +31,9 @@ RUN useradd -m user
 # Clean up
 ENV HOME_DIR=/home/user \
     CSGO_DIR=/home/user/csgo-server \
-    METAMOD_URL=https://mms.alliedmods.net/mmsdrop/1.11/mmsource-1.11.0-git1148-linux.tar.gz \
-    SOURCEMOD_URL=https://sm.alliedmods.net/smdrop/1.11/sourcemod-1.11.0-git6911-linux.tar.gz \
-    GET5_URL=https://github.com/splewis/get5/releases/download/v0.10.5/get5-v0.10.5.zip
+    METAMOD_URL=https://mms.alliedmods.net/mmsdrop/1.12/mmsource-1.12.0-git1164-linux.tar.gz \
+    SOURCEMOD_URL=https://sm.alliedmods.net/smdrop/1.12/sourcemod-1.12.0-git6936-linux.tar.gz \
+    GET5_URL=https://github.com/splewis/get5/releases/download/v0.11.0/get5-v0.11.0.tar.gz
 
 WORKDIR $HOME_DIR
 
@@ -65,12 +65,15 @@ RUN apt-get -qq update \
 RUN su user -c  \
        "wget -q -O - $METAMOD_URL | tar -xz -C $CSGO_DIR/csgo \
        && wget -q -O - $SOURCEMOD_URL | tar -xz -C $CSGO_DIR/csgo \
-       && wget -q -O get5.zip $GET5_URL \
-       && unzip -q get5.zip \
+       && wget -q -O get5.tar.gz $GET5_URL \
+       && tar -xzf get5.tar.gz \
        && rsync -aq addons/ $CSGO_DIR/csgo/addons \
        && rsync -aq cfg/ $CSGO_DIR/csgo/cfg \
-       && rm -rf addons cfg get5.zip" \
-    && apt-get -qq purge -y unzip rsync wget \
+       && rm -rf addons cfg get5.zip"
+
+RUN apt install gdb -y
+
+RUN apt-get -qq purge -y unzip rsync wget \
     && apt-get -qq autoremove -y \
     && apt-get -qq clean \
     && rm -rf /var/lib/apt/lists/*

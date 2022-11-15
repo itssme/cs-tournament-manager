@@ -74,6 +74,48 @@ class Team(object):
         return str(self.to_json())
 
 
+class Server:
+    id: int
+    name: str
+    status: int
+    port: int
+    team1: int
+    team2: int
+
+
+class Server(object):
+    @staticmethod
+    def from_json(dict: dict) -> Server:
+        return Server(dict["id"] if "id" in dict.keys() else None, dict["name"], dict["status"], dict["port"],
+                      dict["team1"] if "team1" in dict.keys() else None,
+                      dict["team2"] if "team2" in dict.keys() else None)
+
+    @staticmethod
+    def from_tuple(tuple: tuple) -> Server:
+        return Server(tuple[0], tuple[1], tuple[2], tuple[3], tuple[4], tuple[5])
+
+    def __init__(self, id, name, status, port, team1, team2):
+        self.id = id
+        self.name = name
+        self.status = status
+        self.port = port
+        self.team1 = team1
+        self.team2 = team2
+
+    def tuple(self):
+        return self.id, self.name, self.status, self.port, self.team1, self.team2
+
+    def to_json(self) -> dict:
+        return {"id": self.id, "name": self.name, "status": self.status, "port": self.port, "team1": self.team1,
+                "team2": self.team2}
+
+    def __str__(self):
+        return str(self.to_json())
+
+    def __repr__(self):
+        return str(self.to_json())
+
+
 def setup_db():
     logging.info("Creating tables..")
     connected = False
@@ -113,14 +155,14 @@ def setup_db():
 
     for team in teams:
         team_obj = Team.from_json(team)
-        insert_team(team_obj)
+        insert_team_or_set_id(team_obj)
         for player in team["players"]:
             player_obj = Player.from_json(player)
             try:
                 insert_player(player_obj)
             except psycopg2.errors.UniqueViolation:
                 player_obj = get_player_by_steam_id(player_obj.steam_id)
-            insert_team_assignment(team_obj, player_obj)
+            insert_team_assignment_if_not_exists(team_obj, player_obj)
 
 
 def insert_player(player: Player):
@@ -130,29 +172,51 @@ def insert_player(player: Player):
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
+            cursor.execute("select id from players where steam_id = %s", (player.steam_id,))
+            res = cursor.fetchall()
+            if len(res) != 0:
+                player.id = res[0][0]
+                logging.info(f"Found player: '{player.name}' in database -> '{player.steam_id}'")
+                return
+
+        with conn.cursor() as cursor:
             cursor.execute("insert into players values(default, %s, %s) returning id", player.tuple()[1:])
             player.id = cursor.fetchall()[0][0]
-            logging.info(str(player))
+            logging.info(f"Inserted team: '{player}' into database")
 
 
-def insert_team(team: Team):
+def insert_team_or_set_id(team: Team):
     with psycopg2.connect(
             host="db",
             database="postgres",
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
+            cursor.execute("select id from teams where name = %s", (team.name,))
+            res = cursor.fetchall()
+            if len(res) != 0:
+                team.id = res[0][0]
+                logging.info(f"Found team: '{team.name}' in database -> '{team.id}'")
+                return
+
+        with conn.cursor() as cursor:
             cursor.execute("insert into teams values(default, %s, %s) returning id", team.tuple()[1:])
             team.id = cursor.fetchall()[0][0]
-            logging.info(str(team))
+            logging.info(f"Inserted team: '{team}' into database")
 
 
-def insert_team_assignment(team: Team, player: Player):
+def insert_team_assignment_if_not_exists(team: Team, player: Player):
     with psycopg2.connect(
             host="db",
             database="postgres",
             user="postgres",
             password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("select * from team_assignments where team = %s and player = %s", (team.id, player.id))
+            res = cursor.fetchall()
+            if len(res) != 0:
+                return
+
         with conn.cursor() as cursor:
             cursor.execute("insert into team_assignments values(%s, %s)", (team.id, player.id))
 
@@ -240,6 +304,18 @@ def insert_basic_server(name: str):
             return cursor.fetchall()[0][0]
 
 
+def insert_basic_server_with_teams(name: str, team1: int, team2: int):
+    with psycopg2.connect(
+            host="db",
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("insert into servers values(default, %s, default, default, %s, %s) returning id",
+                           (name, team1, team2))
+            return cursor.fetchall()[0][0]
+
+
 def set_server_port(server_id: int, port: int):
     with psycopg2.connect(
             host="db",
@@ -258,3 +334,24 @@ def set_server_status(server_id: int, status: int):
             password="pass") as conn:
         with conn.cursor() as cursor:
             cursor.execute("update servers set status = %s where id = %s", (status, server_id))
+
+
+def get_server_name_from_id(server_id: int):
+    with psycopg2.connect(
+            host="db",
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("select name from servers where id = %s", (server_id,))
+            return cursor.fetchall()[0][0]
+
+
+def delete_server(server_id: int):
+    with psycopg2.connect(
+            host="db",
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("delete from servers where id = %s", (server_id,))

@@ -3,7 +3,7 @@ echo "running server-launch.sh"
 ######################
 # Set launch options #
 ######################
-ARGS="-game csgo -console -usercon +net_public_adr 0.0.0.0"
+ARGS="-game csgo -console -usercon"
 
 if [ -v SERVER_TOKEN ]
 then

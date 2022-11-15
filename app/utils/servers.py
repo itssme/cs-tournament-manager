@@ -16,12 +16,17 @@ class ServerManager:
     def create_match(self, match_cfg: dict):
         self.__start_container(match_cfg)
 
+    def stop_match(self, server_id: int):
+        container_name = db.get_server_name_from_id(server_id)
+        self.__stop_container_and_delete(container_name)
+        db.delete_server(server_id)
+
     def __start_container(self, match_cfg: dict):
         client = docker.from_env()
 
         container_name = f"CSGO_{match_cfg['team1']['id']}_{match_cfg['team2']['id']}"
 
-        server_id = self.create_server_id(container_name)
+        server_id = self.create_server_id(container_name, match_cfg['team1']['id'], match_cfg['team2']['id'])
         port = self.reserve_free_port(server_id)
 
         container_variables = {
@@ -42,8 +47,17 @@ class ServerManager:
         self.set_server_status(server_id, 1)
         return container
 
-    def create_server_id(self, match_name: str) -> int:
-        return db.insert_basic_server(match_name)
+    def __stop_container_and_delete(self, container_name: str):
+        client = docker.from_env()
+        logging.info(f"Stopping container: {container_name}")
+        container = client.containers.get(container_name)
+        container.stop(timeout=10)
+        logging.info(f"Stopped container: {container_name}")
+        container.remove()
+        logging.info(f"Removed container: {container_name}")
+
+    def create_server_id(self, match_name: str, team1: int, team2: int) -> int:
+        return db.insert_basic_server_with_teams(match_name, team1, team2)
 
     def reserve_free_port(self, server_id: int) -> int:
         with self.port_lock:
