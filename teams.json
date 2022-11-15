@@ -1,178 +1,182 @@
 [
-    {
-        "name": "Unranked",
-        "tag": "Unranked",
-        "players": [
-            {
-                "steam_id": "STEAM_0:1:177215629",
-                "name": "Florian Schröder"
-            },
-            {
-                "steam_id": "STEAM_0:0:430334076",
-                "name": "Yunus Emre Güclü"
-            },
-            {
-                "steam_id": "STEAM_0:1:507159404",
-                "name": "Elvin Sabani"
-            },
-            {
-                "steam_id": "STEAM_0:1:126790607",
-                "name": "Florian Szabo"
-            },
-            {
-                "steam_id": "STEAM_0:0:155822817",
-                "name": "Juian Riedinger"
-            }
-        ]
-    },
-    {
-        "name": "Faceit LVL 1",
-        "tag": "FaceitLvL1",
-        "players": [
-            {
-                "steam_id": "STEAM_0:1:523224064",
-                "name": "Bernhard Klauninger"
-            },
-            {
-                "steam_id": "STEAM_0:0:197622965",
-                "name": "Dustin Lampel"
-            },
-            {
-                "steam_id": "STEAM_0:0:577683722",
-                "name": "Seref Efe Haylaz"
-            },
-            {
-                "steam_id": "STEAM_0:1:505786367",
-                "name": "Peter Haubenburger"
-            },
-            {
-                "steam_id": "STEAM_0:1:189884824",
-                "name": "Marc Kühmayer"
-            }
-        ]
-    },
-    {
-        "name": "airplebs",
-        "tag": "airplebs",
-        "players": [
-            {
-                "steam_id": "STEAM_0:0:64160074",
-                "name": "Jöl"
-            },
-            {
-                "steam_id": "STEAM_0:1:57164321",
-                "name": "Honies"
-            },
-            {
-                "steam_id": "STEAM_0:1:419252527",
-                "name": "Niklas"
-            },
-            {
-                "steam_id": "STEAM_0:1:79835562",
-                "name": "Nico"
-            },
-            {
-                "steam_id": "STEAM_0:1:57027738",
-                "name": "Koka"
-            }
-        ]
-    },
-    {
-        "name": "Die Globale Elite",
-        "tag": "SUS",
-        "players": [
-            {
-                "steam_id": "STEAM_0:1:234150477",
-                "name": "Sebastian Kawicher"
-            },
-            {
-                "steam_id": "STEAM_0:0:235564480",
-                "name": "Eric Gut"
-            },
-            {
-                "steam_id": "STEAM_0:0:194233295",
-                "name": "Dominik Ecimovic"
-            },
-            {
-                "steam_id": "STEAM_0:1:94333040",
-                "name": "Christoph Fellner"
-            },
-            {
-                "steam_id": "STEAM_0:1:242223893",
-                "name": "Simon Groiss"
-            }
-        ]
-    },
-    {
-        "name": "CS:LOW",
-        "tag": "CSLOW",
-        "players": [
-            {
-                "steam_id": "STEAM_0:0:567741633",
-                "name": "Larissa Kornthaler"
-            },
-            {
-                "steam_id": "STEAM_0:0:454213216",
-                "name": "Daniel Pajer"
-            },
-            {
-                "steam_id": "STEAM_0:1:188303912",
-                "name": "Jan Mostböck"
-            },
-            {
-                "steam_id": "STEAM_0:0:419789039",
-                "name": "Gregor Zadrazil"
-            },
-            {
-                "steam_id": "STEAM_0:0:575427419",
-                "name": "Berfin Karayel"
-            }
-        ]
-    },
-    {
-        "name": "Die Wappla",
-        "tag": "WAP",
-        "players": [
-            {
-                "steam_id": "STEAM_0:1:159989635",
-                "name": "Marcel Dinhof"
-            },
-            {
-                "steam_id": "STEAM_0:1:57284688",
-                "name": "Niklas Wieser"
-            },
-            {
-                "steam_id": "STEAM_0:1:121451698",
-                "name": "Florian Zachsl"
-            },
-            {
-                "steam_id": "STEAM_0:0:53855365",
-                "name": "Florian Riegler"
-            },
-            {
-                "steam_id": "STEAM_0:0:451258848",
-                "name": "Jeremy Sztavinovszki"
-            }
-        ]
-    },
-    {
-        "name": "TestingOne",
-        "tag": "T1",
-        "players": [
-            {
-                "steam_id": "STEAM_0:1:124584389",
-                "name": "Jöl"
-            }
-        ]
-    },
-    {
-        "name": "TestingTwo",
-        "tag": "T2",
-        "players": [
-            {
-                "steam_id": "STEAM_0:1:523224064",
-                "name": "Bernhard Klauninger"
-            }
-        ]
-    }
+  {
+    "name": "Unranked",
+    "tag": "Unranked",
+    "players": [
+      {
+        "steam_id": "STEAM_0:1:177215629",
+        "name": "Florian Schröder"
+      },
+      {
+        "steam_id": "STEAM_0:0:430334076",
+        "name": "Yunus Emre Güclü"
+      },
+      {
+        "steam_id": "STEAM_0:1:507159404",
+        "name": "Elvin Sabani"
+      },
+      {
+        "steam_id": "STEAM_0:1:126790607",
+        "name": "Florian Szabo"
+      },
+      {
+        "steam_id": "STEAM_0:0:155822817",
+        "name": "Juian Riedinger"
+      }
+    ]
+  },
+  {
+    "name": "Faceit LVL 1",
+    "tag": "FaceitLvL1",
+    "players": [
+      {
+        "steam_id": "STEAM_0:1:523224064",
+        "name": "Bernhard Klauninger"
+      },
+      {
+        "steam_id": "STEAM_0:0:197622965",
+        "name": "Dustin Lampel"
+      },
+      {
+        "steam_id": "STEAM_0:0:577683722",
+        "name": "Seref Efe Haylaz"
+      },
+      {
+        "steam_id": "STEAM_0:1:505786367",
+        "name": "Peter Haubenburger"
+      },
+      {
+        "steam_id": "STEAM_0:1:189884824",
+        "name": "Marc Kühmayer"
+      }
+    ]
+  },
+  {
+    "name": "airplebs",
+    "tag": "airplebs",
+    "players": [
+      {
+        "steam_id": "STEAM_0:0:64160074",
+        "name": "Jöl"
+      },
+      {
+        "steam_id": "STEAM_0:1:57164321",
+        "name": "Honies"
+      },
+      {
+        "steam_id": "STEAM_0:1:419252527",
+        "name": "Niklas"
+      },
+      {
+        "steam_id": "STEAM_0:1:79835562",
+        "name": "Nico"
+      },
+      {
+        "steam_id": "STEAM_0:1:57027738",
+        "name": "Koka"
+      }
+    ]
+  },
+  {
+    "name": "Die Globale Elite",
+    "tag": "SUS",
+    "players": [
+      {
+        "steam_id": "STEAM_0:1:234150477",
+        "name": "Sebastian Kawicher"
+      },
+      {
+        "steam_id": "STEAM_0:0:235564480",
+        "name": "Eric Gut"
+      },
+      {
+        "steam_id": "STEAM_0:0:194233295",
+        "name": "Dominik Ecimovic"
+      },
+      {
+        "steam_id": "STEAM_0:1:94333040",
+        "name": "Christoph Fellner"
+      },
+      {
+        "steam_id": "STEAM_0:1:242223893",
+        "name": "Simon Groiss"
+      }
+    ]
+  },
+  {
+    "name": "CS:LOW",
+    "tag": "CSLOW",
+    "players": [
+      {
+        "steam_id": "STEAM_0:0:567741633",
+        "name": "Larissa Kornthaler"
+      },
+      {
+        "steam_id": "STEAM_0:0:454213216",
+        "name": "Daniel Pajer"
+      },
+      {
+        "steam_id": "STEAM_0:1:188303912",
+        "name": "Jan Mostböck"
+      },
+      {
+        "steam_id": "STEAM_0:0:419789039",
+        "name": "Gregor Zadrazil"
+      },
+      {
+        "steam_id": "STEAM_0:0:575427419",
+        "name": "Berfin Karayel"
+      }
+    ]
+  },
+  {
+    "name": "Die Wappla",
+    "tag": "WAP",
+    "players": [
+      {
+        "steam_id": "STEAM_0:1:159989635",
+        "name": "Marcel Dinhof"
+      },
+      {
+        "steam_id": "STEAM_0:1:57284688",
+        "name": "Niklas Wieser"
+      },
+      {
+        "steam_id": "STEAM_0:1:121451698",
+        "name": "Florian Zachsl"
+      },
+      {
+        "steam_id": "STEAM_0:0:53855365",
+        "name": "Florian Riegler"
+      },
+      {
+        "steam_id": "STEAM_0:0:451258848",
+        "name": "Jeremy Sztavinovszki"
+      }
+    ]
+  },
+  {
+    "name": "TestingOne",
+    "tag": "T1",
+    "players": [
+      {
+        "steam_id": "STEAM_0:1:124584389",
+        "name": "Jöl"
+      }
+    ]
+  },
+  {
+    "name": "TestingTwo",
+    "tag": "T2",
+    "players": [
+      {
+        "steam_id": "STEAM_0:1:523224064",
+        "name": "Bernhard Klauninger"
+      },
+      {
+        "steam_id": "STEAM_0:0:64160074",
+        "name": "Jöl_0"
+      }
+    ]
+  }
 ]
