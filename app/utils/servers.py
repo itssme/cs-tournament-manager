@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import random
 from threading import Lock
 from utils import db
@@ -7,11 +8,13 @@ from utils import db
 import docker
 
 PORTS = set(i for i in range(27015, 27100))
+USE_GSLT = True if os.getenv("USE_GSLT", "0") != "1" else False
 
 
 class ServerManager:
     def __init__(self):
         self.port_lock = Lock()
+        self.gslt_lock = Lock()
 
     def create_match(self, match_cfg: dict):
         self.__start_container(match_cfg)
@@ -38,6 +41,9 @@ class ServerManager:
             "MATCH_CONFIG": json.dumps(match_cfg),
             "cvars": str({"hostname": match_cfg["matchid"], "sv_lan": 0})
         }
+
+        if USE_GSLT:
+            container_variables["SERVER_TOKEN"] = self.reserve_free_gslttoken(server_id)
 
         container = client.containers.run("get5-csgo:latest",
                                           name=container_name,
@@ -68,6 +74,11 @@ class ServerManager:
             port = random.choice(free_ports)
             db.set_server_port(server_id, port)
             return port
+
+    def reserve_free_gslttoken(self, server_id: int) -> str:
+        with self.port_lock:
+            pass
+        return "todo"
 
     def set_server_status(self, server_id: int, status: int):
         db.set_server_status(server_id, status)
