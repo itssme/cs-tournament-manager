@@ -1,17 +1,13 @@
-import json
 import logging
-import os
-import time
 from typing import Union
 
 from starlette.responses import JSONResponse
 
-from utils.servers import ServerManager
-from utils.match_conf_gen import MatchGen
-from utils import db
-from functools import wraps
+from servers import ServerManager
+from match_conf_gen import MatchGen
+import db
 
-from utils import error_routes
+import error_routes
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -52,10 +48,10 @@ async def status(request: Request):
 
 @api.get("/info", response_class=JSONResponse)
 async def status(request: Request):
-    matches = db.get_servers()
-    print(matches)
-    servers = [db.Server.from_tuple(server) for server in db.get_servers()]
+    servers = db.get_servers()
+    print(servers)
 
+    # TODO: remove gstl token to avoid leaking?
     return servers
 
 

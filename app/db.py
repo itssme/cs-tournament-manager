@@ -81,6 +81,7 @@ class Server:
     port: int
     team1: int
     team2: int
+    gslt_token: str
 
 
 class Server(object):
@@ -88,26 +89,28 @@ class Server(object):
     def from_json(dict: dict) -> Server:
         return Server(dict["id"] if "id" in dict.keys() else None, dict["name"], dict["status"], dict["port"],
                       dict["team1"] if "team1" in dict.keys() else None,
-                      dict["team2"] if "team2" in dict.keys() else None)
+                      dict["team2"] if "team2" in dict.keys() else None,
+                      dict["gslt_token"] if "gslt_token" in dict.keys() else None)
 
     @staticmethod
     def from_tuple(tuple: tuple) -> Server:
-        return Server(tuple[0], tuple[1], tuple[2], tuple[3], tuple[4], tuple[5])
+        return Server(tuple[0], tuple[1], tuple[2], tuple[3], tuple[4], tuple[5], tuple[6])
 
-    def __init__(self, id, name, status, port, team1, team2):
+    def __init__(self, id, name, status, port, team1, team2, gslt_token):
         self.id = id
         self.name = name
         self.status = status
         self.port = port
         self.team1 = team1
         self.team2 = team2
+        self.gslt_token = gslt_token
 
     def tuple(self):
-        return self.id, self.name, self.status, self.port, self.team1, self.team2
+        return self.id, self.name, self.status, self.port, self.team1, self.team2, self.gslt_token
 
     def to_json(self) -> dict:
         return {"id": self.id, "name": self.name, "status": self.status, "port": self.port, "team1": self.team1,
-                "team2": self.team2}
+                "team2": self.team2, "gslt_token": self.gslt_token}
 
     def __str__(self):
         return str(self.to_json())
@@ -133,7 +136,7 @@ def setup_db():
                     cursor.execute("drop table if exists team_assignments;")
                     cursor.execute("drop table if exists teams;")
                     cursor.execute("drop table if exists players;")
-                    cursor.execute(open("utils/sql/db.sql", "r").read())
+                    cursor.execute(open("sql/db.sql", "r").read())
                 except Exception as e:
                     # for some reason postgres has some trouble handling "create table if not exists"
                     #   in combination with multiprocessing
@@ -271,7 +274,7 @@ def get_team_players(team_id: int) -> List[Player]:
             return [Player.from_tuple(player) for player in players]
 
 
-def get_servers() -> List[Tuple]:
+def get_servers() -> List[Server]:
     with psycopg2.connect(
             host="db",
             database="postgres",
@@ -279,10 +282,11 @@ def get_servers() -> List[Tuple]:
             password="pass") as conn:
         with conn.cursor() as cursor:
             cursor.execute("select * from servers")
-            return cursor.fetchall()
+            servers = cursor.fetchall()
+            return [Server.from_tuple(server) for server in servers]
 
 
-def insert_server(server: Tuple):
+def insert_server(server: Tuple) -> int:
     with psycopg2.connect(
             host="db",
             database="postgres",
@@ -293,7 +297,7 @@ def insert_server(server: Tuple):
             return cursor.fetchall()[0][0]
 
 
-def insert_basic_server(name: str):
+def insert_basic_server(name: str) -> int:
     with psycopg2.connect(
             host="db",
             database="postgres",
@@ -304,7 +308,7 @@ def insert_basic_server(name: str):
             return cursor.fetchall()[0][0]
 
 
-def insert_basic_server_with_teams(name: str, team1: int, team2: int):
+def insert_basic_server_with_teams(name: str, team1: int, team2: int) -> int:
     with psycopg2.connect(
             host="db",
             database="postgres",
@@ -336,15 +340,25 @@ def set_server_status(server_id: int, status: int):
             cursor.execute("update servers set status = %s where id = %s", (status, server_id))
 
 
-def get_server_name_from_id(server_id: int):
+def set_server_token(server_id: int, gslt_token: str):
     with psycopg2.connect(
             host="db",
             database="postgres",
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
-            cursor.execute("select name from servers where id = %s", (server_id,))
-            return cursor.fetchall()[0][0]
+            cursor.execute("update servers set gslt_token = %s where id = %s", (gslt_token, server_id))
+
+
+def get_server_by_id(server_id: int) -> Server:
+    with psycopg2.connect(
+            host="db",
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("select * from servers where id = %s", (server_id,))
+            return Server.from_tuple(cursor.fetchall()[0])
 
 
 def delete_server(server_id: int):

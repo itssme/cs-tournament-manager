@@ -5,7 +5,8 @@
 The software has been developed for the airlan21 (25.06.2021). A small csgo tournament organized for
 team-building by robo4you.at.
 
-**Currently, it is being updated and rewritten** for the 'airlan Winter Edition' which will take place in early january 2023.
+**Currently, it is being updated and rewritten** for the 'airlan Winter Edition' which will take place in early january
+2023.
 
 ## What does this software do?
 
@@ -22,9 +23,10 @@ transferred and loaded to the csgo server. It also displays some basic statistic
 + Go to the folder `get5_image` and run the `build_image.sh` script.
 + This will download the csgo server and automatically install get5. (this step may take some time)
 
-### 2. Create Teams
+### 2. Create Teams and GSLT file
 
 + Edit the `teams.json` file to include all your teams and players. This file will be mounted in the dockerfile.
++ (optional) Create a `gslt.json` file and include all your GSLT tokens in a list like: `["TOKEN1", "TOKEN2"]`
 
 ### 3. Telegram BOT
 
@@ -50,6 +52,7 @@ CHAT_IDS="chat_id_1,chat_id_2..."
 + (Currently matches can only be started by directly calling the API)
 
 ### 5. Connecting to the server
+
 (Note connecting with `127.0.0.1:port` does not work, you need your pcs locals ip/ that of a VPN network)
 
 + Connect to the server, on the ip shown in the webinterface/ on telegram (todo)

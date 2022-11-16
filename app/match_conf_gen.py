@@ -1,7 +1,7 @@
 import json
 import logging
 
-from utils import db
+import db
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 

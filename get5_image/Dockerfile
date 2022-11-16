@@ -88,6 +88,9 @@ COPY --chown=user --chmod=755 server-scripts/server-launch.sh $HOME_DIR/
 ################
 COPY --chown=user cfg/* $CSGO_DIR/csgo/cfg/
 
+# FORCE MANUAL UPDATE IN CONTAINER #1
+RUN su user -c "bash $HOME_DIR/server-update.sh"
+
 ############
 # RUN CSGO #
 ############

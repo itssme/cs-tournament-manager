@@ -3,24 +3,35 @@ import logging
 import os
 import random
 from threading import Lock
-from utils import db
+from typing import List
+
+import db
 
 import docker
 
 PORTS = set(i for i in range(27015, 27100))
-USE_GSLT = True if os.getenv("USE_GSLT", "0") != "1" else False
 
 
 class ServerManager:
     def __init__(self):
         self.port_lock = Lock()
         self.gslt_lock = Lock()
+        self.gslt_tokens: List[str] = []
+
+        self.read_gslt_tokens()
+
+    def read_gslt_tokens(self):
+        with self.gslt_lock:
+            logging.info("Parsing gslt.json")
+            self.gslt_tokens = None
+            with open("gslt.json", "r") as gslt:
+                self.gslt_tokens = json.loads(gslt.read())
 
     def create_match(self, match_cfg: dict):
         self.__start_container(match_cfg)
 
     def stop_match(self, server_id: int):
-        container_name = db.get_server_name_from_id(server_id)
+        container_name = db.get_server_by_id(server_id).name
         self.__stop_container_and_delete(container_name)
         db.delete_server(server_id)
 
@@ -42,8 +53,9 @@ class ServerManager:
             "cvars": str({"hostname": match_cfg["matchid"], "sv_lan": 0})
         }
 
-        if USE_GSLT:
-            container_variables["SERVER_TOKEN"] = self.reserve_free_gslttoken(server_id)
+        if len(self.gslt_tokens):
+            # TODO: catch exception if no tokens are available
+            container_variables["SERVER_TOKEN"] = self.reserve_free_gslt_token(server_id)
 
         container = client.containers.run("get5-csgo:latest",
                                           name=container_name,
@@ -68,17 +80,22 @@ class ServerManager:
     def reserve_free_port(self, server_id: int) -> int:
         with self.port_lock:
             available_ports = PORTS.copy()
-            reserved_ports = [server[3] for server in db.get_servers()]
+            reserved_ports = [server.port for server in db.get_servers()]
             free_ports = list(filter(lambda port: False if port in reserved_ports else True, available_ports))
 
             port = random.choice(free_ports)
             db.set_server_port(server_id, port)
             return port
 
-    def reserve_free_gslttoken(self, server_id: int) -> str:
-        with self.port_lock:
-            pass
-        return "todo"
+    def reserve_free_gslt_token(self, server_id: int) -> str:
+        with self.gslt_lock:
+            available_tokens = self.gslt_tokens.copy()
+            reserved_tokens = [server.gslt_token for server in db.get_servers()]
+            free_tokens = list(filter(lambda token: False if token in reserved_tokens else True, available_tokens))
+
+            gslt_token = random.choice(free_tokens)
+            db.set_server_token(server_id, gslt_token)
+            return gslt_token
 
     def set_server_status(self, server_id: int, status: int):
         db.set_server_status(server_id, status)

@@ -19,6 +19,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./teams.json:/app/teams.json
+      - ./gslt.json:/app/gslt.json
     ports:
       - 80:80
   telegram_bot:
