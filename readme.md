@@ -26,7 +26,7 @@ transferred and loaded to the csgo server. It also displays some basic statistic
 ### 2. Create Teams and GSLT file
 
 + Edit the `teams.json` file to include all your teams and players. This file will be mounted in the dockerfile.
-+ (optional) Create a `gslt.json` file and include all your GSLT tokens in a list like: `["TOKEN1", "TOKEN2"]`
++ Create a `gslt.json` file and include all your GSLT tokens in a list like: `["TOKEN1", "TOKEN2"]`. If you plan on only using the servers in a LAN setting, you can simply create the file an leave the list empty (like: `[]`) and then the server manager will start the CSGO servers without a GSLT Token. (More information about GSLT Tokens: https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Dedicated_Servers)
 
 ### 3. Telegram BOT
 
