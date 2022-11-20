@@ -49,9 +49,11 @@ async def status(request: Request):
 @api.get("/info", response_class=JSONResponse)
 async def status(request: Request):
     servers = db.get_servers()
-    print(servers)
 
-    # TODO: remove gstl token to avoid leaking?
+    for server in servers:
+        server.gslt_token = None
+
+    logging.info(f"Requested /info -> {servers}")
     return servers
 
 
@@ -61,6 +63,7 @@ class ServerID(BaseModel):
 
 @api.post("/stopMatch", response_class=JSONResponse)
 async def status(request: Request, server: ServerID):
+    logging.info(f"Called /stopMatch with server id: {server.id}")
     server_manger.stop_match(server.id)
     return {"status": 0}
 
@@ -73,9 +76,10 @@ class MatchInfo(BaseModel):
 
 @api.post("/createMatch")
 async def createMatch(request: Request, match: MatchInfo):
-    match_json = jsonable_encoder(match)
+    logging.info(
+        f"Called /createMatch with MatchInfo: Team1: '{match.team1}', Team2: '{match.team2}', best_of: '{match.best_of}'")
 
-    match_cfg = MatchGen.from_team_ids(match_json["team1"], match_json["team2"], match_json["best_of"])
+    match_cfg = MatchGen.from_team_ids(match.team1, match.team2, match.best_of)
 
     server_manger.create_match(match_cfg)
 
