@@ -22,6 +22,8 @@ services:
       - ./gslt.json:/app/gslt.json
     ports:
       - 80:80
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   telegram_bot:
     depends_on:
       - csgo_manager
