@@ -393,5 +393,8 @@ def update_config():
             "tag": team.tag,
             "players": [{"steam_id": player.steam_id, "name": player.name} for player in players]
         })
-    print(team_config)
-    print("test")
+    json_object = json.dumps(team_config, indent=4)
+
+    with open("teams.json", "w") as outfile:
+        outfile.write(json_object)
+
