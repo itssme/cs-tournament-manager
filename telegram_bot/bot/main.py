@@ -43,12 +43,13 @@ class TelegramBOT:
             user_id = update.effective_user["id"]
             bot.send_message(chat_id, "Commands:\n"
                                       "/help\n"
-                                      "/createTeam `teamName`\n"
+                                      "/createTeam `teamName` `teamTag`\n"
                                       "/createUser `steamId` `Name`\n"
                                       "/createMatch `teamId1` `teamId2` `bestOf?`\n"
                                       "/deleteTeam `teamId`\n"
                                       "/listTeams\n"
-                                      "/addMember `userId` `teamId`\n",
+                                      "/addMember `userId` `teamId`\n"
+                                      "/info\n",
                              parse_mode="MarkdownV2")
 
         @REQUIRE_AUTH
@@ -56,8 +57,29 @@ class TelegramBOT:
             bot: telegram.bot.Bot = context.bot
             chat_id = update.effective_chat["id"]
             user_id = update.effective_user["id"]
-            bot.send_message(chat_id, "Not yet implemented",
-                             parse_mode="MarkdownV2")
+
+            if len(context.args) != 2:
+                bot.send_message(chat_id, "Invalid number of arguments")
+                return
+            if len(context.args[1]) > 15:
+                bot.send_message(chat_id, "Team tag too long")
+                return
+            if len(context.args[0]) < 3:
+                bot.send_message(chat_id, "Team name too short")
+                return
+            if len(context.args[1]) < 3:
+                bot.send_message(chat_id, "Team tag too short")
+                return
+
+            data = {"name": context.args[0], "tag": context.args[1]}
+
+            logging.info(f"Parsed /createMatch -> {data}")
+
+            res = requests.post("http://csgo_manager/api/createTeam", json=data)
+            if res.status_code == 200:
+                bot.send_message(chat_id, f"Successfully created team {data['name']} with tag {data['tag']}")
+            else:
+                bot.send_message(chat_id, f"Unable to create team: {res.status_code}, {res.text}")
 
         @REQUIRE_AUTH
         def create_user(update, context):
@@ -90,6 +112,19 @@ class TelegramBOT:
             user_id = update.effective_user["id"]
             bot.send_message(chat_id, "Not yet implemented",
                              parse_mode="MarkdownV2")
+
+        @REQUIRE_AUTH
+        def info(update, context):
+            bot: telegram.bot.Bot = context.bot
+            chat_id = update.effective_chat["id"]
+            user_id = update.effective_user["id"]
+            bot.send_message(chat_id, "Not yet implemented",
+                             parse_mode="MarkdownV2")
+            res = requests.post("http://csgo_manager/api/createMatch")
+            if res.status_code == 200:
+                bot.send_message(chat_id, res.text)
+            else:
+                bot.send_message(chat_id, f"Unable to create match: {res.status_code}, {res.text}")
 
         @REQUIRE_AUTH
         def create_match(update, context):
@@ -142,6 +177,10 @@ class TelegramBOT:
                                       pass_job_queue=True,
                                       pass_chat_data=True))
         dp.add_handler(CommandHandler("addMember", add_member,
+                                      pass_args=True,
+                                      pass_job_queue=True,
+                                      pass_chat_data=True))
+        dp.add_handler(CommandHandler("ingo", info,
                                       pass_args=True,
                                       pass_job_queue=True,
                                       pass_chat_data=True))

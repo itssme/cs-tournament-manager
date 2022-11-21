@@ -84,3 +84,18 @@ async def createMatch(request: Request, match: MatchInfo):
     server_manger.create_match(match_cfg)
 
     return match_cfg
+
+
+class TeamInfo(BaseModel):
+    name: str
+    tag: str
+
+
+@api.post("/createTeam")
+async def createTeam(request: Request, team: TeamInfo):
+    logging.info(
+        f"Called /createTeam with TeamInfo: TeamName: '{team.name}', TeamTag: '{team.tag}'")
+
+    db.insert_team_or_set_id(db.Team(tag=team.tag, name=team.name, id=0))
+
+    db.update_config()

@@ -260,6 +260,18 @@ def get_team(team_id: int) -> Team:
             return Team.from_tuple(team_tuple)
 
 
+def get_all_teams() -> List[Team]:
+    with psycopg2.connect(
+            host="db",
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("select * from teams")
+            team_tuple_list = cursor.fetchall()
+            return [Team.from_tuple(team_tuple) for team_tuple in team_tuple_list]
+
+
 def get_team_players(team_id: int) -> List[Player]:
     with psycopg2.connect(
             host="db",
@@ -369,3 +381,17 @@ def delete_server(server_id: int):
             password="pass") as conn:
         with conn.cursor() as cursor:
             cursor.execute("delete from servers where id = %s", (server_id,))
+
+
+def update_config():
+    team_config = []
+    teams = get_all_teams()
+    for team in teams:
+        players = get_team_players(team.id)
+        team_config.append({
+            "name": team.name,
+            "tag": team.tag,
+            "players": [{"steam_id": player.steam_id, "name": player.name} for player in players]
+        })
+    print(team_config)
+    print("test")
