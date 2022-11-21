@@ -17,7 +17,7 @@
                                 <hr>
 
                                 <h3>Gamestate:</h3>
-                                <div id="{{ server.id }}get5_gamestring"></div>
+                                <div id="{{ server.id }}get5_gamestate"></div>
                                 <hr>
 
                                 <table style="width:100%">
@@ -25,7 +25,6 @@
                                         <th>IP:</th>
                                         <th id="{{ server.id }}ip"></th>
                                     </tr>
-                                    {% if admin %}
                                     <tr>
                                         <th>Game Paused?</th>
                                         <th id="{{ server.id }}get5_paused"></th>
@@ -34,11 +33,13 @@
                                         <th>Map Number</th>
                                         <th id="{{ server.id }}get5_map_number"></th>
                                     </tr>
-                                    {% endif %}
+                                    <tr>
+                                        <th>Maps</th>
+                                        <th id="{{ server.id }}get5_maps"></th>
+                                    </tr>
                                 </table>
                                 <hr>
 
-                                {% if admin %}
                                 <h3>Team#1</h3>
                                 <table style="width:100%">
                                     <tr>
@@ -95,13 +96,10 @@
                                         <th id="{{ server.id }}get5_team2_side"></th>
                                     </tr>
                                 </table>
-                                {% endif %}
-                                {% if ableToEndMatch %}
-                                    <hr>
-                                    <input class="btn btn-primary" type="submit" value="End Match"
-                                           onclick="endMatch({{ server.id }})"
-                                           name="submit">
-                                {% endif %}
+                                <hr>
+                                <input class="btn btn-primary" type="submit" value="End Match"
+                                       onclick="endMatch({{ server.id }})"
+                                       name="submit">
                             </div>
                         </div>
                     </div>
@@ -117,36 +115,47 @@
             xmlHttp.send(null);
 
             let res = JSON.parse(xmlHttp.responseText);
+            console.log(res);
 
-            {% for server in gameserver %}
-                document.getElementById("{{ server.id }}ip").innerText = res[{{ server.id }}]["ip"];
+            for (server in res) {
+                server = res[server];
+                server_id = server["id"];
 
-                json_res = res[{{ server.id }}]["get5_stats"];
-                document.getElementById("{{ server.id }}get5_gamestring").innerText = json_res["gamestate_string"];
+                console.log(server);
+                console.log(`${server_id}ip`);
+                document.getElementById(`${server_id}ip`).innerText = server["ip"];
+
+                json_res = server["get5_stats"];
+                document.getElementById(`${server_id}get5_gamestate`).innerText = json_res["gamestate"];
 
                 if (json_res.hasOwnProperty("matchid")) {
-                    document.getElementById("{{ server.id }}get5_matchname").innerText = json_res["matchid"];
+                    document.getElementById(`${server_id}get5_matchname`).innerText = json_res["matchid"];
                 } else {
-                    document.getElementById("{{ server.id }}get5_matchname").innerText = "No Match";
+                    document.getElementById(`${server_id}get5_matchname`).innerText = "No Match";
                 }
 
-                {% if admin %}
                 if (json_res.hasOwnProperty("paused")) {
-                    document.getElementById("{{ server.id }}get5_paused").innerText = json_res["paused"];
+                    document.getElementById(`${server_id}get5_paused`).innerText = json_res["paused"];
+                }
+
+                if (json_res.hasOwnProperty("maps")) {
+                    document.getElementById(`${server_id}get5_maps`).innerText = json_res["maps"];
+                } else {
+                    document.getElementById(`${server_id}get5_maps`).innerText = "";
                 }
 
                 if (json_res.hasOwnProperty("map_number")) {
-                    document.getElementById("{{ server.id }}get5_map_number").innerText = json_res["map_number"];
+                    document.getElementById(`${server_id}get5_map_number`).innerText = json_res["map_number"];
                 } else {
-                    document.getElementById("{{ server.id }}get5_map_number").innerText = "";
+                    document.getElementById(`${server_id}get5_map_number`).innerText = "";
                 }
 
                 if (json_res.hasOwnProperty("team1")) {
                     for (key in json_res["team1"]) {
-                        document.getElementById("{{ server.id }}get5_team1_" + key).innerText = json_res["team1"][key];
+                        document.getElementById(`${server_id}get5_team1_${key}`).innerText = json_res["team1"][key];
                     }
                 } else {
-                    get5_team1 = document.querySelectorAll('[id^="{{ server.id }}get5_team1_"]');
+                    get5_team1 = document.querySelectorAll(`[id^="${server_id}get5_team1_"]`);
                     get5_team1.forEach(function (value) {
                         value.innerText = "";
                     });
@@ -154,19 +163,31 @@
 
                 if (json_res.hasOwnProperty("team1")) {
                     for (key in json_res["team2"]) {
-                        document.getElementById("{{ server.id }}get5_team2_" + key).innerText = json_res["team2"][key];
+                        document.getElementById(`${server_id}get5_team2_${key}`).innerText = json_res["team2"][key];
                     }
                 } else {
-                    get5_team2 = document.querySelectorAll('[id^="{{ server.id }}get5_team2_"]');
+                    get5_team2 = document.querySelectorAll(`[id^="${server_id}get5_team2_"]`);
                     get5_team2.forEach(function (value) {
                         value.innerText = "";
                     });
                 }
-                {% endif %}
-            {% endfor %}
+            }
         }
 
         setInterval(getInfo, 1000);
+
+        function endMatch(id) {
+            let xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("POST", "/api/stopMatch", false);
+            xmlHttp.setRequestHeader("Content-Type", "application/json");
+            xmlHttp.send(JSON.stringify({"id": id}));
+
+            let res = JSON.parse(xmlHttp.responseText);
+            if (xmlHttp.status === 200) {
+                window.location.reload();
+            }
+        }
+
     </script>
 {% endblock %}
 {% block foot %}

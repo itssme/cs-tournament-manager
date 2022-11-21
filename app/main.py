@@ -1,8 +1,10 @@
+import json
 import logging
 from typing import Union
 
 from starlette.responses import JSONResponse
 
+from rcon import RCON
 from servers import ServerManager
 from match_conf_gen import MatchGen
 import db
@@ -43,7 +45,8 @@ async def redirect_index():
 
 @app.get("/status", response_class=HTMLResponse)
 async def status(request: Request):
-    return templates.TemplateResponse("status.html", {"request": request})
+    gameserver = [server.to_json() for server in db.get_servers()]
+    return templates.TemplateResponse("status.html", {"request": request, "gameserver": gameserver})
 
 
 @api.get("/info", response_class=JSONResponse)
@@ -53,8 +56,27 @@ async def status(request: Request):
     for server in servers:
         server.gslt_token = None
 
-    logging.info(f"Requested /info -> {servers}")
-    return servers
+    status_json = []
+
+    for server in servers:
+        logging.info(f"Collecting stats for server: {server}")
+        with RCON("host.docker.internal", server.port, "pass") as rconn:
+            # need to parse values: CPU   NetIn   NetOut    Uptime  Maps   FPS   Players  Svms    +-ms   ~tick
+            stats = rconn.exec_command("stats")
+
+            get5_stats: str = rconn.exec_command("get5_status")
+            get5_stats = get5_stats[get5_stats.find("{"):(get5_stats.rfind("}") + 1)].replace("\\n", "")
+            get5_stats = json.loads(get5_stats)
+
+            stats_parsed = [float(value) for value in stats.split("\\n")[1].split(" ") if value != '']
+
+            status_json.append({"id": server.id,
+                                "ip": "127.0.0.1" + ":" + str(server.port),
+                                "get5_stats": get5_stats,
+                                "stats": stats_parsed})
+
+    logging.info(f"Requested /info -> {status_json}")
+    return status_json
 
 
 class ServerID(BaseModel):
