@@ -61,6 +61,9 @@ async def status(request: Request):
     for server in servers:
         logging.info(f"Collecting stats for server: {server}")
         with RCON("host.docker.internal", server.port, "pass") as rconn:
+            #logging.info(rconn.exec_command("sm_slay Jöl"))
+            #logging.info(rconn.exec_command("cvarlist"))
+
             # need to parse values: CPU   NetIn   NetOut    Uptime  Maps   FPS   Players  Svms    +-ms   ~tick
             stats = rconn.exec_command("stats")
 
@@ -85,6 +88,7 @@ class ServerID(BaseModel):
 
 @api.post("/stopMatch", response_class=JSONResponse)
 async def status(request: Request, server: ServerID):
+    # TODO: extract demo files from the container, should be located at: /home/user/csgo-server/csgo/demos
     logging.info(f"Called /stopMatch with server id: {server.id}")
     server_manger.stop_match(server.id)
     return {"status": 0}

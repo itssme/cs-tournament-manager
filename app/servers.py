@@ -50,7 +50,7 @@ class ServerManager:
             "TICKRATE": 128,
             "MAP": "cs_agency",
             "MATCH_CONFIG": json.dumps(match_cfg),
-            "cvars": str({"hostname": match_cfg["matchid"], "sv_lan": 0})
+            "cvars": str({"hostname": match_cfg["matchid"], "sv_lan": 0, "tv_enable": 1})
         }
 
         if len(self.gslt_tokens):
