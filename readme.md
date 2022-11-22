@@ -12,9 +12,8 @@ team-building by robo4you.at.
 
 It manages a number of get5 servers for small to medium lan parties. E.g. the webinterface (and the telegram bot) lets
 you define new matches
-by selecting players and creating teams. A new get5 server will then be started in a dicker container and the match
-config file will be
-transferred and loaded to the csgo server. It also displays some basic statistics about the servers.
+by selecting players and creating teams. A new get5 server will then be started in a docker container and the match
+config file will be transferred and loaded to the csgo server. It also displays some basic statistics about the servers.
 
 ## How to use this software
 
