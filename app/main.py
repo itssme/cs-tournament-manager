@@ -49,6 +49,12 @@ async def status(request: Request):
     return templates.TemplateResponse("status.html", {"request": request, "gameserver": gameserver})
 
 
+@app.get("/config", response_class=HTMLResponse)
+async def status(request: Request):
+    teams = [team.to_json() for team in db.get_all_teams()]
+    return templates.TemplateResponse("config.html", {"request": request, "teams": teams})
+
+
 @api.get("/info", response_class=JSONResponse)
 async def status(request: Request):
     servers = db.get_servers()
@@ -61,8 +67,8 @@ async def status(request: Request):
     for server in servers:
         logging.info(f"Collecting stats for server: {server}")
         with RCON("host.docker.internal", server.port, "pass") as rconn:
-            #logging.info(rconn.exec_command("sm_slay Jöl"))
-            #logging.info(rconn.exec_command("cvarlist"))
+            # logging.info(rconn.exec_command("sm_slay Jöl"))
+            # logging.info(rconn.exec_command("cvarlist"))
 
             # need to parse values: CPU   NetIn   NetOut    Uptime  Maps   FPS   Players  Svms    +-ms   ~tick
             stats = rconn.exec_command("stats")

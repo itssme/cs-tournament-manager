@@ -5,8 +5,7 @@
 The software has been developed for the airlan21 (25.06.2021). A small csgo tournament organized for
 team-building by robo4you.at.
 
-**Currently, it is being updated and rewritten** for the 'airlan Winter Edition' which will take place in early january
-2023.
+**Currently, it is being updated and rewritten** for the 'airlan Winter Edition' which will take place in early january 2023.
 
 ## What does this software do?
 
@@ -25,7 +24,10 @@ config file will be transferred and loaded to the csgo server. It also displays 
 ### 2. Create Teams and GSLT file
 
 + Edit the `teams.json` file to include all your teams and players. This file will be mounted in the dockerfile.
-+ Create a `gslt.json` file and include all your GSLT tokens in a list like: `["TOKEN1", "TOKEN2"]`. If you plan on only using the servers in a LAN setting, you can simply create the file an leave the list empty (like: `[]`) and then the server manager will start the CSGO servers without a GSLT Token. (More information about GSLT Tokens: https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Dedicated_Servers)
++ Create a `gslt.json` file and include all your GSLT tokens in a list like: `["TOKEN1", "TOKEN2"]`. If you plan on only
+  using the servers in a LAN setting, you can simply create the file an leave the list empty (like: `[]`) and then the
+  server manager will start the CSGO servers without a GSLT Token. (More information about GSLT
+  Tokens: https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Dedicated_Servers)
 
 ### 3. Telegram BOT
 

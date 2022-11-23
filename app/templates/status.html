@@ -185,6 +185,8 @@
             let res = JSON.parse(xmlHttp.responseText);
             if (xmlHttp.status === 200) {
                 window.location.reload();
+            } else {
+                alert("Unable to stop match, see server logs");
             }
         }
 
