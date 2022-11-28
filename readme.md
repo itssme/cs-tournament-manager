@@ -54,7 +54,7 @@ CHAT_IDS="chat_id_1,chat_id_2..."
 
 ### 5. Connecting to the server
 
-(Note connecting with `127.0.0.1:port` does not work, you need your pcs locals ip/ that of a VPN network)
+(Note connecting with `127.0.0.1:port` does not work, you need your PCs local IP (like 192.168.x.x or 10.x.x.x etc.) or that of a VPN network)
 
 + Connect to the server, on the ip shown in the webinterface/ on telegram (todo)
 
