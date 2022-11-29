@@ -104,14 +104,18 @@ class MatchInfo(BaseModel):
     team1: int
     team2: int
     best_of: Union[int, None] = None
+    check_auths: Union[bool, None] = None
 
 
 @api.post("/createMatch")
 async def createMatch(request: Request, match: MatchInfo):
     logging.info(
-        f"Called /createMatch with MatchInfo: Team1: '{match.team1}', Team2: '{match.team2}', best_of: '{match.best_of}'")
+        f"Called /createMatch with MatchInfo: Team1: '{match.team1}', Team2: '{match.team2}', "
+        f"best_of: '{match.best_of}', 'check_auths: {match.check_auths}'")
 
     match_cfg = MatchGen.from_team_ids(match.team1, match.team2, match.best_of)
+    if match.check_auths is not None:
+        match_cfg.add_cvar("get5_check_auths", "1" if match.check_auths else "0")
 
     server_manger.create_match(match_cfg)
 

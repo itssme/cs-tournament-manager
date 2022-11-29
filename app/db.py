@@ -1,37 +1,17 @@
 import json
 import logging
 import time
-from typing import List, Tuple
+from typing import List, Tuple, TypeVar, Generic
 
 import psycopg2
 
 
-class Player:
-    def __init__(self):
-        self.id: int = 0
-        self.name: str = ""
-        self.steam_id: str = ""
-
-
-class Player(object):
-    @staticmethod
-    def from_json(dict: dict) -> Player:
-        return Player(dict["id"] if "id" in dict.keys() else None, dict["name"], dict["steam_id"])
-
-    @staticmethod
-    def from_tuple(tuple: tuple) -> Player:
-        return Player(tuple[0], tuple[1], tuple[2])
-
-    def __init__(self, id, name, steam_id):
-        self.id = id
-        self.name = name
-        self.steam_id = steam_id
-
+class DbObject(object):
     def tuple(self):
-        return self.id, self.name, self.steam_id
+        return tuple(vars(self).values())
 
     def to_json(self) -> dict:
-        return {"id": self.id, "name": self.name, "steam_id": self.steam_id}
+        return vars(self)
 
     def __str__(self):
         return str(self.to_json())
@@ -39,84 +19,68 @@ class Player(object):
     def __repr__(self):
         return str(self.to_json())
 
-
-class Team:
-    def __init__(self):
-        self.id: int = 0
-        self.tag: str = ""
-        self.name: str = ""
-
-
-class Team(object):
-    @staticmethod
-    def from_json(dict: dict) -> Team:
-        return Team(dict["id"] if "id" in dict.keys() else None, dict["tag"], dict["name"])
-
-    @staticmethod
-    def from_tuple(tuple: tuple) -> Team:
-        return Team(tuple[0], tuple[1], tuple[2])
-
-    def __init__(self, id, tag, name):
-        self.id = id
-        self.tag = tag
-        self.name = name
-
-    def tuple(self):
-        return self.id, self.tag, self.name
-
-    def to_json(self) -> dict:
-        return {"id": self.id, "tag": self.tag, "name": self.name}
-
-    def __str__(self):
-        return str(self.to_json())
-
-    def __repr__(self):
-        return str(self.to_json())
+    def insert_into_db(self, cursor):
+        stmt = f"insert into {self.__class__.__name__.lower()} ({', '.join(list(filter(lambda key: (key != 'id'), list(vars(self).keys()))))}) values ({', '.join(['%s' for elm in list(filter(lambda key: (key != 'id'), list(vars(self).keys())))])}) {'returning id' if 'id' in list(vars(self).keys()) else ''}"
+        values = tuple(
+            self.__getattribute__(elm) for elm in list(filter(lambda key: (key != 'id'), list(vars(self).keys()))))
+        logging.info(f"Running query: {stmt}\nwith values: {values}")
+        cursor.execute(stmt, values)
 
 
-class Server:
-    id: int
-    name: str
-    status: int
-    port: int
-    team1: int
-    team2: int
-    gslt_token: str
+class Player(DbObject):
+    def __init__(self, id: int = None, name: str = "", steam_id: str = ""):
+        self.id: int = id
+        self.name: str = name
+        self.steam_id: str = steam_id
 
 
-class Server(object):
-    @staticmethod
-    def from_json(dict: dict) -> Server:
-        return Server(dict["id"] if "id" in dict.keys() else None, dict["name"], dict["status"], dict["port"],
-                      dict["team1"] if "team1" in dict.keys() else None,
-                      dict["team2"] if "team2" in dict.keys() else None,
-                      dict["gslt_token"] if "gslt_token" in dict.keys() else None)
+class Team(DbObject):
+    def __init__(self, id: int = None, tag: str = "", name: str = ""):
+        self.id: int = id
+        self.tag: str = tag
+        self.name: str = name
 
-    @staticmethod
-    def from_tuple(tuple: tuple) -> Server:
-        return Server(tuple[0], tuple[1], tuple[2], tuple[3], tuple[4], tuple[5], tuple[6])
 
-    def __init__(self, id, name, status, port, team1, team2, gslt_token):
-        self.id = id
-        self.name = name
-        self.status = status
-        self.port = port
-        self.team1 = team1
-        self.team2 = team2
-        self.gslt_token = gslt_token
+class Server(DbObject):
+    def __init__(self, id: int = None, status: int = -1, port: int = None, gslt_token: str = "",
+                 container_name: str = None, match: int = None):
+        self.id: int = id
+        self.status: int = status
+        self.port: int = port
+        self.gslt_token: str = gslt_token
+        self.container_name: str = container_name
+        self.match: int = match
 
-    def tuple(self):
-        return self.id, self.name, self.status, self.port, self.team1, self.team2, self.gslt_token
 
-    def to_json(self) -> dict:
-        return {"id": self.id, "name": self.name, "status": self.status, "port": self.port, "team1": self.team1,
-                "team2": self.team2, "gslt_token": self.gslt_token}
+class Match(DbObject):
+    def __init__(self, id: int = None, name: str = "", team1: int = None, team2: int = None,
+                 best_out_of: int = None, number_in_map_series: int = None, current_score_team1: int = None,
+                 current_score_team2: int = None, finished: int = None):
+        self.id: int = id
+        self.name: str = name
+        self.team1: int = team1
+        self.team2: int = team2
+        self.best_out_of: int = best_out_of
+        self.number_in_map_series: int = number_in_map_series
+        self.current_score_team1: int = current_score_team1
+        self.current_score_team2: int = current_score_team2
+        self.finished: int = finished
 
-    def __str__(self):
-        return str(self.to_json())
 
-    def __repr__(self):
-        return str(self.to_json())
+T = TypeVar("T", Player, Team, Server, Match)
+
+
+class DbObjImpl(Generic[T]):
+    def from_json(self, dict: dict) -> T:
+        obj = self.__orig_class__.__args__[0]()
+        for attr in vars(obj).keys():
+            if attr in dict.keys():
+                obj.__setattr__(attr, dict[attr])
+
+        return self.from_tuple(tuple(vars(obj).values()))
+
+    def from_tuple(self, tuple: tuple) -> T:
+        return self.__orig_class__.__args__[0](*tuple)
 
 
 def setup_db():
@@ -133,9 +97,6 @@ def setup_db():
 
             with conn.cursor() as cursor:
                 try:
-                    cursor.execute("drop table if exists team_assignments;")
-                    cursor.execute("drop table if exists teams;")
-                    cursor.execute("drop table if exists players;")
                     cursor.execute(open("sql/db.sql", "r").read())
                 except Exception as e:
                     # for some reason postgres has some trouble handling "create table if not exists"
@@ -157,25 +118,25 @@ def setup_db():
         raise Exception("Unable to parse team.json")
 
     for team in teams:
-        team_obj = Team.from_json(team)
+        team_obj = DbObjImpl[Team]().from_json(team)
         insert_team_or_set_id(team_obj)
         for player in team["players"]:
-            player_obj = Player.from_json(player)
+            player_obj = DbObjImpl[Player]().from_json(player)
             try:
-                insert_player(player_obj)
+                insert_player_or_set_id(player_obj)
             except psycopg2.errors.UniqueViolation:
                 player_obj = get_player_by_steam_id(player_obj.steam_id)
             insert_team_assignment_if_not_exists(team_obj, player_obj)
 
 
-def insert_player(player: Player):
+def insert_player_or_set_id(player: Player):
     with psycopg2.connect(
             host="db",
             database="postgres",
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
-            cursor.execute("select id from players where steam_id = %s", (player.steam_id,))
+            cursor.execute("select id from player where steam_id = %s", (player.steam_id,))
             res = cursor.fetchall()
             if len(res) != 0:
                 player.id = res[0][0]
@@ -183,7 +144,7 @@ def insert_player(player: Player):
                 return
 
         with conn.cursor() as cursor:
-            cursor.execute("insert into players values(default, %s, %s) returning id", player.tuple()[1:])
+            player.insert_into_db(cursor)
             player.id = cursor.fetchall()[0][0]
             logging.info(f"Inserted team: '{player}' into database")
 
@@ -195,7 +156,7 @@ def insert_team_or_set_id(team: Team):
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
-            cursor.execute("select id from teams where name = %s", (team.name,))
+            cursor.execute("select id from team where name = %s", (team.name,))
             res = cursor.fetchall()
             if len(res) != 0:
                 team.id = res[0][0]
@@ -203,7 +164,7 @@ def insert_team_or_set_id(team: Team):
                 return
 
         with conn.cursor() as cursor:
-            cursor.execute("insert into teams values(default, %s, %s) returning id", team.tuple()[1:])
+            team.insert_into_db(cursor)
             team.id = cursor.fetchall()[0][0]
             logging.info(f"Inserted team: '{team}' into database")
 
@@ -215,13 +176,13 @@ def insert_team_assignment_if_not_exists(team: Team, player: Player):
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
-            cursor.execute("select * from team_assignments where team = %s and player = %s", (team.id, player.id))
+            cursor.execute("select * from team_assignment where team = %s and player = %s", (team.id, player.id))
             res = cursor.fetchall()
             if len(res) != 0:
                 return
 
         with conn.cursor() as cursor:
-            cursor.execute("insert into team_assignments values(%s, %s)", (team.id, player.id))
+            cursor.execute("insert into team_assignment values(%s, %s)", (team.id, player.id))
 
 
 def get_player(player_id: int) -> Player:
@@ -231,9 +192,9 @@ def get_player(player_id: int) -> Player:
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
-            cursor.execute("select * from players where id = %s", (player_id,))
+            cursor.execute("select * from player where id = %s", (player_id,))
             player_tuple = cursor.fetchall()[0]
-            return Player.from_tuple(player_tuple)
+            return DbObjImpl[Player]().from_tuple(player_tuple)
 
 
 def get_player_by_steam_id(player_steam_id: str):
@@ -243,9 +204,9 @@ def get_player_by_steam_id(player_steam_id: str):
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
-            cursor.execute("select * from players where steam_id = %s", (player_steam_id,))
+            cursor.execute("select * from player where steam_id = %s", (player_steam_id,))
             player_tuple = cursor.fetchall()[0]
-            return Player.from_tuple(player_tuple)
+            return DbObjImpl[Player]().from_tuple(player_tuple)
 
 
 def get_team(team_id: int) -> Team:
@@ -255,9 +216,9 @@ def get_team(team_id: int) -> Team:
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
-            cursor.execute("select * from teams where id = %s", (team_id,))
+            cursor.execute("select * from team where id = %s", (team_id,))
             team_tuple = cursor.fetchall()[0]
-            return Team.from_tuple(team_tuple)
+            return DbObjImpl[Team]().from_tuple(team_tuple)
 
 
 def get_all_teams() -> List[Team]:
@@ -267,9 +228,9 @@ def get_all_teams() -> List[Team]:
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
-            cursor.execute("select * from teams")
+            cursor.execute("select * from team")
             team_tuple_list = cursor.fetchall()
-            return [Team.from_tuple(team_tuple) for team_tuple in team_tuple_list]
+            return [DbObjImpl[Team]().from_tuple(team_tuple) for team_tuple in team_tuple_list]
 
 
 def get_team_players(team_id: int) -> List[Player]:
@@ -280,10 +241,10 @@ def get_team_players(team_id: int) -> List[Player]:
             password="pass") as conn:
         with conn.cursor() as cursor:
             cursor.execute(
-                "select * from players join team_assignments on players.id = team_assignments.player where team_assignments.team = %s",
+                "select player.id, player.name, player.steam_id from player join team_assignment on player.id = team_assignment.player where team_assignment.team = %s",
                 (team_id,))
             players = cursor.fetchall()
-            return [Player.from_tuple(player) for player in players]
+            return [DbObjImpl[Player]().from_tuple(player) for player in players]
 
 
 def get_servers() -> List[Server]:
@@ -293,43 +254,20 @@ def get_servers() -> List[Server]:
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
-            cursor.execute("select * from servers")
+            cursor.execute("select * from server")
             servers = cursor.fetchall()
-            return [Server.from_tuple(server) for server in servers]
+            return [DbObjImpl[Server]().from_tuple(server) for server in servers]
 
 
-def insert_server(server: Tuple) -> int:
+def insert_server(server: Server):
     with psycopg2.connect(
             host="db",
             database="postgres",
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
-            cursor.execute("insert into servers values(default, %s, %s, %s) returning id", server)
-            return cursor.fetchall()[0][0]
-
-
-def insert_basic_server(name: str) -> int:
-    with psycopg2.connect(
-            host="db",
-            database="postgres",
-            user="postgres",
-            password="pass") as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("insert into servers values(default, %s, default, default) returning id", (name,))
-            return cursor.fetchall()[0][0]
-
-
-def insert_basic_server_with_teams(name: str, team1: int, team2: int) -> int:
-    with psycopg2.connect(
-            host="db",
-            database="postgres",
-            user="postgres",
-            password="pass") as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("insert into servers values(default, %s, default, default, %s, %s) returning id",
-                           (name, team1, team2))
-            return cursor.fetchall()[0][0]
+            server.insert_into_db(cursor)
+            server.id = cursor.fetchall()[0][0]
 
 
 def set_server_port(server_id: int, port: int):
@@ -339,7 +277,7 @@ def set_server_port(server_id: int, port: int):
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
-            cursor.execute("update servers set port = %s where id = %s", (port, server_id))
+            cursor.execute("update server set port = %s where id = %s", (port, server_id))
 
 
 def set_server_status(server_id: int, status: int):
@@ -349,7 +287,7 @@ def set_server_status(server_id: int, status: int):
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
-            cursor.execute("update servers set status = %s where id = %s", (status, server_id))
+            cursor.execute("update server set status = %s where id = %s", (status, server_id))
 
 
 def set_server_token(server_id: int, gslt_token: str):
@@ -359,7 +297,7 @@ def set_server_token(server_id: int, gslt_token: str):
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
-            cursor.execute("update servers set gslt_token = %s where id = %s", (gslt_token, server_id))
+            cursor.execute("update server set gslt_token = %s where id = %s", (gslt_token, server_id))
 
 
 def get_server_by_id(server_id: int) -> Server:
@@ -369,8 +307,8 @@ def get_server_by_id(server_id: int) -> Server:
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
-            cursor.execute("select * from servers where id = %s", (server_id,))
-            return Server.from_tuple(cursor.fetchall()[0])
+            cursor.execute("select * from server where id = %s", (server_id,))
+            return DbObjImpl[Server]().from_tuple(cursor.fetchall()[0])
 
 
 def delete_server(server_id: int):
@@ -380,7 +318,18 @@ def delete_server(server_id: int):
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
-            cursor.execute("delete from servers where id = %s", (server_id,))
+            cursor.execute("delete from server where id = %s", (server_id,))
+
+
+def insert_match(match: Match):
+    with psycopg2.connect(
+            host="db",
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            match.insert_into_db(cursor)
+            match.id = cursor.fetchall()[0][0]
 
 
 def update_config():
@@ -397,4 +346,3 @@ def update_config():
 
     with open("teams.json", "w") as outfile:
         outfile.write(json_object)
-

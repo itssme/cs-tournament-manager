@@ -31,7 +31,7 @@ class ServerManager:
         self.__start_container(match_cfg)
 
     def stop_match(self, server_id: int):
-        container_name = db.get_server_by_id(server_id).name
+        container_name = db.get_server_by_id(server_id).container_name
         self.__stop_container_and_delete(container_name)
         db.delete_server(server_id)
 
@@ -40,8 +40,16 @@ class ServerManager:
 
         container_name = f"CSGO_{match_cfg['team1']['id']}_{match_cfg['team2']['id']}"
 
-        server_id = self.create_server_id(container_name, match_cfg['team1']['id'], match_cfg['team2']['id'])
-        port = self.reserve_free_port(server_id)
+        match = db.Match(name=container_name, team1=match_cfg['team1']['id'],
+                         team2=match_cfg['team2']['id'],
+                         best_out_of=match_cfg['num_maps'])
+        db.insert_match(match)
+
+        server = db.Server(container_name=container_name, match=match.id)
+        db.insert_server(server)
+
+
+        port = self.reserve_free_port(server.id)
 
         container_variables = {
             "RCON_PASSWORD": "pass",  # TODO
@@ -55,14 +63,14 @@ class ServerManager:
 
         if len(self.gslt_tokens):
             # TODO: catch exception if no tokens are available
-            container_variables["SERVER_TOKEN"] = self.reserve_free_gslt_token(server_id)
+            container_variables["SERVER_TOKEN"] = self.reserve_free_gslt_token(server.id)
 
         container = client.containers.run("get5-csgo:latest",
                                           name=container_name,
                                           environment=container_variables,
                                           detach=True, network="host")
         logging.info(f"Started container: {container_name} -> {container}")
-        self.set_server_status(server_id, 1)
+        self.set_server_status(server.id, 1)
         return container
 
     def __stop_container_and_delete(self, container_name: str):
@@ -73,9 +81,6 @@ class ServerManager:
         logging.info(f"Stopped container: {container_name}")
         container.remove()
         logging.info(f"Removed container: {container_name}")
-
-    def create_server_id(self, match_name: str, team1: int, team2: int) -> int:
-        return db.insert_basic_server_with_teams(match_name, team1, team2)
 
     def reserve_free_port(self, server_id: int) -> int:
         with self.port_lock:

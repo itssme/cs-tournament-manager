@@ -88,8 +88,8 @@ COPY --chown=user --chmod=755 server-scripts/server-launch.sh $HOME_DIR/
 ################
 COPY --chown=user cfg/* $CSGO_DIR/csgo/cfg/
 
-# FORCE MANUAL UPDATE IN CONTAINER
-RUN su user -c "bash $HOME_DIR/server-update.sh" && echo "1"
+# FORCE MANUAL UPDATE IN CONTAINER, simply increment the number on the echo command, this is not very clever or a good solution but, well... it works
+RUN su user -c "bash $HOME_DIR/server-update.sh" && echo "2"
 
 ############
 # RUN CSGO #

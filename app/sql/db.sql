@@ -1,31 +1,45 @@
-create table if not exists players
+create table if not exists player
 (
     id       serial primary key,
     name     text        not null,
     steam_id text unique not null
 );
 
-create table if not exists teams
+create table if not exists team
 (
     id   serial primary key,
     tag  text        not null,
     name text unique not null
 );
 
-create table if not exists team_assignments
+create table if not exists team_assignment
 (
-    team   integer references teams,
-    player integer references players,
+    team   integer references team,
+    player integer references player,
     primary key (team, player)
 );
 
-create table if not exists servers
+
+-- TODO: add series score to teams
+create table if not exists match
 (
-    id         serial primary key,
-    name       text not null,
-    status     int                         default 0,
-    port       int                         default -1,
-    team1      integer references teams default null,
-    team2      integer references teams default null,
-    gslt_token text default null
+    id                   serial primary key,
+    name                 text    not null,
+    team1                integer references team default null,
+    team2                integer references team default null,
+    best_out_of          integer not null,
+    number_in_map_series integer                 default 0,
+    current_score_team1  integer                 default 0,
+    current_score_team2  integer                 default 0,
+    finished             integer                 default 0
+);
+
+create table if not exists server
+(
+    id             serial primary key,
+    status         int  default 0,
+    port           int  default -1,
+    gslt_token     text default null,
+    container_name text default null,
+    match          integer references match
 );

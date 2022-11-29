@@ -27,6 +27,9 @@
                             <hr>
                             <label for="best_out_of_teams">Best out of:</label>
                             <input type="number" id="best_out_of_teams" value="3"> <br>
+
+                            <label for="check_auths">Check Auths:</label>
+                            <input type="checkbox" id="check_auths" checked> <br>
                             <hr>
                             <input class="btn btn-primary" type="submit" value="Start Match" onclick="startTeamMatch()"
                                    name="submit">
@@ -45,7 +48,8 @@
             xmlHttp.send(JSON.stringify({
                 "team1": document.getElementById("team1").value,
                 "team2": document.getElementById("team2").value,
-                "best_of": document.getElementById("best_out_of_teams").value
+                "best_of": document.getElementById("best_out_of_teams").value,
+                "check_auths": document.getElementById("check_auths").checked
             }));
 
             if (xmlHttp.status === 200) {
