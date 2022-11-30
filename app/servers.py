@@ -48,8 +48,7 @@ class ServerManager:
         server = db.Server(container_name=container_name, match=match.id)
         db.insert_server(server)
 
-
-        port = self.reserve_free_port(server.id)
+        port = self.reserve_free_port(server)
 
         container_variables = {
             "RCON_PASSWORD": "pass",  # TODO
@@ -63,14 +62,15 @@ class ServerManager:
 
         if len(self.gslt_tokens):
             # TODO: catch exception if no tokens are available
-            container_variables["SERVER_TOKEN"] = self.reserve_free_gslt_token(server.id)
+            container_variables["SERVER_TOKEN"] = self.reserve_free_gslt_token(server)
 
         container = client.containers.run("get5-csgo:latest",
                                           name=container_name,
                                           environment=container_variables,
                                           detach=True, network="host")
         logging.info(f"Started container: {container_name} -> {container}")
-        self.set_server_status(server.id, 1)
+        server.status = 1
+        server.update_attribute("status")
         return container
 
     def __stop_container_and_delete(self, container_name: str):
@@ -82,25 +82,25 @@ class ServerManager:
         container.remove()
         logging.info(f"Removed container: {container_name}")
 
-    def reserve_free_port(self, server_id: int) -> int:
+    def reserve_free_port(self, server: db.Server) -> int:
         with self.port_lock:
             available_ports = PORTS.copy()
             reserved_ports = [server.port for server in db.get_servers()]
             free_ports = list(filter(lambda port: False if port in reserved_ports else True, available_ports))
 
             port = random.choice(free_ports)
-            db.set_server_port(server_id, port)
+            server.port = port
+            server.update_attribute("port")
+
             return port
 
-    def reserve_free_gslt_token(self, server_id: int) -> str:
+    def reserve_free_gslt_token(self, server: db.Server) -> str:
         with self.gslt_lock:
             available_tokens = self.gslt_tokens.copy()
             reserved_tokens = [server.gslt_token for server in db.get_servers()]
             free_tokens = list(filter(lambda token: False if token in reserved_tokens else True, available_tokens))
 
             gslt_token = random.choice(free_tokens)
-            db.set_server_token(server_id, gslt_token)
+            server.gslt_token = gslt_token
+            server.update_attribute("gslt_token")
             return gslt_token
-
-    def set_server_status(self, server_id: int, status: int):
-        db.set_server_status(server_id, status)

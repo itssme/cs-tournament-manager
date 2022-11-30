@@ -19,10 +19,41 @@ class DbObject(object):
     def __repr__(self):
         return str(self.to_json())
 
-    def insert_into_db(self, cursor):
+    def insert_into_db(self):
+        with psycopg2.connect(
+                host="db",
+                database="postgres",
+                user="postgres",
+                password="pass") as conn:
+            with conn.cursor() as cursor:
+                self.insert_into_db_with_cursor(cursor)
+
+    def insert_into_db_with_cursor(self, cursor):
         stmt = f"insert into {self.__class__.__name__.lower()} ({', '.join(list(filter(lambda key: (key != 'id'), list(vars(self).keys()))))}) values ({', '.join(['%s' for elm in list(filter(lambda key: (key != 'id'), list(vars(self).keys())))])}) {'returning id' if 'id' in list(vars(self).keys()) else ''}"
         values = tuple(
-            self.__getattribute__(elm) for elm in list(filter(lambda key: (key != 'id'), list(vars(self).keys()))))
+            self.__getattribute__(elm) for elm in
+            list(filter(lambda key: (key != 'id'), list(vars(self).keys()))))
+        logging.info(f"Running query: {stmt}\nwith values: {values}")
+        cursor.execute(stmt, values)
+        if "id" in vars(self).keys():
+            self.__setattr__("id", cursor.fetchall()[0][0])
+
+    # WARNING: Currently only works if the object is using the 'id' attribute as primary key
+    def update_attribute(self, attr: str):
+        if "id" not in vars(self).keys():
+            raise NotImplemented("Cannot insert object that does not use 'id' as primary key")
+
+        with psycopg2.connect(
+                host="db",
+                database="postgres",
+                user="postgres",
+                password="pass") as conn:
+            with conn.cursor() as cursor:
+                self.update_attribute_with_cursor(cursor, attr)
+
+    def update_attribute_with_cursor(self, cursor, attr: str):
+        stmt = f"update {self.__class__.__name__.lower()} set {attr} = %s where id = %s"
+        values = (self.__getattribute__(attr), self.__getattribute__("id"))
         logging.info(f"Running query: {stmt}\nwith values: {values}")
         cursor.execute(stmt, values)
 
@@ -35,10 +66,11 @@ class Player(DbObject):
 
 
 class Team(DbObject):
-    def __init__(self, id: int = None, tag: str = "", name: str = ""):
+    def __init__(self, id: int = None, tag: str = "", name: str = "", elo: int = 0):
         self.id: int = id
         self.tag: str = tag
         self.name: str = name
+        self.elo: int = elo
 
 
 class Server(DbObject):
@@ -144,8 +176,7 @@ def insert_player_or_set_id(player: Player):
                 return
 
         with conn.cursor() as cursor:
-            player.insert_into_db(cursor)
-            player.id = cursor.fetchall()[0][0]
+            player.insert_into_db_with_cursor(cursor)
             logging.info(f"Inserted team: '{player}' into database")
 
 
@@ -164,8 +195,7 @@ def insert_team_or_set_id(team: Team):
                 return
 
         with conn.cursor() as cursor:
-            team.insert_into_db(cursor)
-            team.id = cursor.fetchall()[0][0]
+            team.insert_into_db_with_cursor(cursor)
             logging.info(f"Inserted team: '{team}' into database")
 
 
@@ -266,38 +296,7 @@ def insert_server(server: Server):
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
-            server.insert_into_db(cursor)
-            server.id = cursor.fetchall()[0][0]
-
-
-def set_server_port(server_id: int, port: int):
-    with psycopg2.connect(
-            host="db",
-            database="postgres",
-            user="postgres",
-            password="pass") as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("update server set port = %s where id = %s", (port, server_id))
-
-
-def set_server_status(server_id: int, status: int):
-    with psycopg2.connect(
-            host="db",
-            database="postgres",
-            user="postgres",
-            password="pass") as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("update server set status = %s where id = %s", (status, server_id))
-
-
-def set_server_token(server_id: int, gslt_token: str):
-    with psycopg2.connect(
-            host="db",
-            database="postgres",
-            user="postgres",
-            password="pass") as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("update server set gslt_token = %s where id = %s", (gslt_token, server_id))
+            server.insert_into_db_with_cursor(cursor)
 
 
 def get_server_by_id(server_id: int) -> Server:
@@ -328,8 +327,7 @@ def insert_match(match: Match):
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
-            match.insert_into_db(cursor)
-            match.id = cursor.fetchall()[0][0]
+            match.insert_into_db_with_cursor(cursor)
 
 
 def update_config():

@@ -9,7 +9,8 @@ create table if not exists team
 (
     id   serial primary key,
     tag  text        not null,
-    name text unique not null
+    name text unique not null,
+    elo  int default 0
 );
 
 create table if not exists team_assignment
