@@ -58,6 +58,10 @@ CHAT_IDS="chat_id_1,chat_id_2..."
 
 + Connect to the server, on the ip shown in the webinterface/ on telegram (todo)
 
+### ELO
+
+Currently an ELO rating system for teams is bring implemented.
+
 ## Banned Players
 
 | SteamID              | Reason                              |
