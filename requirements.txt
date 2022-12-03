@@ -7,3 +7,4 @@ aiorcon
 psycopg2
 pysrcds
 docker
+numpy
