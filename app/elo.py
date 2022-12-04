@@ -34,7 +34,7 @@ def calculate_elo(team1_elo, team2_elo, team1_score, team2_score):
 def main():
     teams = [1000, 2000, 1500, 800]
 
-    print(calculate_elo(1200, 2000, 16, 20))
+    print(calculate_elo(1200, 2000, 16, 0))
 
 
 if __name__ == '__main__':

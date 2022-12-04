@@ -55,6 +55,11 @@ async def status(request: Request):
     return templates.TemplateResponse("config.html", {"request": request, "teams": teams})
 
 
+@app.get("/teams", response_class=JSONResponse)
+async def teams(request: Request):
+    return [team.to_json() for team in db.get_all_teams()]
+
+
 @api.get("/info", response_class=JSONResponse)
 async def status(request: Request):
     servers = db.get_servers()
