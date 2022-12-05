@@ -251,7 +251,7 @@ def get_team(team_id: int) -> Team:
             return DbObjImpl[Team]().from_tuple(team_tuple)
 
 
-def get_all_teams() -> List[Team]:
+def get_teams() -> List[Team]:
     with psycopg2.connect(
             host="db",
             database="postgres",
@@ -320,6 +320,18 @@ def delete_server(server_id: int):
             cursor.execute("delete from server where id = %s", (server_id,))
 
 
+def get_matches() -> List[Match]:
+    with psycopg2.connect(
+            host="db",
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("select * from match")
+            matches = cursor.fetchall()
+            return [DbObjImpl[Match]().from_tuple(match) for match in matches]
+
+
 def insert_match(match: Match):
     with psycopg2.connect(
             host="db",
@@ -332,7 +344,7 @@ def insert_match(match: Match):
 
 def update_config():
     team_config = []
-    teams = get_all_teams()
+    teams = get_teams()
     for team in teams:
         players = get_team_players(team.id)
         team_config.append({
