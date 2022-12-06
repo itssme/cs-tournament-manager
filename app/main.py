@@ -1,5 +1,7 @@
 import json
 import logging
+import time
+from threading import Thread
 from typing import Union
 
 from starlette.responses import JSONResponse
@@ -150,3 +152,15 @@ async def createTeam(request: Request, team: TeamInfo):
     db.insert_team_or_set_id(db.Team(tag=team.tag, name=team.name, id=0))
 
     db.update_config()
+
+
+def elo_updater():
+    while True:
+        time.sleep(1)
+        # TODO: check if a match is over
+        # TODO: update elo
+
+
+elo_update_thread = Thread(target=elo_updater)
+elo_update_thread.setDaemon(daemonic=True)
+elo_update_thread.start()
