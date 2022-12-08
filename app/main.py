@@ -105,6 +105,19 @@ async def status(request: Request):
     return status_json
 
 
+class SlayPlayer(BaseModel):
+    player_name: str
+    server_port: int
+
+
+@api.get("/slay", response_class=JSONResponse)
+async def slay_player(request: Request, slay: SlayPlayer):
+    logging.info(f"Slaying player: {slay.player_name} on server: {slay.server_port}")
+    with RCON("host.docker.internal", slay.server_port, "pass") as rconn:
+        logging.info(rconn.exec_command(f"sm_slay {slay.player_name}"))
+    return {"status": 0}
+
+
 class ServerID(BaseModel):
     id: int
 
