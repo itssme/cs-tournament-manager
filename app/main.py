@@ -6,6 +6,8 @@ from typing import Union
 
 from starlette.responses import JSONResponse
 
+import csgo_events
+import rcon
 from rcon import RCON
 from servers import ServerManager
 from match_conf_gen import MatchGen
@@ -27,7 +29,9 @@ logging.getLogger('pika').setLevel(logging.WARNING)
 
 app = FastAPI()
 api = FastAPI()
+csgo_api = FastAPI()
 app.mount("/api", api)
+api.mount("/csgo", csgo_api)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
@@ -36,6 +40,7 @@ db.setup_db()
 
 error_routes.set_routes(app, templates)
 error_routes.set_api_routes(api)
+csgo_events.set_api_routes(csgo_api)
 
 server_manger = ServerManager()
 
@@ -83,23 +88,29 @@ async def status(request: Request):
 
     for server in servers:
         logging.info(f"Collecting stats for server: {server}")
+        get5_stats = rcon.get5_status(server.port)
+
         with RCON("host.docker.internal", server.port, "pass") as rconn:
             # logging.info(rconn.exec_command("sm_slay Jöl"))
             # logging.info(rconn.exec_command("cvarlist"))
 
             # need to parse values: CPU   NetIn   NetOut    Uptime  Maps   FPS   Players  Svms    +-ms   ~tick
             stats = rconn.exec_command("stats")
-
-            get5_stats: str = rconn.exec_command("get5_status")
-            get5_stats = get5_stats[get5_stats.find("{"):(get5_stats.rfind("}") + 1)].replace("\\n", "")
-            get5_stats = json.loads(get5_stats)
-
             stats_parsed = [float(value) for value in stats.split("\\n")[1].split(" ") if value != '']
+
+            match = db.get_match_by_id(server.match)
+            team_1 = db.get_team_by_id(match.team1)
+            team_2 = db.get_team_by_id(match.team2)
+
+            if get5_stats["gamestate"] == "none":
+                get5_stats["matchid"] = f"{team_1.name} vs {team_2.name}"
 
             status_json.append({"id": server.id,
                                 "ip": "127.0.0.1" + ":" + str(server.port),
                                 "get5_stats": get5_stats,
-                                "stats": stats_parsed})
+                                "stats": stats_parsed,
+                                "team1": team_1,
+                                "team2": team_2})
 
     logging.info(f"Requested /info -> {status_json}")
     return status_json
@@ -165,15 +176,3 @@ async def createTeam(request: Request, team: TeamInfo):
     db.insert_team_or_set_id(db.Team(tag=team.tag, name=team.name, id=0))
 
     db.update_config()
-
-
-def elo_updater():
-    while True:
-        time.sleep(1)
-        # TODO: check if a match is over
-        # TODO: update elo
-
-
-elo_update_thread = Thread(target=elo_updater)
-elo_update_thread.setDaemon(daemonic=True)
-elo_update_thread.start()

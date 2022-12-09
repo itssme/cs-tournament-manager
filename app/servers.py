@@ -40,7 +40,7 @@ class ServerManager:
 
         container_name = f"CSGO_{match_cfg['team1']['id']}_{match_cfg['team2']['id']}"
 
-        match = db.Match(name=container_name, team1=match_cfg['team1']['id'],
+        match = db.Match(name=container_name, matchid=match_cfg["matchid"], team1=match_cfg['team1']['id'],
                          team2=match_cfg['team2']['id'],
                          best_out_of=match_cfg['num_maps'])
         db.insert_match(match)

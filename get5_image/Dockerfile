@@ -33,6 +33,7 @@ ENV HOME_DIR=/home/user \
     CSGO_DIR=/home/user/csgo-server \
     METAMOD_URL=https://mms.alliedmods.net/mmsdrop/1.12/mmsource-1.12.0-git1164-linux.tar.gz \
     SOURCEMOD_URL=https://sm.alliedmods.net/smdrop/1.12/sourcemod-1.12.0-git6936-linux.tar.gz \
+    STEAMWORKS_URL=https://github.com/KyleSanderson/SteamWorks/releases/download/1.2.3c/package-lin.tgz \
     GET5_URL=https://github.com/splewis/get5/releases/download/v0.11.0/get5-v0.11.0.tar.gz
 
 WORKDIR $HOME_DIR
@@ -70,6 +71,13 @@ RUN su user -c  \
        && rsync -aq addons/ $CSGO_DIR/csgo/addons \
        && rsync -aq cfg/ $CSGO_DIR/csgo/cfg \
        && rm -rf addons cfg get5.zip"
+
+# steamworks:
+RUN su user -c \
+      "wget -q -O steamworks.tar.gz $STEAMWORKS_URL \
+      && mkdir steamworks \
+      && tar -xzf steamworks.tar.gz -C steamworks \
+      && rsync -aq steamworks/package/addons/ $CSGO_DIR/csgo/addons"
 
 RUN apt install gdb -y
 

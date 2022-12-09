@@ -85,17 +85,18 @@ class Server(DbObject):
 
 
 class Match(DbObject):
-    def __init__(self, id: int = None, name: str = "", team1: int = None, team2: int = None,
-                 best_out_of: int = None, number_in_map_series: int = None, current_score_team1: int = None,
-                 current_score_team2: int = None, finished: int = None):
+    def __init__(self, id: int = None, matchid: str = "", name: str = "", team1: int = None, team2: int = None,
+                 best_out_of: int = None, number_in_map_series: int = 0, series_score_team1: int = 0,
+                 series_score_team2: int = 0, finished: int = 0):
         self.id: int = id
+        self.matchid: str = matchid
         self.name: str = name
         self.team1: int = team1
         self.team2: int = team2
         self.best_out_of: int = best_out_of
         self.number_in_map_series: int = number_in_map_series
-        self.current_score_team1: int = current_score_team1
-        self.current_score_team2: int = current_score_team2
+        self.series_score_team1: int = series_score_team1
+        self.series_score_team2: int = series_score_team2
         self.finished: int = finished
 
 
@@ -239,7 +240,7 @@ def get_player_by_steam_id(player_steam_id: str):
             return DbObjImpl[Player]().from_tuple(player_tuple)
 
 
-def get_team(team_id: int) -> Team:
+def get_team_by_id(team_id: int) -> Team:
     with psycopg2.connect(
             host="db",
             database="postgres",
@@ -330,6 +331,17 @@ def get_matches() -> List[Match]:
             cursor.execute("select * from match")
             matches = cursor.fetchall()
             return [DbObjImpl[Match]().from_tuple(match) for match in matches]
+
+
+def get_match_by_id(match_id: int) -> Match:
+    with psycopg2.connect(
+            host="db",
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("select * from match where id = %s", (match_id,))
+            return DbObjImpl[Match]().from_tuple(cursor.fetchall()[0])
 
 
 def insert_match(match: Match):

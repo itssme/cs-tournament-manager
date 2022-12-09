@@ -41,7 +41,7 @@ class MatchConfig(dict):
         self["num_maps"] = maps
 
     def add_team(self, team_id: int):
-        team = db.get_team(team_id)
+        team = db.get_team_by_id(team_id)
         key = "team1"
         if "team1" in self.keys():
             key = "team2"
@@ -72,6 +72,7 @@ class MatchGen:
         matchcfg.add_cvar("get5_demo_path", "demos/")
         matchcfg.add_cvar("get5_demo_name_format", "{TIME}_{MATCHID}_map{MAPNUMBER}_{MAPNAME}")
         matchcfg.add_cvar("get5_kick_when_no_match_loaded", 1)
+        matchcfg.add_cvar("get5_remote_log_url", "http://127.0.0.1/api/csgo/")
         matchcfg.add_cvar("tv_enable", 1)
         matchcfg.generate_match_name()
 

@@ -66,6 +66,10 @@
                                         <th>Side</th>
                                         <th id="{{ server.id }}get5_team1_side"></th>
                                     </tr>
+                                    <tr>
+                                        <th>Elo</th>
+                                        <th id="{{ server.id }}_team1_elo"></th>
+                                    </tr>
                                 </table>
                                 <hr>
 
@@ -95,6 +99,10 @@
                                         <th>Side</th>
                                         <th id="{{ server.id }}get5_team2_side"></th>
                                     </tr>
+                                    <tr>
+                                        <th>Elo</th>
+                                        <th id="{{ server.id }}_team2_elo"></th>
+                                    </tr>
                                 </table>
                                 <hr>
                                 <input id="stop_button_{{ server.id }}" class="btn btn-primary" type="submit"
@@ -122,6 +130,14 @@
                 server_id = server["id"];
 
                 document.getElementById(`${server_id}ip`).innerText = server["ip"];
+
+                if (server["team1"].hasOwnProperty("elo")) {
+                    document.getElementById(`${server_id}_team1_elo`).innerText = server["team1"]["elo"];
+                }
+
+                if (server["team2"].hasOwnProperty("elo")) {
+                    document.getElementById(`${server_id}_team2_elo`).innerText = server["team2"]["elo"];
+                }
 
                 json_res = server["get5_stats"];
                 document.getElementById(`${server_id}get5_gamestate`).innerText = json_res["gamestate"];

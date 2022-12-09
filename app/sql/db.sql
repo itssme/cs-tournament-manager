@@ -21,17 +21,17 @@ create table if not exists team_assignment
 );
 
 
--- TODO: add series score to teams
 create table if not exists match
 (
     id                   serial primary key,
+    matchid              text    not null,
     name                 text    not null,
     team1                integer references team default null,
     team2                integer references team default null,
     best_out_of          integer not null,
     number_in_map_series integer                 default 0,
-    current_score_team1  integer                 default 0,
-    current_score_team2  integer                 default 0,
+    series_score_team1   integer                 default 0,
+    series_score_team2   integer                 default 0,
     finished             integer                 default 0
 );
 
