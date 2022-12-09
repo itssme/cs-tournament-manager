@@ -62,17 +62,22 @@ async def status(request: Request):
     return templates.TemplateResponse("config.html", {"request": request, "teams": teams})
 
 
-@app.get("/teams", response_class=JSONResponse)
+@api.get("/players", response_class=JSONResponse)
+async def players(request: Request):
+    return [player.to_json() for player in db.get_players()]
+
+
+@api.get("/teams", response_class=JSONResponse)
 async def teams(request: Request):
     return [team.to_json() for team in db.get_teams()]
 
 
-@app.get("/servers", response_class=JSONResponse)
+@api.get("/servers", response_class=JSONResponse)
 async def servers(request: Request):
     return [server.to_json() for server in db.get_servers()]
 
 
-@app.get("/matches", response_class=JSONResponse)
+@api.get("/matches", response_class=JSONResponse)
 async def matches(request: Request):
     return [match.to_json() for match in db.get_matches()]
 

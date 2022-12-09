@@ -228,6 +228,18 @@ def get_player(player_id: int) -> Player:
             return DbObjImpl[Player]().from_tuple(player_tuple)
 
 
+def get_players() -> List[Player]:
+    with psycopg2.connect(
+            host="db",
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("select * from player")
+            player_tuple_list = cursor.fetchall()
+            return [DbObjImpl[Player]().from_tuple(player_tuple) for player_tuple in player_tuple_list]
+
+
 def get_player_by_steam_id(player_steam_id: str):
     with psycopg2.connect(
             host="db",
@@ -341,6 +353,17 @@ def get_match_by_id(match_id: int) -> Match:
             password="pass") as conn:
         with conn.cursor() as cursor:
             cursor.execute("select * from match where id = %s", (match_id,))
+            return DbObjImpl[Match]().from_tuple(cursor.fetchall()[0])
+
+
+def get_match_by_matchid(matchid: int) -> Match:
+    with psycopg2.connect(
+            host="db",
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("select * from match where matchid = %s and finished = 0", (matchid,))
             return DbObjImpl[Match]().from_tuple(cursor.fetchall()[0])
 
 
