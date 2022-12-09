@@ -40,7 +40,7 @@ def calculate_elo(team1_elo, team2_elo, team1_score, team2_score):
     elo_ln = team1_elo + k * (wl - wel)
     elo_vn = team2_elo + k * (wv - wev)
 
-    return elo_ln, elo_vn
+    return int(elo_ln), int(elo_vn)
 
 
 csgo_rank_dist = [1.6, 2.9, 2.7, 3.6, 4.9, 6.0, 7.2, 8.2, 8.9, 9.4, 9.0, 8.3, 7.2, 6.1, 4.8, 4.9, 3.1, 1.3]

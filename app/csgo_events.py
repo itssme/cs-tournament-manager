@@ -5,6 +5,7 @@ from typing import Dict
 from fastapi import Request
 
 import db
+from elo import calculate_elo
 
 
 def map_result(event: Dict):
@@ -17,6 +18,16 @@ def map_result(event: Dict):
         match.update_attribute("series_score_team2")
     else:
         logging.error(f"Got a map_result event with no team winning? -> {event}")
+
+    team1 = db.get_team_by_id(match.team1)
+    team2 = db.get_team_by_id(match.team2)
+    logging.info(f"Updating ELO: {team1.elo}, {team2.elo}, {event['team1_score']}, {event['team2_score']}")
+
+    team1.elo, team2.elo = calculate_elo(team1.elo, team2.elo, event["team1_score"], event["team2_score"])
+    team1.update_attribute("elo")
+    team2.update_attribute("elo")
+
+    logging.info(f"Updated ELO: {team1.elo}, {team2.elo}, {event['team1_score']}, {event['team2_score']}")
 
 
 def series_end(event: Dict):
@@ -31,7 +42,7 @@ def player_say(event: Dict):
     logging.info(f"Player said: {event['message']}")
 
 
-callbacks = {"player_say": player_say, "map_result": map_result}
+callbacks = {"player_say": player_say, "map_result": map_result, "series_end": series_end}
 
 
 def set_api_routes(app):
