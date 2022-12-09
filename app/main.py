@@ -154,7 +154,7 @@ class MatchInfo(BaseModel):
 
 
 @api.post("/createMatch")
-async def createMatch(request: Request, match: MatchInfo):
+async def create_match(request: Request, match: MatchInfo):
     logging.info(
         f"Called /createMatch with MatchInfo: Team1: '{match.team1}', Team2: '{match.team2}', "
         f"best_of: '{match.best_of}', 'check_auths: {match.check_auths}'")
@@ -173,11 +173,23 @@ class TeamInfo(BaseModel):
     tag: str
 
 
+class PlayerInfo(BaseModel):
+    steam_id: str
+    name: str
+
+
 @api.post("/createTeam")
-async def createTeam(request: Request, team: TeamInfo):
+async def create_team(request: Request, team: TeamInfo):
     logging.info(
         f"Called /createTeam with TeamInfo: TeamName: '{team.name}', TeamTag: '{team.tag}'")
 
     db.insert_team_or_set_id(db.Team(tag=team.tag, name=team.name, id=0))
 
     db.update_config()
+
+
+@api.post("/createPlayer")
+async def create_player(request: Request, player: PlayerInfo):
+
+    logging.info(f"Called /createPlayer with PlayerInfo: PlayerName: '{player.name}', SteamID: '{player.steam_id}'")
+    db.insert_player_or_set_id(db.Player(name=player.name, steam_id=player.steam_id))

@@ -1,3 +1,4 @@
+import json
 import logging
 
 import os
@@ -44,12 +45,14 @@ class TelegramBOT:
             bot.send_message(chat_id, "Commands:\n"
                                       "/help\n"
                                       "/createTeam `teamName` `teamTag`\n"
-                                      "/createUser `steamId` `Name`\n"
+                                      "/createPlayer `steamId` `Name`\n"
                                       "/createMatch `teamId1` `teamId2` `bestOf?`\n"
                                       "/deleteTeam `teamId`\n"
+                                      "/deletePlayer `playerId\n`"
                                       "/listTeams\n"
-                                      "/addMember `userId` `teamId`\n"
-                                      "/info\n",
+                                      "/listPlayers\n"
+                                      "/listMatches\n"
+                                      "/addMember `playerId` `teamId`\n",
                              parse_mode="MarkdownV2")
 
         @REQUIRE_AUTH
@@ -82,12 +85,21 @@ class TelegramBOT:
                 bot.send_message(chat_id, f"Unable to create team: {res.status_code}, {res.text}")
 
         @REQUIRE_AUTH
-        def create_user(update, context):
+        def create_player(update, context):
             bot: telegram.bot.Bot = context.bot
             chat_id = update.effective_chat["id"]
             user_id = update.effective_user["id"]
-            bot.send_message(chat_id, "Not yet implemented",
-                             parse_mode="MarkdownV2")
+
+            # all context args are joined together to form the name
+            name = " ".join(context.args[1:])
+
+            data = {"steam_id": context.args[0], "name": name}
+
+            res = requests.post("http://csgo_manager/api/createPlayer", json=data)
+            if res.status_code == 200:
+                bot.send_message(chat_id, f"Successfully created player {data['name']} with steam id {data['steam_id']}")
+            else:
+                bot.send_message(chat_id, f"Unable to create team: {res.status_code}, {res.text}")
 
         @REQUIRE_AUTH
         def delete_team(update, context):
@@ -102,8 +114,42 @@ class TelegramBOT:
             bot: telegram.bot.Bot = context.bot
             chat_id = update.effective_chat["id"]
             user_id = update.effective_user["id"]
-            bot.send_message(chat_id, "Not yet implemented",
-                             parse_mode="MarkdownV2")
+
+            res = requests.get("http://csgo_manager/api/teams")
+            if res.status_code == 200:
+                parsed = json.loads(res.text)
+                result = f"Teams:\n```json\n{json.dumps(parsed, indent=4)}\n```"
+                bot.send_message(chat_id, result, parse_mode="MarkdownV2")
+            else:
+                bot.send_message(chat_id, f"Unable to list teams: {res.status_code}, {res.text}")
+
+        @REQUIRE_AUTH
+        def list_players(update, context):
+            bot: telegram.bot.Bot = context.bot
+            chat_id = update.effective_chat["id"]
+            user_id = update.effective_user["id"]
+
+            res = requests.get("http://csgo_manager/api/players")
+            if res.status_code == 200:
+                parsed = json.loads(res.text)
+                result = f"Players:\n```json\n{json.dumps(parsed, indent=4)}\n```"
+                bot.send_message(chat_id, result, parse_mode="MarkdownV2")
+            else:
+                bot.send_message(chat_id, f"Unable to list players: {res.status_code}, {res.text}")
+
+        @REQUIRE_AUTH
+        def list_matches(update, context):
+            bot: telegram.bot.Bot = context.bot
+            chat_id = update.effective_chat["id"]
+            user_id = update.effective_user["id"]
+
+            res = requests.get("http://csgo_manager/api/matches")
+            if res.status_code == 200:
+                parsed = json.loads(res.text)
+                result = f"Matches:\n```json\n{json.dumps(parsed, indent=4)}\n```"
+                bot.send_message(chat_id, result, parse_mode="MarkdownV2")
+            else:
+                bot.send_message(chat_id, f"Unable to list matches: {res.status_code}, {res.text}")
 
         @REQUIRE_AUTH
         def add_member(update, context):
@@ -112,19 +158,6 @@ class TelegramBOT:
             user_id = update.effective_user["id"]
             bot.send_message(chat_id, "Not yet implemented",
                              parse_mode="MarkdownV2")
-
-        @REQUIRE_AUTH
-        def info(update, context):
-            bot: telegram.bot.Bot = context.bot
-            chat_id = update.effective_chat["id"]
-            user_id = update.effective_user["id"]
-            bot.send_message(chat_id, "Not yet implemented",
-                             parse_mode="MarkdownV2")
-            res = requests.post("http://csgo_manager/api/createMatch")
-            if res.status_code == 200:
-                bot.send_message(chat_id, res.text)
-            else:
-                bot.send_message(chat_id, f"Unable to create match: {res.status_code}, {res.text}")
 
         @REQUIRE_AUTH
         def create_match(update, context):
@@ -160,7 +193,7 @@ class TelegramBOT:
                                       pass_args=True,
                                       pass_job_queue=True,
                                       pass_chat_data=True))
-        dp.add_handler(CommandHandler("createUser", create_user,
+        dp.add_handler(CommandHandler("createPlayer", create_player,
                                       pass_args=True,
                                       pass_job_queue=True,
                                       pass_chat_data=True))
@@ -176,11 +209,15 @@ class TelegramBOT:
                                       pass_args=True,
                                       pass_job_queue=True,
                                       pass_chat_data=True))
-        dp.add_handler(CommandHandler("addMember", add_member,
+        dp.add_handler(CommandHandler("listPlayers", list_players,
                                       pass_args=True,
                                       pass_job_queue=True,
                                       pass_chat_data=True))
-        dp.add_handler(CommandHandler("ingo", info,
+        dp.add_handler(CommandHandler("listMatches", list_matches,
+                                      pass_args=True,
+                                      pass_job_queue=True,
+                                      pass_chat_data=True))
+        dp.add_handler(CommandHandler("addMember", add_member,
                                       pass_args=True,
                                       pass_job_queue=True,
                                       pass_chat_data=True))
