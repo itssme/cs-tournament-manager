@@ -15,8 +15,8 @@ create table if not exists team
 
 create table if not exists team_assignment
 (
-    team   integer references team,
-    player integer references player,
+    team   integer references team on delete cascade,
+    player integer references player on delete cascade,
     primary key (team, player)
 );
 

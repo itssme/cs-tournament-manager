@@ -193,3 +193,21 @@ async def create_player(request: Request, player: PlayerInfo):
 
     logging.info(f"Called /createPlayer with PlayerInfo: PlayerName: '{player.name}', SteamID: '{player.steam_id}'")
     db.insert_player_or_set_id(db.Player(name=player.name, steam_id=player.steam_id))
+
+
+@api.delete("/deleteTeam")
+async def delete_team(request: Request, team_id: int):
+    logging.info(
+        f"Called /deleteTeam with TeamInfo: TeamName: '{team.name}', TeamTag: '{team.tag}'")
+
+    db.delete_team(team_id)
+    db.update_config()
+
+
+@api.delete("/deletePlayer")
+async def delete_player(request: Request, player_id: int):
+    logging.info(f"Called /deletePlayer with PlayerInfo: PlayerName: '{player.name}', SteamID: '{player.steam_id}'")
+    db.delete_player(player_id)
+
+    db.update_config()
+

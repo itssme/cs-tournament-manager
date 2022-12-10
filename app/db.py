@@ -1,7 +1,7 @@
 import json
 import logging
 import time
-from typing import List, Tuple, TypeVar, Generic
+from typing import List, TypeVar, Generic
 
 import psycopg2
 
@@ -226,6 +226,26 @@ def get_player(player_id: int) -> Player:
             cursor.execute("select * from player where id = %s", (player_id,))
             player_tuple = cursor.fetchall()[0]
             return DbObjImpl[Player]().from_tuple(player_tuple)
+
+
+def delete_player(player_id: int):
+    with psycopg2.connect(
+            host="db",
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("delete from player where id = %s", (player_id,))
+
+
+def delete_team(team_id: int):
+    with psycopg2.connect(
+            host="db",
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("delete from team where id = %s", (team_id,))
 
 
 def get_players() -> List[Player]:

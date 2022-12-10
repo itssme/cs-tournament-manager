@@ -1,11 +1,13 @@
 import json
 import logging
-
 import os
-import telegram
+
 import requests
+import telegram
 from telegram.ext import Updater, CommandHandler
+
 from utils import escape_string
+from utils import str2bool
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(funcName)s - %(message)s', level=logging.INFO)
 
@@ -44,15 +46,18 @@ class TelegramBOT:
             user_id = update.effective_user["id"]
             bot.send_message(chat_id, "Commands:\n"
                                       "/help\n"
-                                      "/createTeam `teamName` `teamTag`\n"
+                                      "/createTeam `teamTag` `teamName`\n"
                                       "/createPlayer `steamId` `Name`\n"
-                                      "/createMatch `teamId1` `teamId2` `bestOf?`\n"
+                                      "/createMatch `teamId1` `teamId2` `bestOf?` `checkAuths?`\n"
+                                      "/addMember `teamId` `playerId`\n"
                                       "/deleteTeam `teamId`\n"
                                       "/deletePlayer `playerId\n`"
+                                      "/deleteMatch `matchId`\n"
+                                      "/removeMember `teamId` `playerId`\n"
                                       "/listTeams\n"
                                       "/listPlayers\n"
                                       "/listMatches\n"
-                                      "/addMember `playerId` `teamId`\n",
+                                      "/listMembers `teamId`\n",
                              parse_mode="MarkdownV2")
 
         @REQUIRE_AUTH
@@ -61,26 +66,29 @@ class TelegramBOT:
             chat_id = update.effective_chat["id"]
             user_id = update.effective_user["id"]
 
-            if len(context.args) != 2:
+            if len(context.args) < 2:
                 bot.send_message(chat_id, "Invalid number of arguments")
                 return
-            if len(context.args[1]) > 15:
-                bot.send_message(chat_id, "Team tag too long")
+
+            team_tag = context.args[0]
+            team_name = " ".join(context.args[1:])
+            if len(team_tag) > 15:
+                bot.send_message(chat_id, "Team tag must have at most 15 characters")
                 return
-            if len(context.args[0]) < 3:
-                bot.send_message(chat_id, "Team name too short")
+            if len(team_tag) < 3:
+                bot.send_message(chat_id, "Team name must have at least 3 characters")
                 return
-            if len(context.args[1]) < 3:
+            if len(team_name) < 3:
                 bot.send_message(chat_id, "Team tag too short")
                 return
 
-            data = {"name": context.args[0], "tag": context.args[1]}
+            data = {"name": team_name, "tag": team_tag}
 
             logging.info(f"Parsed /createMatch -> {data}")
 
             res = requests.post("http://csgo_manager/api/createTeam", json=data)
             if res.status_code == 200:
-                bot.send_message(chat_id, f"Successfully created team {data['name']} with tag {data['tag']}")
+                bot.send_message(chat_id, f"Successfully created team '{data['name']}' with tag '{data['tag']}'")
             else:
                 bot.send_message(chat_id, f"Unable to create team: {res.status_code}, {res.text}")
 
@@ -90,14 +98,16 @@ class TelegramBOT:
             chat_id = update.effective_chat["id"]
             user_id = update.effective_user["id"]
 
+            steam_id = context.args[0]
             # all context args are joined together to form the name
             name = " ".join(context.args[1:])
 
-            data = {"steam_id": context.args[0], "name": name}
+            data = {"steam_id": steam_id, "name": name}
 
             res = requests.post("http://csgo_manager/api/createPlayer", json=data)
             if res.status_code == 200:
-                bot.send_message(chat_id, f"Successfully created player {data['name']} with steam id {data['steam_id']}")
+                bot.send_message(chat_id,
+                                 f"Successfully created player {data['name']} with steam id {data['steam_id']}")
             else:
                 bot.send_message(chat_id, f"Unable to create team: {res.status_code}, {res.text}")
 
@@ -164,21 +174,26 @@ class TelegramBOT:
             bot: telegram.bot.Bot = context.bot
             chat_id = update.effective_chat["id"]
             user_id = update.effective_user["id"]
+            logging.info("Arguments: " + str(len(context.args)))
 
-            if 2 > len(context.args) or len(context.args) > 3:
+            if len(context.args) < 2 or len(context.args) > 4:
                 logging.error("/createMatch called with invalid amount of arguments.")
                 bot.send_message(chat_id,
                                  escape_string("/createMatch called with invalid amount of arguments. See /help"),
                                  parse_mode="MarkdownV2")
                 return
 
-            data = {"team1": context.args[0], "team2": context.args[1], "best_of": None}
+            team1_id = int(context.args[0])
+            team2_id = int(context.args[1])
+            best_of = int(context.args[2]) if len(context.args) > 2 else 1
+            checkAuths = str2bool(context.args[3]) if len(context.args) > 3 else True
 
-            if len(context.args) == 3:
-                data["best_of"] = int(context.args[2])
+            data = {"team1": team1_id,
+                    "team2": team2_id,
+                    "best_of": best_of,
+                    "check_auths": checkAuths}
 
             logging.info(f"Parsed /createMatch -> {data}")
-
             res = requests.post("http://csgo_manager/api/createMatch", json=data)
             if res.status_code == 200:
                 bot.send_message(chat_id, res.text)
