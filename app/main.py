@@ -1,9 +1,11 @@
 import json
 import logging
+import os
 import time
 from threading import Thread
 from typing import Union
 
+import aiofiles
 from starlette.responses import JSONResponse
 
 import csgo_events
@@ -14,7 +16,7 @@ from match_conf_gen import MatchGen
 import db
 
 import error_routes
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -107,8 +109,7 @@ async def status(request: Request):
             team_1 = db.get_team_by_id(match.team1)
             team_2 = db.get_team_by_id(match.team2)
 
-            if get5_stats["gamestate"] == "none":
-                get5_stats["matchid"] = f"{team_1.name} vs {team_2.name}"
+            get5_stats["matchid"] = f"{team_1.name} vs {team_2.name}"
 
             status_json.append({"id": server.id,
                                 "ip": "127.0.0.1" + ":" + str(server.port),
@@ -140,7 +141,6 @@ class ServerID(BaseModel):
 
 @api.post("/stopMatch", response_class=JSONResponse)
 async def status(request: Request, server: ServerID):
-    # TODO: extract demo files from the container, should be located at: /home/user/csgo-server/csgo/demos
     logging.info(f"Called /stopMatch with server id: {server.id}")
     server_manger.stop_match(server.id)
     return {"status": 0}
@@ -178,36 +178,44 @@ class PlayerInfo(BaseModel):
     name: str
 
 
-@api.post("/createTeam")
+@api.post("/team")
 async def create_team(request: Request, team: TeamInfo):
     logging.info(
-        f"Called /createTeam with TeamInfo: TeamName: '{team.name}', TeamTag: '{team.tag}'")
+        f"Called POST /team with TeamInfo: TeamName: '{team.name}', TeamTag: '{team.tag}'")
 
     db.insert_team_or_set_id(db.Team(tag=team.tag, name=team.name, id=0))
 
     db.update_config()
 
 
-@api.post("/createPlayer")
+@api.post("/player")
 async def create_player(request: Request, player: PlayerInfo):
-
-    logging.info(f"Called /createPlayer with PlayerInfo: PlayerName: '{player.name}', SteamID: '{player.steam_id}'")
+    logging.info(f"Called POST /player with PlayerInfo: PlayerName: '{player.name}', SteamID: '{player.steam_id}'")
     db.insert_player_or_set_id(db.Player(name=player.name, steam_id=player.steam_id))
 
 
-@api.delete("/deleteTeam")
+@api.delete("/team")
 async def delete_team(request: Request, team_id: int):
-    logging.info(
-        f"Called /deleteTeam with TeamInfo: TeamName: '{team.name}', TeamTag: '{team.tag}'")
+    logging.info(f"Called DELETE /team player_id: {team_id}")
 
     db.delete_team(team_id)
     db.update_config()
 
 
-@api.delete("/deletePlayer")
+@api.delete("/player")
 async def delete_player(request: Request, player_id: int):
-    logging.info(f"Called /deletePlayer with PlayerInfo: PlayerName: '{player.name}', SteamID: '{player.steam_id}'")
+    logging.info(f"Called DELETE /player player_id: {player_id}")
     db.delete_player(player_id)
 
     db.update_config()
 
+
+@api.post("/demo")
+async def upload_demo(file: UploadFile):
+    logging.info(f"Called POST /demo filename: {file.filename}")
+
+    async with aiofiles.open(os.getenv("DEMO_FILE_PATH", "/demofiles"), 'wb') as out_file:
+        content = await file.read()
+        await out_file.write(content)
+
+    return {"filename": file.filename}

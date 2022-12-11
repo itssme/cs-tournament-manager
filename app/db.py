@@ -397,6 +397,18 @@ def insert_match(match: Match):
             match.insert_into_db_with_cursor(cursor)
 
 
+def get_server_for_match(matchid: str) -> Server:
+    with psycopg2.connect(
+            host="db",
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("select server.* from server join match on server.id = match.id where match.matchid = %s",
+                           (matchid,))
+            return DbObjImpl[Server]().from_tuple(cursor.fetchall()[0])
+
+
 def update_config():
     team_config = []
     teams = get_teams()

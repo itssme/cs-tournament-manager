@@ -1,5 +1,6 @@
 import json
 import logging
+import time
 
 import db
 
@@ -54,7 +55,7 @@ class MatchConfig(dict):
 
     def generate_match_name(self):
         if "team1" in self.keys() and "team2" in self.keys():
-            self.set_match_id(f"{self['team1']['name']} vs {self['team2']['name']}")
+            self.set_match_id(f"{self['team1']['name']} vs {self['team2']['name']} {time.time_ns()}")
         else:
             raise ValueError("Cannot generate teamname, as team1 or team2 are not added yet.")
 
@@ -73,6 +74,7 @@ class MatchGen:
         matchcfg.add_cvar("get5_demo_name_format", "{TIME}_{MATCHID}_map{MAPNUMBER}_{MAPNAME}")
         matchcfg.add_cvar("get5_kick_when_no_match_loaded", 1)
         matchcfg.add_cvar("get5_remote_log_url", "http://127.0.0.1/api/csgo/")
+        matchcfg.add_cvar("get5_demo_upload_url", "http://127.0.0.1/api/demo")
         matchcfg.add_cvar("tv_enable", 1)
         matchcfg.generate_match_name()
 

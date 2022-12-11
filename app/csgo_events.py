@@ -2,10 +2,31 @@ import json
 import logging
 from typing import Dict
 
+import requests
 from fastapi import Request
 
 import db
 from elo import calculate_elo
+
+
+def demo_upload_ended(event: Dict):
+    match: db.Match = db.get_match_by_matchid(event["matchid"])
+    if not event["success"]:
+        logging.error(
+            f"Match: {match.matchid} tried to upload demo, but failed. Demo is not saved and container cannot be shut down.")
+        return
+
+    server: db.Server = db.get_server_for_match(match.matchid)
+
+    match.finished = 2
+    match.update_attribute("finished")
+
+    res = requests.get("http://csgo_manager/api/stopMatch", json={"id": server.id}, timeout=60)
+    if res.status_code == 200:
+        logging.info(
+            f"After demo has been uploaded, container running matchid: {match.matchid}, (name={server.container_name}) has been stopped")
+    else:
+        logging.error(f"Unable to stop container for match: {match}, server: {server} -> {res.text}")
 
 
 def map_result(event: Dict):
