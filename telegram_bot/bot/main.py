@@ -193,8 +193,8 @@ class TelegramBOT:
                     "best_of": best_of,
                     "check_auths": checkAuths}
 
-            logging.info(f"Parsed /createMatch -> {data}")
-            res = requests.post("http://csgo_manager/api/createMatch", json=data)
+            logging.info(f"Parsed POST /match -> {data}")
+            res = requests.post("http://csgo_manager/api/match", json=data)
             if res.status_code == 200:
                 bot.send_message(chat_id, res.text)
             else:

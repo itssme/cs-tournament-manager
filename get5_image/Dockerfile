@@ -30,11 +30,7 @@ RUN useradd -m user
 # Install plugins
 # Clean up
 ENV HOME_DIR=/home/user \
-    CSGO_DIR=/home/user/csgo-server \
-    METAMOD_URL=https://mms.alliedmods.net/mmsdrop/1.12/mmsource-1.12.0-git1164-linux.tar.gz \
-    SOURCEMOD_URL=https://sm.alliedmods.net/smdrop/1.12/sourcemod-1.12.0-git6936-linux.tar.gz \
-    STEAMWORKS_URL=https://github.com/KyleSanderson/SteamWorks/releases/download/1.2.3c/package-lin.tgz \
-    GET5_URL=https://github.com/splewis/get5/releases/download/v0.11.0/get5-v0.11.0.tar.gz
+    CSGO_DIR=/home/user/csgo-server
 
 WORKDIR $HOME_DIR
 
@@ -62,6 +58,12 @@ RUN apt-get -qq update \
     && su user -c  \
        "mkdir $CSGO_DIR \
        && bash $HOME_DIR/server-update.sh"
+
+# NOTE: For Get5 we currently have to use a nighly build of version v0.12.0, because of: https://github.com/splewis/get5/issues/934
+ENV METAMOD_URL=https://mms.alliedmods.net/mmsdrop/1.12/mmsource-1.12.0-git1164-linux.tar.gz \
+    SOURCEMOD_URL=https://sm.alliedmods.net/smdrop/1.12/sourcemod-1.12.0-git6936-linux.tar.gz \
+    STEAMWORKS_URL=https://github.com/KyleSanderson/SteamWorks/releases/download/1.2.3c/package-lin.tgz \
+    GET5_URL=https://github.com/splewis/get5/releases/download/v0.12.0-78629c7/get5-v0.12.0-78629c7.tar.gz
 
 RUN su user -c  \
        "wget -q -O - $METAMOD_URL | tar -xz -C $CSGO_DIR/csgo \

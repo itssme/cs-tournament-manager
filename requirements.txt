@@ -8,3 +8,5 @@ psycopg2
 pysrcds
 docker
 numpy
+aiofiles
+python-multipart

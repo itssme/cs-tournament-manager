@@ -1,11 +1,9 @@
-import json
 import logging
 import os
-import time
-from threading import Thread
 from typing import Union
 
 import aiofiles
+from fastapi.exceptions import RequestValidationError
 from starlette.responses import JSONResponse
 
 import csgo_events
@@ -22,7 +20,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 
-from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -127,21 +124,42 @@ class SlayPlayer(BaseModel):
     server_port: int
 
 
-@api.get("/slay", response_class=JSONResponse)
+@api.post("/slay", response_class=JSONResponse)
 async def slay_player(request: Request, slay: SlayPlayer):
     logging.info(f"Slaying player: {slay.player_name} on server: {slay.server_port}")
-    with RCON("host.docker.internal", slay.server_port, "pass") as rconn:
-        logging.info(rconn.exec_command(f"sm_slay {slay.player_name}"))
+    try:
+        with RCON("host.docker.internal", slay.server_port, "pass") as rconn:
+            logging.info(rconn.exec_command(f"sm_slay {slay.player_name}"))
+    except ConnectionError as e:
+        logging.error(f"Unable to slay player: {e}")
+        return {"error": "Unable to connect to this server"}
     return {"status": 0}
+
+
+class RconCommand(BaseModel):
+    rcon: str
+    server_port: int
+
+
+@api.post("/rcon", response_class=JSONResponse)
+async def slay_player(request: Request, rcon_command: RconCommand):
+    logging.info(f"Running command: {rcon_command.rcon} on server: {rcon_command.server_port}")
+    try:
+        with RCON("host.docker.internal", rcon_command.server_port, "pass") as rconn:
+            res = rconn.exec_command(rcon_command.rcon)
+    except ConnectionError as e:
+        logging.error(f"Unable to run rcon command: {e}")
+        return {"error": "Unable to connect to this server"}
+    return res
 
 
 class ServerID(BaseModel):
     id: int
 
 
-@api.post("/stopMatch", response_class=JSONResponse)
+@api.delete("/match", response_class=JSONResponse)
 async def status(request: Request, server: ServerID):
-    logging.info(f"Called /stopMatch with server id: {server.id}")
+    logging.info(f"Called DELETE /match with server id: {server.id}")
     server_manger.stop_match(server.id)
     return {"status": 0}
 
@@ -153,10 +171,10 @@ class MatchInfo(BaseModel):
     check_auths: Union[bool, None] = None
 
 
-@api.post("/createMatch")
+@api.post("/match")
 async def create_match(request: Request, match: MatchInfo):
     logging.info(
-        f"Called /createMatch with MatchInfo: Team1: '{match.team1}', Team2: '{match.team2}', "
+        f"Called POST /match with MatchInfo: Team1: '{match.team1}', Team2: '{match.team2}', "
         f"best_of: '{match.best_of}', 'check_auths: {match.check_auths}'")
 
     match_cfg = MatchGen.from_team_ids(match.team1, match.team2, match.best_of)
@@ -210,6 +228,7 @@ async def delete_player(request: Request, player_id: int):
     db.update_config()
 
 
+"""
 @api.post("/demo")
 async def upload_demo(file: UploadFile):
     logging.info(f"Called POST /demo filename: {file.filename}")
@@ -219,3 +238,11 @@ async def upload_demo(file: UploadFile):
         await out_file.write(content)
 
     return {"filename": file.filename}
+"""
+
+
+@api.post("/demo")
+async def upload_demo(request: Request):
+    logging.info(f"Called POST /demo filename: {await request.body()}")
+
+    return {"status": 1}

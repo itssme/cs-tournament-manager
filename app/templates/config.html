@@ -42,7 +42,7 @@
     <script>
         function startTeamMatch() {
             let xmlHttp = new XMLHttpRequest();
-            xmlHttp.open("POST", "/api/createMatch", false);
+            xmlHttp.open("POST", "/api/match", false);
 
             xmlHttp.setRequestHeader("Content-Type", "application/json");
             xmlHttp.send(JSON.stringify({

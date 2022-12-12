@@ -20,7 +20,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./teams.json:/app/teams.json
       - ./gslt.json:/app/gslt.json
-      - demofiles:/demofiles
+      - ./demofiles:/demofiles
     ports:
       - 80:80
     extra_hosts:
@@ -33,5 +33,3 @@ services:
       dockerfile: Dockerfile
     env_file:
       - telegram_bot/.env
-volumes:
-  demofiles:

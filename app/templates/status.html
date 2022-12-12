@@ -192,7 +192,7 @@
 
         function endMatch(id) {
             let xmlHttp = new XMLHttpRequest();
-            xmlHttp.open("POST", "/api/stopMatch", false);
+            xmlHttp.open("DELETE", "/api/match", false);
             xmlHttp.setRequestHeader("Content-Type", "application/json");
             document.getElementById(`stop_button_${id}`).disabled = true;
             xmlHttp.send(JSON.stringify({"id": id}));
