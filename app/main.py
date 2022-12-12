@@ -3,7 +3,6 @@ import os
 from typing import Union
 
 import aiofiles
-from fastapi.exceptions import RequestValidationError
 from starlette.responses import JSONResponse
 
 import csgo_events
@@ -14,7 +13,7 @@ from match_conf_gen import MatchGen
 import db
 
 import error_routes
-from fastapi import FastAPI, Request, UploadFile
+from fastapi import FastAPI, Request, File
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -228,21 +227,14 @@ async def delete_player(request: Request, player_id: int):
     db.update_config()
 
 
-"""
-@api.post("/demo")
-async def upload_demo(file: UploadFile):
-    logging.info(f"Called POST /demo filename: {file.filename}")
-
-    async with aiofiles.open(os.getenv("DEMO_FILE_PATH", "/demofiles"), 'wb') as out_file:
-        content = await file.read()
-        await out_file.write(content)
-
-    return {"filename": file.filename}
-"""
-
-
 @api.post("/demo")
 async def upload_demo(request: Request):
-    logging.info(f"Called POST /demo filename: {await request.body()}")
+    filename = os.path.split(request.headers["Get5-DemoName"])[-1]
+    logging.info(f"Called POST /demo filename: {filename}")
 
-    return {"status": 1}
+    async with aiofiles.open(os.path.join(os.getenv("DEMO_FILE_PATH", "/demofiles"), filename), 'wb') as out_file:
+        content = await request.body()
+        await out_file.write(content)
+
+    logging.info(f"Done writing file: {filename}")
+    return {"filename": filename}
