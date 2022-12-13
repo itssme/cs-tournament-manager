@@ -32,7 +32,7 @@ create table if not exists match
     number_in_map_series integer                 default 0,
     series_score_team1   integer                 default 0,
     series_score_team2   integer                 default 0,
-    finished             integer                 default 0 -- finished = 0 game is running, 1 game is finished, 2 game is finished and demo is uploaded
+    finished             integer                 default -1 -- -1 game is not ready, 0 game is running, 1 game is finished, 2 game is finished and demo is uploaded
 );
 
 create table if not exists server

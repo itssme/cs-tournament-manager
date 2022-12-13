@@ -5,7 +5,8 @@
 The software has been developed for the airlan21 (25.06.2021). A small csgo tournament organized for
 team-building by robo4you.at.
 
-**Currently, it is being updated and rewritten** for the 'airlan Winter Edition' which will take place in early january 2023.
+**Currently, it is being updated and rewritten** for the 'airlan Winter Edition' which will take place in early january
+2023.
 
 ## What does this software do?
 
@@ -13,6 +14,14 @@ It manages a number of get5 servers for small to medium lan parties. E.g. the we
 you define new matches
 by selecting players and creating teams. A new get5 server will then be started in a docker container and the match
 config file will be transferred and loaded to the csgo server. It also displays some basic statistics about the servers.
+
+### Create matches in the webinterface
+
+[![create_match](readme/create_match.png)]()
+
+### Watch the status of matches/ stop them
+
+[![create_match](readme/status_match.png)]()
 
 ## How to use this software
 
@@ -54,13 +63,14 @@ CHAT_IDS="chat_id_1,chat_id_2..."
 
 ### 5. Connecting to the server
 
-(Note connecting with `127.0.0.1:port` does not work, you need your PCs local IP (like 192.168.x.x or 10.x.x.x etc.) or that of a VPN network)
+(Note connecting with `127.0.0.1:port` does not work, you need your PCs local IP (like 192.168.x.x or 10.x.x.x etc.) or
+that of a VPN network)
 
 + Connect to the server, on the ip shown in the webinterface/ on telegram (todo)
 
 ### ELO
 
-Currently an ELO rating system for teams is bring implemented.
+Currently, an ELO rating system for teams is being implemented.
 
 ## Banned Players
 

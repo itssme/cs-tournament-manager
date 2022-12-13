@@ -76,6 +76,7 @@ class MatchGen:
         matchcfg.add_cvar("get5_remote_log_url", "http://127.0.0.1/api/csgo/")
         matchcfg.add_cvar("get5_demo_upload_url", "http://127.0.0.1/api/demo")
         matchcfg.add_cvar("get5_print_update_notice", 0)
+        matchcfg.add_cvar("get5_reset_cvars_on_end", 0)
         matchcfg.add_cvar("tv_enable", 1)
         matchcfg.generate_match_name()
 
