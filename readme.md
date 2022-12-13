@@ -33,8 +33,8 @@ config file will be transferred and loaded to the csgo server. It also displays 
 ### 2. Create Teams and GSLT file
 
 + Edit the `teams.json` file to include all your teams and players. This file will be mounted in the dockerfile.
-+ Create a `gslt.json` file and include all your GSLT tokens in a list like: `["TOKEN1", "TOKEN2"]`. If you plan on only
-  using the servers in a LAN setting, you can simply create the file an leave the list empty (like: `[]`) and then the
++ Edit the `gslt.json` file and include all your GSLT tokens in a list like: `["TOKEN1", "TOKEN2"]`. If you plan on only
+  using the servers in a LAN setting, you can simply create the file and leave the list empty (like: `[]`) and then the
   server manager will start the CSGO servers without a GSLT Token. (More information about GSLT
   Tokens: https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Dedicated_Servers)
 
@@ -57,16 +57,15 @@ CHAT_IDS="chat_id_1,chat_id_2..."
 ### 4. Start the software
 
 + Then start the server like: `docker-compose up --build`
-+ Goto `http://127.0.0.1` and create matches. (TODO)
-+ The match will be started in a docker container and be visible in the `/status` page. (TODO)
-+ (Currently matches can only be started by directly calling the API)
++ Goto `http://127.0.0.1` and create matches.
++ The match will be started in a docker container and be visible in the `/status` page.
 
 ### 5. Connecting to the server
 
 (Note connecting with `127.0.0.1:port` does not work, you need your PCs local IP (like 192.168.x.x or 10.x.x.x etc.) or
 that of a VPN network)
 
-+ Connect to the server, on the ip shown in the webinterface/ on telegram (todo)
++ Connect to the server, on the ip shown in the webinterface/ on telegram
 
 ### ELO
 
