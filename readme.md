@@ -53,6 +53,7 @@ CHAT_IDS="chat_id_1,chat_id_2..."
   run
   the bot only with the bot token. Then add your bot and type `/help` in the chat. Look at the log output of the
   software, and you will see your chat_id printed there.
++ (todo) Start group phase matchmaking
 
 ### 4. Start the software
 
