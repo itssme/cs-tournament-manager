@@ -13,7 +13,7 @@ from match_conf_gen import MatchGen
 import db
 
 import error_routes
-from fastapi import FastAPI, Request, File
+from fastapi import FastAPI, Request, File, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -185,9 +185,10 @@ async def create_match(request: Request, match: MatchInfo):
     if match.check_auths is not None:
         match_cfg.add_cvar("get5_check_auths", "1" if match.check_auths else "0")
 
-    server_manger.create_match(match_cfg)
-
-    return match_cfg
+    if server_manger.create_match(match_cfg):
+        return match_cfg
+    else:
+        raise HTTPException(status_code=500, detail="Unable to start container")
 
 
 class TeamInfo(BaseModel):

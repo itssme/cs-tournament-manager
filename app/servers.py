@@ -27,15 +27,15 @@ class ServerManager:
             with open("gslt.json", "r") as gslt:
                 self.gslt_tokens = json.loads(gslt.read())
 
-    def create_match(self, match_cfg: dict):
-        self.__start_container(match_cfg)
+    def create_match(self, match_cfg: dict) -> bool:
+        return self.__start_container(match_cfg)
 
     def stop_match(self, server_id: int):
         container_name = db.get_server_by_id(server_id).container_name
         self.__stop_container_and_delete(container_name)
         db.delete_server(server_id)
 
-    def __start_container(self, match_cfg: dict):
+    def __start_container(self, match_cfg: dict) -> bool:
         client = docker.from_env()
 
         container_name = f"CSGO_{match_cfg['team1']['id']}_{match_cfg['team2']['id']}"
@@ -64,14 +64,20 @@ class ServerManager:
             # TODO: catch exception if no tokens are available
             container_variables["SERVER_TOKEN"] = self.reserve_free_gslt_token(server)
 
-        container = client.containers.run("get5-csgo:latest",
-                                          name=container_name,
-                                          environment=container_variables,
-                                          detach=True, network="host")
-        logging.info(f"Started container: {container_name} -> {container}")
-        server.status = 1
-        server.update_attribute("status")
-        return container
+        try:
+            container = client.containers.run("get5-csgo:latest",
+                                              name=container_name,
+                                              environment=container_variables,
+                                              detach=True, network="host")
+            logging.info(f"Started container: {container_name} -> {container}")
+            server.status = 1
+            server.update_attribute("status")
+            return True
+        except Exception as e:
+            logging.error(f"Failed to start container ({match.matchid}) in server manager: {e}")
+            server.status = 3
+            server.update_attribute("status")
+            return False
 
     def __stop_container_and_delete(self, container_name: str):
         client = docker.from_env()
