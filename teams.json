@@ -23,12 +23,17 @@
         "steam_id": "STEAM_0:0:155822817",
         "name": "Juian Riedinger"
       }
-    ]
+    ],
+    "elo": 1000
   },
   {
     "name": "Faceit LVL 1",
     "tag": "FaceitLvL1",
     "players": [
+      {
+        "steam_id": "STEAM_0:1:177215629",
+        "name": "Florian Schröder"
+      },
       {
         "steam_id": "STEAM_0:1:523224064",
         "name": "Bernhard Klauninger"
@@ -49,7 +54,8 @@
         "steam_id": "STEAM_0:1:189884824",
         "name": "Marc Kühmayer"
       }
-    ]
+    ],
+    "elo": 1600
   },
   {
     "name": "airplebs",
@@ -75,59 +81,8 @@
         "steam_id": "STEAM_0:1:57027738",
         "name": "Koka"
       }
-    ]
-  },
-  {
-    "name": "Die Globale Elite",
-    "tag": "SUS",
-    "players": [
-      {
-        "steam_id": "STEAM_0:1:234150477",
-        "name": "Sebastian Kawicher"
-      },
-      {
-        "steam_id": "STEAM_0:0:235564480",
-        "name": "Eric Gut"
-      },
-      {
-        "steam_id": "STEAM_0:0:194233295",
-        "name": "Dominik Ecimovic"
-      },
-      {
-        "steam_id": "STEAM_0:1:94333040",
-        "name": "Christoph Fellner"
-      },
-      {
-        "steam_id": "STEAM_0:1:242223893",
-        "name": "Simon Groiss"
-      }
-    ]
-  },
-  {
-    "name": "CS:LOW",
-    "tag": "CSLOW",
-    "players": [
-      {
-        "steam_id": "STEAM_0:0:567741633",
-        "name": "Larissa Kornthaler"
-      },
-      {
-        "steam_id": "STEAM_0:0:454213216",
-        "name": "Daniel Pajer"
-      },
-      {
-        "steam_id": "STEAM_0:1:188303912",
-        "name": "Jan Mostböck"
-      },
-      {
-        "steam_id": "STEAM_0:0:419789039",
-        "name": "Gregor Zadrazil"
-      },
-      {
-        "steam_id": "STEAM_0:0:575427419",
-        "name": "Berfin Karayel"
-      }
-    ]
+    ],
+    "elo": 1337
   },
   {
     "name": "Die Wappla",
@@ -153,7 +108,62 @@
         "steam_id": "STEAM_0:0:451258848",
         "name": "Jeremy Sztavinovszki"
       }
-    ]
+    ],
+    "elo": 1200
+  },
+  {
+    "name": "CS:LOW",
+    "tag": "CSLOW",
+    "players": [
+      {
+        "steam_id": "STEAM_0:0:567741633",
+        "name": "Larissa Kornthaler"
+      },
+      {
+        "steam_id": "STEAM_0:0:454213216",
+        "name": "Daniel Pajer"
+      },
+      {
+        "steam_id": "STEAM_0:1:188303912",
+        "name": "Jan Mostböck"
+      },
+      {
+        "steam_id": "STEAM_0:0:419789039",
+        "name": "Gregor Zadrazil"
+      },
+      {
+        "steam_id": "STEAM_0:0:575427419",
+        "name": "Berfin Karayel"
+      }
+    ],
+    "elo": 1400
+  },
+  {
+    "name": "Die Globale Elite",
+    "tag": "SUS",
+    "players": [
+      {
+        "steam_id": "STEAM_0:1:234150477",
+        "name": "Sebastian Kawicher"
+      },
+      {
+        "steam_id": "STEAM_0:0:235564480",
+        "name": "Eric Gut"
+      },
+      {
+        "steam_id": "STEAM_0:0:194233295",
+        "name": "Dominik Ecimovic"
+      },
+      {
+        "steam_id": "STEAM_0:1:94333040",
+        "name": "Christoph Fellner"
+      },
+      {
+        "steam_id": "STEAM_0:1:242223893",
+        "name": "Simon Groiss"
+      }
+    ],
+    "elo": 1100
   },
   {
     "name": "TestingOne",
@@ -163,7 +173,8 @@
         "steam_id": "STEAM_0:1:124584389",
         "name": "Jöl"
       }
-    ]
+    ],
+    "elo": 0
   },
   {
     "name": "TestingTwo",
@@ -175,8 +186,9 @@
       },
       {
         "steam_id": "STEAM_0:0:64160074",
-        "name": "Jöl_0"
+        "name": "Jöl"
       }
-    ]
+    ],
+    "elo": 0
   }
 ]

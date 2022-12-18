@@ -216,6 +216,16 @@ def insert_team_assignment_if_not_exists(team: Team, player: Player):
             cursor.execute("insert into team_assignment values(%s, %s)", (team.id, player.id))
 
 
+def delete_team_assignment(team: Team, player: Player):
+    with psycopg2.connect(
+            host="db",
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("delete from team_assignment where team = %s and player = %s", (team.id, player.id))
+
+
 def get_player(player_id: int) -> Player:
     with psycopg2.connect(
             host="db",
@@ -430,9 +440,9 @@ def update_config():
         team_config.append({
             "name": team.name,
             "tag": team.tag,
-            "players": [{"steam_id": player.steam_id, "name": player.name} for player in players]
+            "players": [{"steam_id": player.steam_id, "name": player.name} for player in players],
+            "elo": team.elo
         })
-    json_object = json.dumps(team_config, indent=4)
 
-    with open("teams.json", "w") as outfile:
-        outfile.write(json_object)
+    with open("teams.json", mode="w", encoding="utf-8") as outfile:
+        json.dump(team_config, outfile, indent=2, ensure_ascii=False)

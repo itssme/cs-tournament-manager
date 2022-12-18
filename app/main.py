@@ -201,13 +201,17 @@ class PlayerInfo(BaseModel):
     name: str
 
 
+class TeamAssignmentInfo(BaseModel):
+    team_id: int
+    player_id: int
+
+
 @api.post("/team")
 async def create_team(request: Request, team: TeamInfo):
     logging.info(
         f"Called POST /team with TeamInfo: TeamName: '{team.name}', TeamTag: '{team.tag}'")
 
     db.insert_team_or_set_id(db.Team(tag=team.tag, name=team.name, id=0))
-
     db.update_config()
 
 
@@ -215,6 +219,31 @@ async def create_team(request: Request, team: TeamInfo):
 async def create_player(request: Request, player: PlayerInfo):
     logging.info(f"Called POST /player with PlayerInfo: PlayerName: '{player.name}', SteamID: '{player.steam_id}'")
     db.insert_player_or_set_id(db.Player(name=player.name, steam_id=player.steam_id))
+
+
+@api.get("/teamPlayers")
+async def get_team_players(request: Request, team_id: int):
+    logging.info(f"Called GET /teamPlayers for team: {team_id}")
+    return [team_player.to_json() for team_player in db.get_team_players(team_id)]
+
+
+@api.post("/teamAssignment")
+async def create_team_assignment(request: Request, team_assignment: TeamAssignmentInfo):
+    logging.info(f"Called POST /teamAssignment with TeamAssignment: TeamID: '{team_assignment.team_id}', "
+                 f"PlayerID: '{team_assignment.player_id}'")
+    team = db.get_team_by_id(team_assignment.team_id)
+    player = db.get_player(team_assignment.player_id)
+    db.insert_team_assignment_if_not_exists(team, player)
+    db.update_config()
+
+
+@api.delete("/teamAssignment")
+async def delete_team_assignment(request: Request, team_assignment: TeamAssignmentInfo):
+    logging.info(f"Called DELETE /teamAssignment with TeamAssignment: TeamID: '{team_assignment_id}', ")
+    team = db.get_team_by_id(team_assignment.team_id)
+    player = db.get_player(team_assignment.player_id)
+    db.delete_team_assignment(team, player)
+    db.update_config()
 
 
 @api.delete("/team")
@@ -229,7 +258,6 @@ async def delete_team(request: Request, team_id: int):
 async def delete_player(request: Request, player_id: int):
     logging.info(f"Called DELETE /player player_id: {player_id}")
     db.delete_player(player_id)
-
     db.update_config()
 
 
