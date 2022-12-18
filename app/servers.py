@@ -75,8 +75,8 @@ class ServerManager:
             return True
         except Exception as e:
             logging.error(f"Failed to start container ({match.matchid}) in server manager: {e}")
-            match.status = 3
-            match.update_attribute("status")
+            match.finished = 3
+            match.update_attribute("finished")
             db.delete_server(server.id)
             return False
 
