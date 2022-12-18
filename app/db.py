@@ -296,6 +296,19 @@ def get_teams() -> List[Team]:
             return [DbObjImpl[Team]().from_tuple(team_tuple) for team_tuple in team_tuple_list]
 
 
+def get_free_teams() -> List[Team]:
+    with psycopg2.connect(
+            host="db",
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "select * from team except select team.* from team join match on team.id = match.team1 or team.id = match.team2 where match.finished < 1;")
+            team_tuple_list = cursor.fetchall()
+            return [DbObjImpl[Team]().from_tuple(team_tuple) for team_tuple in team_tuple_list]
+
+
 def get_team_players(team_id: int) -> List[Player]:
     with psycopg2.connect(
             host="db",

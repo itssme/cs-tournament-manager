@@ -70,6 +70,11 @@ async def teams(request: Request):
     return [team.to_json() for team in db.get_teams()]
 
 
+@api.get("/freeTeams", response_class=JSONResponse)
+async def teams(request: Request):
+    return [team.to_json() for team in db.get_free_teams()]
+
+
 @api.get("/servers", response_class=JSONResponse)
 async def servers(request: Request):
     return [server.to_json() for server in db.get_servers()]
