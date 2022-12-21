@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import time
 from typing import List, TypeVar, Generic
 
@@ -21,7 +22,7 @@ class DbObject(object):
 
     def insert_into_db(self):
         with psycopg2.connect(
-                host="db",
+                host=os.getenv("DB_HOST", "db"),
                 database="postgres",
                 user="postgres",
                 password="pass") as conn:
@@ -44,7 +45,7 @@ class DbObject(object):
             raise NotImplemented("Cannot insert object that does not use 'id' as primary key")
 
         with psycopg2.connect(
-                host="db",
+                host=os.getenv("DB_HOST", "db"),
                 database="postgres",
                 user="postgres",
                 password="pass") as conn:
@@ -74,10 +75,10 @@ class Team(DbObject):
 
 
 class Server(DbObject):
-    def __init__(self, id: int = None, status: int = -1, port: int = None, gslt_token: str = "",
+    def __init__(self, id: int = None, ip: str = "host.docker.internal", port: int = None, gslt_token: str = "",
                  container_name: str = None, match: int = None):
         self.id: int = id
-        self.status: int = status
+        self.ip: str = ip
         self.port: int = port
         self.gslt_token: str = gslt_token
         self.container_name: str = container_name
@@ -117,12 +118,16 @@ class DbObjImpl(Generic[T]):
 
 
 def setup_db():
+    if os.getenv("MASTER", "1") != "1":
+        logging.info("Not a master instance, wont create tables in db and ignore teams.json")
+        return
+
     logging.info("Creating tables..")
     connected = False
 
     while not connected:
         with psycopg2.connect(
-                host="db",
+                host=os.getenv("DB_HOST", "db"),
                 database="postgres",
                 user="postgres",
                 password="pass") as conn:
@@ -164,7 +169,7 @@ def setup_db():
 
 def insert_player_or_set_id(player: Player):
     with psycopg2.connect(
-            host="db",
+            host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
             password="pass") as conn:
@@ -183,7 +188,7 @@ def insert_player_or_set_id(player: Player):
 
 def insert_team_or_set_id(team: Team):
     with psycopg2.connect(
-            host="db",
+            host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
             password="pass") as conn:
@@ -202,7 +207,7 @@ def insert_team_or_set_id(team: Team):
 
 def insert_team_assignment_if_not_exists(team: Team, player: Player):
     with psycopg2.connect(
-            host="db",
+            host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
             password="pass") as conn:
@@ -218,7 +223,7 @@ def insert_team_assignment_if_not_exists(team: Team, player: Player):
 
 def delete_team_assignment(team: Team, player: Player):
     with psycopg2.connect(
-            host="db",
+            host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
             password="pass") as conn:
@@ -228,7 +233,7 @@ def delete_team_assignment(team: Team, player: Player):
 
 def get_player(player_id: int) -> Player:
     with psycopg2.connect(
-            host="db",
+            host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
             password="pass") as conn:
@@ -240,7 +245,7 @@ def get_player(player_id: int) -> Player:
 
 def delete_player(player_id: int):
     with psycopg2.connect(
-            host="db",
+            host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
             password="pass") as conn:
@@ -250,7 +255,7 @@ def delete_player(player_id: int):
 
 def delete_team(team_id: int):
     with psycopg2.connect(
-            host="db",
+            host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
             password="pass") as conn:
@@ -260,7 +265,7 @@ def delete_team(team_id: int):
 
 def get_players() -> List[Player]:
     with psycopg2.connect(
-            host="db",
+            host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
             password="pass") as conn:
@@ -272,7 +277,7 @@ def get_players() -> List[Player]:
 
 def get_player_by_steam_id(player_steam_id: str):
     with psycopg2.connect(
-            host="db",
+            host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
             password="pass") as conn:
@@ -284,7 +289,7 @@ def get_player_by_steam_id(player_steam_id: str):
 
 def get_team_by_id(team_id: int) -> Team:
     with psycopg2.connect(
-            host="db",
+            host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
             password="pass") as conn:
@@ -296,7 +301,7 @@ def get_team_by_id(team_id: int) -> Team:
 
 def get_teams() -> List[Team]:
     with psycopg2.connect(
-            host="db",
+            host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
             password="pass") as conn:
@@ -308,7 +313,7 @@ def get_teams() -> List[Team]:
 
 def get_free_teams() -> List[Team]:
     with psycopg2.connect(
-            host="db",
+            host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
             password="pass") as conn:
@@ -321,7 +326,7 @@ def get_free_teams() -> List[Team]:
 
 def get_team_players(team_id: int) -> List[Player]:
     with psycopg2.connect(
-            host="db",
+            host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
             password="pass") as conn:
@@ -335,7 +340,7 @@ def get_team_players(team_id: int) -> List[Player]:
 
 def get_servers() -> List[Server]:
     with psycopg2.connect(
-            host="db",
+            host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
             password="pass") as conn:
@@ -347,7 +352,7 @@ def get_servers() -> List[Server]:
 
 def insert_server(server: Server):
     with psycopg2.connect(
-            host="db",
+            host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
             password="pass") as conn:
@@ -357,7 +362,7 @@ def insert_server(server: Server):
 
 def get_server_by_id(server_id: int) -> Server:
     with psycopg2.connect(
-            host="db",
+            host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
             password="pass") as conn:
@@ -368,7 +373,7 @@ def get_server_by_id(server_id: int) -> Server:
 
 def delete_server(server_id: int):
     with psycopg2.connect(
-            host="db",
+            host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
             password="pass") as conn:
@@ -378,7 +383,7 @@ def delete_server(server_id: int):
 
 def get_matches() -> List[Match]:
     with psycopg2.connect(
-            host="db",
+            host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
             password="pass") as conn:
@@ -390,7 +395,7 @@ def get_matches() -> List[Match]:
 
 def get_match_by_id(match_id: int) -> Match:
     with psycopg2.connect(
-            host="db",
+            host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
             password="pass") as conn:
@@ -401,7 +406,7 @@ def get_match_by_id(match_id: int) -> Match:
 
 def get_match_by_matchid(matchid: int) -> Match:
     with psycopg2.connect(
-            host="db",
+            host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
             password="pass") as conn:
@@ -412,7 +417,7 @@ def get_match_by_matchid(matchid: int) -> Match:
 
 def insert_match(match: Match):
     with psycopg2.connect(
-            host="db",
+            host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
             password="pass") as conn:
@@ -422,7 +427,7 @@ def insert_match(match: Match):
 
 def get_server_for_match(matchid: str) -> Server:
     with psycopg2.connect(
-            host="db",
+            host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
             password="pass") as conn:
@@ -433,6 +438,9 @@ def get_server_for_match(matchid: str) -> Server:
 
 
 def update_config():
+    if os.getenv("MASTER", "1") != "1":
+        logging.warning("Not a master instance, writing teams.json will have no effect.")
+
     team_config = []
     teams = get_teams()
     for team in teams:

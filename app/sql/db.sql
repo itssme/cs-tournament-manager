@@ -35,10 +35,18 @@ create table if not exists match
     finished             integer                 default -1 -- -1 game is not ready, 0 game is running, 1 game is finished, 2 game is finished and demo is uploaded, 3 failed/ stopped
 );
 
+create table if not exists host
+(
+    ip text primary key
+);
+
+insert into host
+values ('host.docker.internal');
+
 create table if not exists server
 (
     id             serial primary key,
-    status         int  default 0,
+    ip             text default 'host.docker.internal' references host,
     port           int  default -1,
     gslt_token     text default null,
     container_name text default null,

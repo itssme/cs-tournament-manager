@@ -70,7 +70,6 @@ class ServerManager:
                                               environment=container_variables,
                                               detach=True, network="host")
             logging.info(f"Started container: {container_name} -> {container}")
-            server.status = 1
             server.update_attribute("status")
             return True
         except Exception as e:
