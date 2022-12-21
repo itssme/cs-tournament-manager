@@ -3,6 +3,7 @@ import os
 from typing import Union
 
 import aiofiles
+import requests
 from starlette.responses import JSONResponse
 
 import csgo_events
@@ -57,7 +58,8 @@ async def status(request: Request):
 @app.get("/config", response_class=HTMLResponse)
 async def status(request: Request):
     teams = [team.to_json() for team in db.get_teams()]
-    return templates.TemplateResponse("config.html", {"request": request, "teams": teams})
+    servers = [host for host in db.get_hosts()]
+    return templates.TemplateResponse("config.html", {"request": request, "teams": teams, "servers": servers})
 
 
 @api.get("/players", response_class=JSONResponse)
@@ -173,22 +175,46 @@ class MatchInfo(BaseModel):
     team2: int
     best_of: Union[int, None] = None
     check_auths: Union[bool, None] = None
+    host: Union[str, None] = None
 
 
 @api.post("/match")
 async def create_match(request: Request, match: MatchInfo):
     logging.info(
         f"Called POST /match with MatchInfo: Team1: '{match.team1}', Team2: '{match.team2}', "
-        f"best_of: '{match.best_of}', 'check_auths: {match.check_auths}'")
+        f"best_of: '{match.best_of}', 'check_auths: {match.check_auths}', 'host: {match.host}'")
 
-    match_cfg = MatchGen.from_team_ids(match.team1, match.team2, match.best_of)
-    if match.check_auths is not None:
-        match_cfg.add_cvar("get5_check_auths", "1" if match.check_auths else "0")
+    def create_match_local():
+        logging.info("Creating match on master server")
 
-    if server_manger.create_match(match_cfg):
-        return match_cfg
+        match_cfg = MatchGen.from_team_ids(match.team1, match.team2, match.best_of)
+        if match.check_auths is not None:
+            match_cfg.add_cvar("get5_check_auths", "1" if match.check_auths else "0")
+
+        if server_manger.create_match(match_cfg):
+            return match_cfg
+        else:
+            raise HTTPException(status_code=500, detail="Unable to start container")
+
+    def create_match_remote():
+        logging.info(f"Creating match on remote server: {match.host}")
+        res = requests.post(f"http://{match.host}/match", json=match)
+
+        try:
+            match_cfg = res.json()
+            return match_cfg
+        except Exception as e:
+            raise HTTPException(status_code=500,
+                                detail=f"Unable to start container on remote host: {match.host}, status={res.status_code}<br>{res.text}")
+
+    if os.getenv("MASTER", "1") == "1" and match.host is None or match.host == "host.docker.internal":
+        return create_match_local()
+    elif match.host == os.getenv("EXTERNAL_IP", "127.0.0.1"):
+        return create_match_local()
+    elif match.host is not None:
+        return create_match_remote()
     else:
-        raise HTTPException(status_code=500, detail="Unable to start container")
+        raise HTTPException(status_code=500, detail=f"Unable to start server on {match.host}")
 
 
 class TeamInfo(BaseModel):

@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import time
 
 import db
@@ -65,7 +66,9 @@ class MatchGen:
         pass
 
     @staticmethod
-    def from_team_ids(team1: int, team2: int, best_out_of=1):
+    def from_team_ids(team1: int, team2: int, best_out_of: int = 1):
+        best_out_of = 1 if best_out_of is None else best_out_of
+
         matchcfg = MatchConfig()
         matchcfg.add_team(team1)
         matchcfg.add_team(team2)
@@ -73,8 +76,8 @@ class MatchGen:
         matchcfg.add_cvar("get5_demo_path", "demos/")
         matchcfg.add_cvar("get5_demo_name_format", "{TIME}_{MATCHID}_map{MAPNUMBER}_{MAPNAME}")
         matchcfg.add_cvar("get5_kick_when_no_match_loaded", 1)
-        matchcfg.add_cvar("get5_remote_log_url", "http://127.0.0.1/api/csgo/")
-        matchcfg.add_cvar("get5_demo_upload_url", "http://127.0.0.1/api/demo")
+        matchcfg.add_cvar("get5_remote_log_url", f"http://{os.getenv('MASTER_IP', '127.0.0.1')}/api/csgo/")
+        matchcfg.add_cvar("get5_demo_upload_url", f"http://{os.getenv('MASTER_IP', '127.0.0.1')}/api/demo")
         matchcfg.add_cvar("get5_print_update_notice", 0)
         matchcfg.add_cvar("get5_reset_cvars_on_end", 0)
         matchcfg.add_cvar("tv_enable", 1)

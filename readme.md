@@ -6,6 +6,7 @@ The software has been developed for the airlan21 (25.06.2021). A small csgo tour
 team-building by robo4you.at.
 
 **Currently, it is being updated and rewritten** for the 'airlan Winter Edition' which will take place in early january
+
 2023.
 
 ## What does this software do?
@@ -72,9 +73,17 @@ that of a VPN network)
 
 Currently, an ELO rating system for teams is being implemented.
 
+## Multiple Game Hosts
+
++ Change the following ENV Variables on slave game hosts:
++ `MASTER`=1: Set this ENV var to 0 on all game hosts except one.
++ `MASTER_IP`="127.0.0.1": The IP of the master server (the one that runs the database etc.)
++ `DB_HOST`="db": IP/ Hostname of the database host (this should be set to the same as MASTER_IP on slaves)
++ `EXTERNAL_IP`="127.0.0.1": The external IP of the game host (the one that is used to connect to the csgo servers).
+
 ## Banned Players
 
-| SteamID              | Reason                              |
-|----------------------|-------------------------------------|
-| STEAM_0:1:148684053  | Cheating during airlan21 (wallhack) |
-| STEAM_0:1:159656029  | Cheating during airlan21 (wallhack) |
+| SteamID             | Reason                              |
+|---------------------|-------------------------------------|
+| STEAM_0:1:148684053 | Cheating during airlan21 (wallhack) |
+| STEAM_0:1:159656029 | Cheating during airlan21 (wallhack) |

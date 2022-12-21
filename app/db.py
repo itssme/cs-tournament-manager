@@ -437,6 +437,18 @@ def get_server_for_match(matchid: str) -> Server:
             return DbObjImpl[Server]().from_tuple(cursor.fetchall()[0])
 
 
+def get_hosts() -> List[str]:
+    with psycopg2.connect(
+            host=os.getenv("DB_HOST", "db"),
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("select * from host")
+            server_tuple_list = cursor.fetchall()
+            return [host[0] for host in server_tuple_list]
+
+
 def update_config():
     if os.getenv("MASTER", "1") != "1":
         logging.warning("Not a master instance, writing teams.json will have no effect.")

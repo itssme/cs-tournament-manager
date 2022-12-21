@@ -31,6 +31,13 @@
                             <label for="check_auths">Check Auths:</label>
                             <input type="checkbox" id="check_auths" checked> <br>
                             <hr>
+                            <label for="server">Choose Game Host:</label>
+                            <select name="server" id="server">
+                                {% for server in servers %}
+                                    <option value="{{ server }}">{{ server }}</option>
+                                {% endfor %}
+                            </select>
+                            <hr>
                             <input class="btn btn-primary" type="submit" value="Start Match" onclick="startTeamMatch()"
                                    name="submit">
                         </div>
@@ -49,7 +56,8 @@
                 "team1": document.getElementById("team1").value,
                 "team2": document.getElementById("team2").value,
                 "best_of": document.getElementById("best_out_of_teams").value,
-                "check_auths": document.getElementById("check_auths").checked
+                "check_auths": document.getElementById("check_auths").checked,
+                "host": document.getElementById("server").value
             }));
 
             if (xmlHttp.status === 200) {
