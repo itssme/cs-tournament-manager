@@ -16,8 +16,8 @@ class RCON(RconConnection):
         self._sock.close()
 
 
-def get5_status(server_port: int) -> Dict:
-    with RCON("host.docker.internal", server_port, "pass") as rconn:
+def get5_status(server_ip: str, server_port: int) -> Dict:
+    with RCON(server_ip, server_port, "pass") as rconn:
         get5_stats: str = rconn.exec_command("get5_status")
         get5_stats = get5_stats[get5_stats.find("{"):(get5_stats.rfind("}") + 1)].replace("\\n", "")
         get5_stats: Dict = json.loads(get5_stats)

@@ -411,7 +411,7 @@ def get_match_by_matchid(matchid: int) -> Match:
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
-            cursor.execute("select * from match where matchid = %s and finished = 0", (matchid,))
+            cursor.execute("select * from match where matchid = %s", (matchid,))
             return DbObjImpl[Match]().from_tuple(cursor.fetchall()[0])
 
 

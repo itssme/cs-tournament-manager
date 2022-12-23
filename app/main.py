@@ -1,5 +1,7 @@
+import json
 import logging
 import os
+import time
 from typing import Union
 
 import aiofiles
@@ -65,7 +67,7 @@ if os.getenv("MASTER", "1") != "1":
                  os.getenv("DB_HOST"), os.getenv("EXTERNAL_IP"))
     logging.info("Checking if master is online...")
 
-    res = requests.get("http://" + os.getenv("MASTER_IP") + "/api/healtcheck")
+    res = requests.get("http://" + os.getenv("MASTER_IP") + "/api/healthcheck")
     if res.status_code == 200:
         logging.info("Master is online.")
     else:
@@ -127,9 +129,9 @@ async def status(request: Request):
 
     for server in servers:
         logging.info(f"Collecting stats for server: {server}")
-        get5_stats = rcon.get5_status(server.port)
+        get5_stats = rcon.get5_status(server.ip, server.port)
 
-        with RCON("host.docker.internal", server.port, "pass") as rconn:
+        with RCON(server.ip, server.port, "pass") as rconn:
             # logging.info(rconn.exec_command("sm_slay Jöl"))
             # logging.info(rconn.exec_command("cvarlist"))
 
@@ -144,7 +146,7 @@ async def status(request: Request):
             get5_stats["matchid"] = f"{team_1.name} vs {team_2.name}"
 
             status_json.append({"id": server.id,
-                                "ip": "127.0.0.1" + ":" + str(server.port),
+                                "ip": server.ip + ":" + str(server.port),
                                 "get5_stats": get5_stats,
                                 "stats": stats_parsed,
                                 "team1": team_1,
@@ -156,14 +158,15 @@ async def status(request: Request):
 
 class SlayPlayer(BaseModel):
     player_name: str
+    server_ip: Union[str, None] = "host.docker.internal"
     server_port: int
 
 
 @api.post("/slay", response_class=JSONResponse)
 async def slay_player(request: Request, slay: SlayPlayer):
-    logging.info(f"Slaying player: {slay.player_name} on server: {slay.server_port}")
+    logging.info(f"Slaying player: {slay.player_name} on server: ip={slay.server_ip} port={slay.server_port}")
     try:
-        with RCON("host.docker.internal", slay.server_port, "pass") as rconn:
+        with RCON(slay.server_ip, slay.server_port, "pass") as rconn:
             logging.info(rconn.exec_command(f"sm_slay {slay.player_name}"))
     except ConnectionError as e:
         logging.error(f"Unable to slay player: {e}")
@@ -173,14 +176,16 @@ async def slay_player(request: Request, slay: SlayPlayer):
 
 class RconCommand(BaseModel):
     rcon: str
+    server_ip: Union[str, None] = "host.docker.internal"
     server_port: int
 
 
 @api.post("/rcon", response_class=JSONResponse)
 async def slay_player(request: Request, rcon_command: RconCommand):
-    logging.info(f"Running command: {rcon_command.rcon} on server: {rcon_command.server_port}")
+    logging.info(
+        f"Running command: {rcon_command.rcon} on server: ip={rcon_command.server_ip} port={rcon_command.server_port}")
     try:
-        with RCON("host.docker.internal", rcon_command.server_port, "pass") as rconn:
+        with RCON(rcon_command.server_ip, rcon_command.server_port, "pass") as rconn:
             res = rconn.exec_command(rcon_command.rcon)
     except ConnectionError as e:
         logging.error(f"Unable to run rcon command: {e}")
@@ -226,8 +231,8 @@ async def create_match(request: Request, match: MatchInfo):
             raise HTTPException(status_code=500, detail="Unable to start container")
 
     def create_match_remote():
-        logging.info(f"Creating match on remote server: {match.host}")
-        res = requests.post(f"http://{match.host}/match", json=match)
+        logging.info(f"Creating match on remote server: {match.host} -> {match.json()}")
+        res = requests.post(f"http://{match.host}/api/match", json=json.loads(match.json()))
 
         try:
             match_cfg = res.json()
@@ -319,7 +324,16 @@ async def delete_player(request: Request, player_id: int):
 
 @api.post("/demo")
 async def upload_demo(request: Request):
-    filename = os.path.split(request.headers["Get5-DemoName"])[-1]
+    logging.info(
+        f"Called POST /demo -> Header Keys: {request.headers.keys()}")  # 2022-12-23T19:15:14.975986996Z 2022-12-23 19:15:14,975 - root - INFO - Called POST /demo -> Header Keys: ['user-agent', 'get5-version', 'content-type', 'get5-filename', 'get5-matchid', 'get5-mapnumber', 'host', 'accept', 'accept-encoding', 'accept-charset', 'content-length']
+
+    if "Get5-DemoName" in request.headers.keys():
+        logging.info(f"Get5-DemoName: {request.headers['Get5-DemoName']}")
+        filename = os.path.split(request.headers["Get5-DemoName"])[-1]
+    else:
+        logging.info("No Get5-DemoName header found, using default name")
+        filename = f"{time.time()}.dem"
+
     logging.info(f"Called POST /demo filename: {filename}")
 
     async with aiofiles.open(os.path.join(os.getenv("DEMO_FILE_PATH", "/demofiles"), filename), 'wb') as out_file:

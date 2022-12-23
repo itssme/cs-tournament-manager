@@ -1,8 +1,6 @@
 version: '3'
 services:
   csgo_manager:
-    depends_on:
-      - db
     build:
       context: .
       dockerfile: Dockerfile

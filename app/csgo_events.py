@@ -23,7 +23,7 @@ def demo_upload_ended(event: Dict):
     match.finished = 2
     match.update_attribute("finished")
 
-    res = requests.delete("http://csgo_manager/api/match", json={"id": server.id}, timeout=60)
+    res = requests.delete(f"http://{server.ip}/api/match", json={"id": server.id}, timeout=60)
     if res.status_code == 200:
         logging.info(
             f"After demo has been uploaded, container running matchid: {match.matchid}, (name={server.container_name}) has been stopped")
@@ -65,7 +65,8 @@ def player_say(event: Dict):
     logging.info(f"Player said: {event['message']}")
 
 
-callbacks = {"player_say": player_say, "map_result": map_result, "series_end": series_end}
+callbacks = {"player_say": player_say, "map_result": map_result, "series_end": series_end,
+             "demo_upload_ended": demo_upload_ended}
 
 
 def set_api_routes(app):

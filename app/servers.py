@@ -45,7 +45,8 @@ class ServerManager:
                          best_out_of=match_cfg['num_maps'])
         db.insert_match(match)
 
-        server = db.Server(container_name=container_name, match=match.id)
+        server = db.Server(container_name=container_name, match=match.id,
+                           ip=os.getenv("EXTERNAL_IP", "host.docker.internal"))
         db.insert_server(server)
 
         port = self.reserve_free_port(server)
@@ -70,7 +71,6 @@ class ServerManager:
                                               environment=container_variables,
                                               detach=True, network="host")
             logging.info(f"Started container: {container_name} -> {container}")
-            server.update_attribute("status")
             return True
         except Exception as e:
             logging.error(f"Failed to start container ({match.matchid}) in server manager: {e}")

@@ -5,6 +5,8 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: pass
+    ports:
+      - 5432:5432
   adminer:
     image: adminer
     restart: unless-stopped
