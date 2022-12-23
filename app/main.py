@@ -43,6 +43,35 @@ csgo_events.set_api_routes(csgo_api)
 
 server_manger = ServerManager()
 
+if os.getenv("MASTER", "1") != "1":
+    logging.info("Running as slave instance.")
+    if os.getenv("MASTER_IP", None) is None:
+        logging.error("MASTER_IP not set.")
+        exit(1)
+
+    if os.getenv("MASTER_IP", None) is None:
+        logging.error("MASTER_IP not set.")
+        exit(1)
+
+    if os.getenv("DB_HOST", None) is None:
+        logging.error("DB_HOST not set.")
+        exit(1)
+
+    if os.getenv("EXTERNAL_IP", None) is None:
+        logging.error("EXTERNAL_IP not set.")
+        exit(1)
+
+    logging.info("ENV Variables are: MASTER_IP: %s, DB_HOST: %s, EXTERNAL_IP: %s", os.getenv("MASTER_IP"),
+                 os.getenv("DB_HOST"), os.getenv("EXTERNAL_IP"))
+    logging.info("Checking if master is online...")
+
+    res = requests.get("http://" + os.getenv("MASTER_IP") + "/api/healtcheck")
+    if res.status_code == 200:
+        logging.info("Master is online.")
+    else:
+        logging.error("Master is not online.")
+        exit(1)
+
 
 @app.get("/", response_class=RedirectResponse)
 async def redirect_index():
@@ -255,7 +284,8 @@ async def get_team_players(request: Request, team_id: int):
 
 @api.post("/teamAssignment")
 async def create_team_assignment(request: Request, team_assignment: TeamAssignmentInfo):
-    logging.info(f"Called POST /teamAssignment with TeamAssignmentInfo: TeamID: '{team_assignment.team_id}', PlayerID: '{team_assignment.player_id}'")
+    logging.info(
+        f"Called POST /teamAssignment with TeamAssignmentInfo: TeamID: '{team_assignment.team_id}', PlayerID: '{team_assignment.player_id}'")
     team = db.get_team_by_id(team_assignment.team_id)
     player = db.get_player(team_assignment.player_id)
     db.insert_team_assignment_if_not_exists(team, player)
@@ -298,3 +328,14 @@ async def upload_demo(request: Request):
 
     logging.info(f"Done writing file: {filename}")
     return {"filename": filename}
+
+
+@api.get("/healthcheck")
+async def healthcheck(request: Request):
+    teams = db.get_teams()
+    players = db.get_players()
+    matches = db.get_matches()
+    servers = db.get_servers()
+    hosts = db.get_hosts()
+
+    return {"status": "ok"}
