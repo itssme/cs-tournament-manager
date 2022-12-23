@@ -8,6 +8,7 @@ from fastapi import Request
 import db
 from elo import calculate_elo
 
+
 # TODO: check notice if both teams are ready and change `finished` for match
 
 def demo_upload_ended(event: Dict):

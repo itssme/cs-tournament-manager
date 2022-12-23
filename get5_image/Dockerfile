@@ -63,7 +63,7 @@ RUN apt-get -qq update \
 ENV METAMOD_URL=https://mms.alliedmods.net/mmsdrop/1.12/mmsource-1.12.0-git1164-linux.tar.gz \
     SOURCEMOD_URL=https://sm.alliedmods.net/smdrop/1.12/sourcemod-1.12.0-git6936-linux.tar.gz \
     STEAMWORKS_URL=https://github.com/KyleSanderson/SteamWorks/releases/download/1.2.3c/package-lin.tgz \
-    GET5_URL=https://github.com/splewis/get5/releases/download/v0.12.0-78629c7/get5-v0.12.0-78629c7.tar.gz
+    GET5_URL=https://github.com/splewis/get5/releases/download/v0.12.0-c54cd78/get5-v0.12.0-c54cd78.tar.gz
 
 RUN su user -c  \
        "wget -q -O - $METAMOD_URL | tar -xz -C $CSGO_DIR/csgo \
@@ -99,7 +99,7 @@ COPY --chown=user --chmod=755 server-scripts/server-launch.sh $HOME_DIR/
 COPY --chown=user cfg/* $CSGO_DIR/csgo/cfg/
 
 # FORCE MANUAL UPDATE IN CONTAINER, simply increment the number on the echo command, this is not very clever or a good solution but, well... it works
-RUN su user -c "bash $HOME_DIR/server-update.sh" && echo "1"
+RUN su user -c "bash $HOME_DIR/server-update.sh" && echo "2"
 
 ############
 # RUN CSGO #

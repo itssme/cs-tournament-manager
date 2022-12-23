@@ -255,8 +255,7 @@ async def get_team_players(request: Request, team_id: int):
 
 @api.post("/teamAssignment")
 async def create_team_assignment(request: Request, team_assignment: TeamAssignmentInfo):
-    logging.info(f"Called POST /teamAssignment with TeamAssignment: TeamID: '{team_assignment.team_id}', "
-                 f"PlayerID: '{team_assignment.player_id}'")
+    logging.info(f"Called POST /teamAssignment with TeamAssignmentInfo: TeamID: '{team_assignment.team_id}', PlayerID: '{team_assignment.player_id}'")
     team = db.get_team_by_id(team_assignment.team_id)
     player = db.get_player(team_assignment.player_id)
     db.insert_team_assignment_if_not_exists(team, player)
@@ -265,7 +264,8 @@ async def create_team_assignment(request: Request, team_assignment: TeamAssignme
 
 @api.delete("/teamAssignment")
 async def delete_team_assignment(request: Request, team_assignment: TeamAssignmentInfo):
-    logging.info(f"Called DELETE /teamAssignment with TeamAssignment: TeamID: '{team_assignment_id}', ")
+    logging.info(
+        f"Called DELETE /teamAssignment with TeamAssignment: TeamID: '{team_assignment.team_id}', PlayerID: '{team_assignment.player_id}'")
     team = db.get_team_by_id(team_assignment.team_id)
     player = db.get_player(team_assignment.player_id)
     db.delete_team_assignment(team, player)
