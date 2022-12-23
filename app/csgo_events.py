@@ -18,6 +18,11 @@ def demo_upload_ended(event: Dict):
             f"Match: {match.matchid} tried to upload demo, but failed. Demo is not saved and container cannot be shut down.")
         return
 
+    if match.finished == 1:
+        logging.info(
+            f"Demo upload for match: {match.matchid} but the series is not finished yet, not shutting down container.")
+        return
+
     server: db.Server = db.get_server_for_match(match.matchid)
 
     match.finished = 2

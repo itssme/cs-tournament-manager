@@ -7,10 +7,11 @@ create table if not exists player
 
 create table if not exists team
 (
-    id   serial primary key,
-    tag  text        not null,
-    name text unique not null,
-    elo  int default 0
+    id        serial primary key,
+    tag       text        not null,
+    name      text unique not null,
+    elo       int default 0,
+    competing int default 0 -- 0 = not competing, 1 = competing
 );
 
 create table if not exists team_assignment
@@ -19,7 +20,6 @@ create table if not exists team_assignment
     player integer references player on delete cascade,
     primary key (team, player)
 );
-
 
 create table if not exists match
 (

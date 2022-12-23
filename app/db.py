@@ -67,11 +67,12 @@ class Player(DbObject):
 
 
 class Team(DbObject):
-    def __init__(self, id: int = None, tag: str = "", name: str = "", elo: int = 0):
+    def __init__(self, id: int = None, tag: str = "", name: str = "", elo: int = 0, competing: int = 0):
         self.id: int = id
         self.tag: str = tag
         self.name: str = name
         self.elo: int = elo
+        self.competing: int = competing
 
 
 class Server(DbObject):
@@ -319,7 +320,7 @@ def get_free_teams() -> List[Team]:
             password="pass") as conn:
         with conn.cursor() as cursor:
             cursor.execute(
-                "select * from team except select team.* from team join match on team.id = match.team1 or team.id = match.team2 where match.finished < 1;")
+                "select * from team except select team.* from team join match on team.id = match.team1 or team.id = match.team2 where match.finished < 1 and team.competing = 1;")
             team_tuple_list = cursor.fetchall()
             return [DbObjImpl[Team]().from_tuple(team_tuple) for team_tuple in team_tuple_list]
 
@@ -461,7 +462,8 @@ def update_config():
             "name": team.name,
             "tag": team.tag,
             "players": [{"steam_id": player.steam_id, "name": player.name} for player in players],
-            "elo": team.elo
+            "elo": team.elo,
+            "competing": team.competing
         })
 
     with open("teams.json", mode="w", encoding="utf-8") as outfile:
