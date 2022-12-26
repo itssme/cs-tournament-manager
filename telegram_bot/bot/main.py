@@ -385,7 +385,8 @@ telegram_bot: Union[TelegramBOT, None] = None
 
 
 def matchmaker():
-    logging.info("Starting test thread")
+    # TODO refactor this mess
+    logging.info("Starting matchmaker")
     while True:
         time.sleep(10)
         if matchmaking_enabled:
@@ -428,7 +429,20 @@ def matchmaker():
             announcement = "\n".join([
                 f"{match[-2].ljust(len(max(start_matches, key=lambda x: len(x[-2]))[-2]))} vs {match[-1].rjust(len(max(start_matches, key=lambda x: len(x[-1]))[-1]))} ed={str(match[2]).ljust(3)}, td={str(match[3]).ljust(3)}"
                 for match in start_matches])
-            telegram_bot.send_admin(f"Starting matches:\n```txt\n{announcement}```")
+            for match in start_matches:
+                data = {"team1": match[0], "team2": match[1], "best_of": 1, "check_auths": True}
+                # TODO requests.post("http://csgo_manager/api/match", json=data)
+                name_length = max(len(match[-2]), len(match[-1]))
+                ip = "10.10.10.10"
+                port = "27015"
+                telegram_bot.send_announcement(f"New match created:\n"
+                                               f"```text\n"
+                                               f"{match[-2].ljust(name_length)} ID: {match[0]}\n"
+                                               f"vs\n"
+                                               f"{match[-1].ljust(name_length)} ID: {match[1]}\n"
+                                               f"Command: connect {ip}:{port}\n"
+                                               f"```"
+                                               f"Type `\\!ready` in the csgo chat as soon as you are ready to play\\.\n")
             logging.info(f"Starting matches: {start_matches}")
 
 
