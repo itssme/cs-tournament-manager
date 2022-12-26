@@ -219,14 +219,15 @@ async def create_match(request: Request, match: MatchInfo):
         f"best_of: '{match.best_of}', 'check_auths: {match.check_auths}', 'host: {match.host}'")
 
     def create_match_local():
-        logging.info("Creating match on master server")
+        logging.info(f"Creating match on this {os.getenv('EXTERNAL_IP', '127.0.0.1')} server")
 
         match_cfg = MatchGen.from_team_ids(match.team1, match.team2, match.best_of)
         if match.check_auths is not None:
             match_cfg.add_cvar("get5_check_auths", "1" if match.check_auths else "0")
 
-        if server_manger.create_match(match_cfg):
-            return match_cfg
+        new_match = server_manger.create_match(match_cfg)
+        if new_match[0]:
+            return {"ip": os.getenv('EXTERNAL_IP', '127.0.0.1'), "port": new_match[1], "match_id": match_cfg["matchid"]}
         else:
             raise HTTPException(status_code=500, detail="Unable to start container")
 
@@ -235,8 +236,8 @@ async def create_match(request: Request, match: MatchInfo):
         res = requests.post(f"http://{match.host}/api/match", json=json.loads(match.json()))
 
         try:
-            match_cfg = res.json()
-            return match_cfg
+            response_data = res.json()
+            return response_data
         except Exception as e:
             raise HTTPException(status_code=500,
                                 detail=f"Unable to start container on remote host: {match.host}, status={res.status_code}<br>{res.text}")

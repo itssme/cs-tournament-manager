@@ -27,7 +27,7 @@ class ServerManager:
             with open("gslt.json", "r") as gslt:
                 self.gslt_tokens = json.loads(gslt.read())
 
-    def create_match(self, match_cfg: dict) -> bool:
+    def create_match(self, match_cfg: dict) -> tuple[bool, int]:
         return self.__start_container(match_cfg)
 
     def stop_match(self, server_id: int):
@@ -35,7 +35,7 @@ class ServerManager:
         self.__stop_container_and_delete(container_name)
         db.delete_server(server_id)
 
-    def __start_container(self, match_cfg: dict) -> bool:
+    def __start_container(self, match_cfg: dict) -> tuple[bool, int]:
         client = docker.from_env()
 
         container_name = f"CSGO_{match_cfg['team1']['id']}_{match_cfg['team2']['id']}"
@@ -66,18 +66,24 @@ class ServerManager:
             container_variables["SERVER_TOKEN"] = self.reserve_free_gslt_token(server)
 
         try:
-            container = client.containers.run("get5-csgo:latest",
-                                              name=container_name,
-                                              environment=container_variables,
-                                              detach=True, network="host", ports={port: port})
+            if os.getenv("WINDOWS", "0") == "1":
+                container = client.containers.run("get5-csgo:latest",
+                                                  name=container_name,
+                                                  environment=container_variables,
+                                                  detach=True, network="host")
+            else:
+                container = client.containers.run("get5-csgo:latest",
+                                                  name=container_name,
+                                                  environment=container_variables,
+                                                  ports={port: port})
             logging.info(f"Started container: {container_name} -> {container}")
-            return True
+            return True, port
         except Exception as e:
             logging.error(f"Failed to start container ({match.matchid}) in server manager: {e}")
             match.finished = 3
             match.update_attribute("finished")
             db.delete_server(server.id)
-            return False
+            return False, port
 
     def __stop_container_and_delete(self, container_name: str):
         client = docker.from_env()
