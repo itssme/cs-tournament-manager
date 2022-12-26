@@ -69,7 +69,7 @@ class ServerManager:
             container = client.containers.run("get5-csgo:latest",
                                               name=container_name,
                                               environment=container_variables,
-                                              detach=True, network="host")
+                                              detach=True, network="host", ports={port: port})
             logging.info(f"Started container: {container_name} -> {container}")
             return True
         except Exception as e:
