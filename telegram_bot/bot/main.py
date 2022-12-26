@@ -63,6 +63,7 @@ class TelegramBOT:
                                       "/listPlayers\n"
                                       "/listMatches\n"
                                       "/listMembers `teamId`\n"
+                                      "/setCompeting `teamId` `competing`\n"
                                       "/startMatchmaking\n"
                                       "/stopMatchmaking\n",
                              parse_mode="MarkdownV2")
@@ -252,6 +253,35 @@ class TelegramBOT:
                 bot.send_message(chat_id, f"Unable to create match: {res.status_code}, {res.text}")
 
         @REQUIRE_AUTH
+        def set_competing(update, context):
+            bot: telegram.bot.Bot = context.bot
+            chat_id = update.effective_chat["id"]
+            user_id = update.effective_user["id"]
+            logging.info("Arguments: " + str(len(context.args)))
+
+            if len(context.args) != 2:
+                logging.error("/setCompeting called with invalid amount of arguments.")
+                bot.send_message(chat_id,
+                                 escape_string("/setCompeting called with invalid amount of arguments. See /help"),
+                                 parse_mode="MarkdownV2")
+                return
+
+            team_id = int(context.args[0])
+            competing = int(str2bool(context.args[1]))
+
+            data = {"team_id": team_id,
+                    "competing": competing}
+
+            logging.info(f"Parsed POST /competing -> {data}")
+            res = requests.post("http://csgo_manager/api/competing", json=data)
+            if res.status_code == 200:
+                bot.send_message(chat_id,
+                                 f"Successfully set team {team_id} to **{'' if competing else 'not'} compete**",
+                                 parse_mode="MarkdownV2")
+            else:
+                bot.send_message(chat_id, f"Unable to set competing: {res.status_code}, {res.text}")
+
+        @REQUIRE_AUTH
         def start_matchmaking(update, context):
             global matchmaking_enabled
             bot: telegram.bot.Bot = context.bot
@@ -290,6 +320,10 @@ class TelegramBOT:
                                       pass_job_queue=True,
                                       pass_chat_data=True))
         dp.add_handler(CommandHandler("createMatch", create_match,
+                                      pass_args=True,
+                                      pass_job_queue=True,
+                                      pass_chat_data=True))
+        dp.add_handler(CommandHandler("setCompeting", set_competing,
                                       pass_args=True,
                                       pass_job_queue=True,
                                       pass_chat_data=True))
@@ -384,7 +418,7 @@ def matchmaker():
             for potential_match in consider_matches:
                 if not potential_match[0][0][0] in matched_matches and not potential_match[0][1][
                                                                                0] in matched_matches and abs(
-                        potential_match[0][0][1] - potential_match[0][1][1]) < 300:
+                    potential_match[0][0][1] - potential_match[0][1][1]) < 300:
                     matched_matches.add(potential_match[0][0][0])
                     matched_matches.add(potential_match[0][1][0])
                     start_matches.append((potential_match[0][0][0], potential_match[0][1][0],
@@ -392,8 +426,8 @@ def matchmaker():
                                           potential_match[0][0][2], potential_match[0][1][2]))
 
             announcement = "\n".join([
-                                         f"{match[-2].ljust(len(max(start_matches, key=lambda x: len(x[-2]))[-2]))} vs {match[-1].rjust(len(max(start_matches, key=lambda x: len(x[-1]))[-1]))} ed={str(match[2]).ljust(3)}, td={str(match[3]).ljust(3)}"
-                                         for match in start_matches])
+                f"{match[-2].ljust(len(max(start_matches, key=lambda x: len(x[-2]))[-2]))} vs {match[-1].rjust(len(max(start_matches, key=lambda x: len(x[-1]))[-1]))} ed={str(match[2]).ljust(3)}, td={str(match[3]).ljust(3)}"
+                for match in start_matches])
             telegram_bot.send_admin(f"Starting matches:\n```txt\n{announcement}```")
             logging.info(f"Starting matches: {start_matches}")
 

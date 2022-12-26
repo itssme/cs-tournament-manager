@@ -307,7 +307,7 @@ def get_teams() -> List[Team]:
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
-            cursor.execute("select * from team")
+            cursor.execute("select * from team order by id")
             team_tuple_list = cursor.fetchall()
             return [DbObjImpl[Team]().from_tuple(team_tuple) for team_tuple in team_tuple_list]
 

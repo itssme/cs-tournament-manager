@@ -267,6 +267,11 @@ class TeamAssignmentInfo(BaseModel):
     player_id: int
 
 
+class CompetingInfo(BaseModel):
+    team_id: int
+    competing: int
+
+
 @api.post("/team")
 async def create_team(request: Request, team: TeamInfo):
     logging.info(
@@ -314,6 +319,13 @@ async def delete_team(request: Request, team_id: int):
 
     db.delete_team(team_id)
     db.update_config()
+
+
+@api.post("/competing", response_class=JSONResponse)
+async def set_competing(request: Request, competing_info: CompetingInfo):
+    team = db.get_team_by_id(competing_info.team_id)
+    team.competing = competing_info.competing
+    team.update_attribute("competing")
 
 
 @api.delete("/player")
