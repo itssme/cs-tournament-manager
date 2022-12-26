@@ -1,6 +1,7 @@
 import json
 import logging
 from typing import Dict
+from time import sleep
 
 import requests
 from fastapi import Request
@@ -67,7 +68,22 @@ def series_end(event: Dict):
 
 
 def player_say(event: Dict):
-    logging.info(f"Player said: {event['message']}")
+    message = event["message"]
+    logging.info(f"Player said: {message}")
+    if "!spin" in message:
+        logging.info("Spinning")
+        # TODO get server ip and port
+        with RCON(server_ip, server_port, "pass") as rconn:
+            rconn.exec_command("say spinning")
+            sleep(1)
+            rconn.exec_command("say 3")
+            sleep(1)
+            rconn.exec_command("say 2")
+            sleep(1)
+            rconn.exec_command("say 1")
+            sleep(1)
+            rconn.exec_command("say done")
+            # TODO add random messages
 
 
 callbacks = {"player_say": player_say, "map_result": map_result, "series_end": series_end,
