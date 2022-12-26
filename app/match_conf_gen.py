@@ -81,6 +81,9 @@ class MatchGen:
         matchcfg.add_cvar("get5_print_update_notice", 0)
         matchcfg.add_cvar("get5_reset_cvars_on_end", 0)
         matchcfg.add_cvar("tv_enable", 1)
+        matchcfg.add_cvar("get5_time_to_start_veto", 10 * 60)
+        matchcfg.add_cvar("get5_time_to_start", 10 * 60)
+        matchcfg.add_cvar("get5_auto_tech_pause_missing_players", 1)
         matchcfg.generate_match_name()
 
         return matchcfg
