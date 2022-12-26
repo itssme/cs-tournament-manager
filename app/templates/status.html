@@ -109,6 +109,14 @@
                                        value="End Match"
                                        onclick="endMatch({{ server.id }})"
                                        name="submit">
+                                <input id="pause_button_{{ server.id }}" class="btn btn-primary" type="submit"
+                                       value="Pause"
+                                       onclick="pauseMatch({{ server.id }})"
+                                       name="submit">
+                                <input id="unpause_button_{{ server.id }}" class="btn btn-primary" type="submit"
+                                       value="Unpause"
+                                       onclick="unpauseMatch({{ server.id }})"
+                                       name="submit">
                             </div>
                         </div>
                     </div>
@@ -204,6 +212,32 @@
                 document.getElementById(`stop_button_${id}`).disabled = false;
                 alert("Unable to stop match, see server logs");
             }
+        }
+
+        function pauseMatch(id) {
+            let xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("POST", "/api/pause", false);
+            xmlHttp.setRequestHeader("Content-Type", "application/json");
+            xmlHttp.send(JSON.stringify({"id": id}));
+
+            let res = JSON.parse(xmlHttp.responseText);
+            if (xmlHttp.status !== 200) {
+                alert("Unable to pause match, see server logs");
+            }
+            console.log(res);
+        }
+
+        function unpauseMatch(id) {
+            let xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("POST", "/api/unpause", false);
+            xmlHttp.setRequestHeader("Content-Type", "application/json");
+            xmlHttp.send(JSON.stringify({"id": id}));
+
+            let res = JSON.parse(xmlHttp.responseText);
+            if (xmlHttp.status !== 200) {
+                alert("Unable to unpause match, see server logs");
+            }
+            console.log(res);
         }
 
     </script>

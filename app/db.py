@@ -416,6 +416,18 @@ def get_match_by_matchid(matchid: int) -> Match:
             return DbObjImpl[Match]().from_tuple(cursor.fetchall()[0])
 
 
+def get_match_by_serverid(server_id: int) -> Match:
+    with psycopg2.connect(
+            host=os.getenv("DB_HOST", "db"),
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("select match.* from match join server on server.match = match.id where server.id = %s",
+                           (server_id,))
+            return DbObjImpl[Match]().from_tuple(cursor.fetchall()[0])
+
+
 def insert_match(match: Match):
     with psycopg2.connect(
             host=os.getenv("DB_HOST", "db"),
@@ -448,6 +460,20 @@ def get_hosts() -> List[str]:
             cursor.execute("select * from host")
             server_tuple_list = cursor.fetchall()
             return [host[0] for host in server_tuple_list]
+
+
+def get_least_used_host_ips():
+    with psycopg2.connect(
+            host=os.getenv("DB_HOST", "db"),
+            database="postgres",
+            user="postgres",
+            password="pass") as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "select host.* from host left join server on host.ip = server.ip group by host.ip order by count(server.ip) asc")
+            host_list = cursor.fetchall()
+            logging.info(host_list)
+            return host_list[0][0]
 
 
 def update_config():

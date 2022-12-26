@@ -33,6 +33,9 @@ class ServerManager:
     def stop_match(self, server_id: int):
         container_name = db.get_server_by_id(server_id).container_name
         self.__stop_container_and_delete(container_name)
+        match = db.get_match_by_serverid(server_id)
+        match.finished = 3
+        match.update_attribute("finished")
         db.delete_server(server_id)
 
     def __start_container(self, match_cfg: dict) -> tuple[bool, int]:
@@ -67,15 +70,17 @@ class ServerManager:
 
         try:
             if os.getenv("WINDOWS", "0") == "1":
+                logging.info("Starting container on Windows")
+                container = client.containers.run("get5-csgo:latest",
+                                                  name=container_name,
+                                                  environment=container_variables,
+                                                  detach=True, ports={port: port})
+            else:
+                logging.info("Starting container on linux host")
                 container = client.containers.run("get5-csgo:latest",
                                                   name=container_name,
                                                   environment=container_variables,
                                                   detach=True, network="host")
-            else:
-                container = client.containers.run("get5-csgo:latest",
-                                                  name=container_name,
-                                                  environment=container_variables,
-                                                  ports={port: port})
             logging.info(f"Started container: {container_name} -> {container}")
             return True, port
         except Exception as e:

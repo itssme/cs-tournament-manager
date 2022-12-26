@@ -417,13 +417,13 @@ def matchmaker():
             matched_matches = set()
             logging.info(f"Consider matches: {consider_matches}")
             for potential_match in consider_matches:
-                if not potential_match[0][0][0] in matched_matches and not potential_match[0][1][
-                                                                               0] in matched_matches and abs(
-                    potential_match[0][0][1] - potential_match[0][1][1]) < 300:
+                if not potential_match[0][0][0] in matched_matches and not potential_match[0][1][0] in matched_matches \
+                        and abs(potential_match[0][0][1] - potential_match[0][1][1]) < 300:
                     matched_matches.add(potential_match[0][0][0])
                     matched_matches.add(potential_match[0][1][0])
                     start_matches.append((potential_match[0][0][0], potential_match[0][1][0],
                                           abs(potential_match[0][0][1] - potential_match[0][1][1]), potential_match[1],
+                                          potential_match[0][0][1], potential_match[0][1][1],  # elo team 1 and 2
                                           potential_match[0][0][2], potential_match[0][1][2]))
 
             announcement = "\n".join([
@@ -437,9 +437,9 @@ def matchmaker():
                 port = "27015"
                 telegram_bot.send_announcement(f"New match created:\n"
                                                f"```text\n"
-                                               f"{match[-2].ljust(name_length)} ID: {match[0]}\n"
+                                               f"{match[-2].ljust(name_length)} ELO: {match[4]}\n"
                                                f"vs\n"
-                                               f"{match[-1].ljust(name_length)} ID: {match[1]}\n"
+                                               f"{match[-1].ljust(name_length)} ELO: {match[5]}\n"
                                                f"Command: connect {ip}:{port}\n"
                                                f"```"
                                                f"Type `\\!ready` in the csgo chat as soon as you are ready to play\\.\n")

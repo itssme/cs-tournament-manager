@@ -6,7 +6,7 @@ from typing import Union
 
 import aiofiles
 import requests
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, FileResponse
 
 import csgo_events
 import rcon
@@ -83,7 +83,14 @@ async def redirect_index():
 @app.get("/status", response_class=HTMLResponse)
 async def status(request: Request):
     gameserver = [server.to_json() for server in db.get_servers()]
-    return templates.TemplateResponse("status.html", {"request": request, "gameserver": gameserver})
+    demos = os.listdir(os.getenv("DEMO_FILE_PATH", "/demofiles"))
+    return templates.TemplateResponse("status.html", {"request": request, "gameserver": gameserver, "demos": demos})
+
+
+@app.get("/demos", response_class=HTMLResponse)
+async def status(request: Request):
+    demos = os.listdir(os.getenv("DEMO_FILE_PATH", "/demofiles"))
+    return templates.TemplateResponse("demos.html", {"request": request, "demos": demos})
 
 
 @app.get("/config", response_class=HTMLResponse)
@@ -204,6 +211,34 @@ async def status(request: Request, server: ServerID):
     return {"status": 0}
 
 
+@api.post("/pause", response_class=JSONResponse)
+async def status(request: Request, server: ServerID):
+    logging.info(f"Running command: pause on server: id={server.id}")
+
+    server = db.get_server_by_id(server.id)
+    try:
+        with RCON(server.ip, server.port, "pass") as rconn:
+            res = rconn.exec_command("sm_pause")
+    except ConnectionError as e:
+        logging.error(f"Unable to run pause rcon command: {e}")
+        return {"error": "Unable to connect to this server"}
+    return res
+
+
+@api.post("/unpause", response_class=JSONResponse)
+async def status(request: Request, server: ServerID):
+    logging.info(f"Running command: unpause on server: id={server.id}")
+
+    server = db.get_server_by_id(server.id)
+    try:
+        with RCON(server.ip, server.port, "pass") as rconn:
+            res = rconn.exec_command("sm_unpause")
+    except ConnectionError as e:
+        logging.error(f"Unable to run unpause rcon command: {e}")
+        return {"error": "Unable to connect to this server"}
+    return res
+
+
 class MatchInfo(BaseModel):
     team1: int
     team2: int
@@ -217,6 +252,10 @@ async def create_match(request: Request, match: MatchInfo):
     logging.info(
         f"Called POST /match with MatchInfo: Team1: '{match.team1}', Team2: '{match.team2}', "
         f"best_of: '{match.best_of}', 'check_auths: {match.check_auths}', 'host: {match.host}'")
+
+    if match.host is None:
+        match.host = db.get_least_used_host_ips()
+        logging.info(f"No host specified, using least used host -> {match.host}")
 
     def create_match_local():
         logging.info(f"Creating match on this {os.getenv('EXTERNAL_IP', '127.0.0.1')} server")
@@ -340,11 +379,11 @@ async def upload_demo(request: Request):
     logging.info(
         f"Called POST /demo -> Header Keys: {request.headers.keys()}")  # 2022-12-23T19:15:14.975986996Z 2022-12-23 19:15:14,975 - root - INFO - Called POST /demo -> Header Keys: ['user-agent', 'get5-version', 'content-type', 'get5-filename', 'get5-matchid', 'get5-mapnumber', 'host', 'accept', 'accept-encoding', 'accept-charset', 'content-length']
 
-    if "Get5-DemoName" in request.headers.keys():
-        logging.info(f"Get5-DemoName: {request.headers['Get5-DemoName']}")
-        filename = os.path.split(request.headers["Get5-DemoName"])[-1]
+    if "get5-filename" in request.headers.keys():
+        logging.info(f"get5-filename: {request.headers['get5-filename']}")
+        filename = os.path.split(request.headers["get5-filename"])[-1]
     else:
-        logging.info("No Get5-DemoName header found, using default name")
+        logging.info("No get5-filename header found, using default name")
         filename = f"{time.time()}.dem"
 
     logging.info(f"Called POST /demo filename: {filename}")
@@ -355,6 +394,13 @@ async def upload_demo(request: Request):
 
     logging.info(f"Done writing file: {filename}")
     return {"filename": filename}
+
+
+@api.get("/demo/{filename}")
+async def get_demo(filename: str):
+    logging.info(f"Called GET /demo filename: {filename}")
+    filename = os.path.split(filename)[-1]
+    return FileResponse(os.path.join(os.getenv("DEMO_FILE_PATH", "/demofiles"), filename))
 
 
 @api.get("/healthcheck")
