@@ -188,7 +188,7 @@ class RconCommand(BaseModel):
 
 
 @api.post("/rcon", response_class=JSONResponse)
-async def slay_player(request: Request, rcon_command: RconCommand):
+async def rcon(request: Request, rcon_command: RconCommand):
     logging.info(
         f"Running command: {rcon_command.rcon} on server: ip={rcon_command.server_ip} port={rcon_command.server_port}")
     try:
