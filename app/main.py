@@ -133,7 +133,6 @@ async def status(request: Request):
 
 
 # TODO: implement caching here
-# TODO: catch exception if server is not reachable via rcon
 @api.get("/status", response_class=JSONResponse)
 async def status(request: Request):
     matches = []
@@ -147,7 +146,10 @@ async def status(request: Request):
             team2 = db.get_team_by_id(match.team2)
             server = db.get_server_for_match(match.matchid)
 
-            get5_stats = get5_status(server.ip, server.port)
+            try:
+                get5_stats = get5_status(server.ip, server.port)
+            except ConnectionRefusedError as e:
+                get5_stats = {"gamestate": "unreachable"}
 
             matches.append({"score": score, "teamnames": [team1.name, team2.name], "team_elo": [team1.elo, team2.elo],
                             "server_ip": f"{server.ip}:{server.port}",
