@@ -1,0 +1,85 @@
+<html>
+<head>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-800 text-white">
+<div class="container mx-auto">
+    <h1 class="text-2xl font-bold ml-5 mt-5 mb-5">CS:GO LAN Tournament Status</h1>
+    <div class="grid grid-cols-10">
+        <div id="teams" class="grid col-span-3 items-start content-start">
+            <!-- List of teams will be inserted here -->
+        </div>
+        <div id="matches" class="grid gap-4 mb-8 col-span-7 items-start content-start">
+            <!-- List of matches will be inserted here -->
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    // Fetch the list of matches from the API
+    function updateMatches() {
+        fetch('/api/status')
+            .then(response => response.json())
+            .then(resp => {
+                const matches = resp["matches"];
+                // Insert each match into the page
+                const matchesContainer = document.querySelector('#matches');
+                if (matches.length === 0) {
+                    matchesContainer.innerHTML = 'Currently no matches are running.';
+                } else {
+                    matchesContainer.innerHTML = ''; // Clear previous matches
+                }
+                matches.forEach(match => {
+                    const matchEl = document.createElement('div');
+                    matchEl.classList.add('bg-gray-700', 'p-4', 'm-1', 'rounded-lg');
+                    matchEl.innerHTML = `
+              <div class="grid grid-cols-12 justify-items-center">
+                <div class="text-4xl col-span-5 justify-self-end flex items-center">${match.teamnames[0]}</div>
+                <div class="text-6xl col-span-2 font-bold">vs</div>
+                <div class="text-4xl col-span-5 justify-self-start flex items-center">${match.teamnames[1]}</div>
+              </div>
+              <div class="grid grid-cols-12 justify-items-center">
+                <div class="text-base col-span-5 justify-self-end flex items-center">ELO ${match.team_elo[0]}</div>
+                <div class="text-4xl col-span-2 font-bold">${match.score[0]} : ${match.score[1]}</div>
+                <div class="text-base col-span-5 mt-1 justify-self-start flex items-center">${match.team_elo[1]} ELO</div>
+              </div>
+              <div class="text-sm mb-2">
+                Server IP: ${match.server_ip}
+              </div>
+              <div class="text-sm">
+                Status: ${match.status}
+              </div>
+            `;
+                    matchesContainer.appendChild(matchEl);
+                });
+
+                // Update the list of teams
+                const teams = resp["teams"];
+                const teamsContainer = document.querySelector('#teams');
+                teamsContainer.innerHTML = ''; // Clear previous teams
+                teams.forEach((team, i) => {
+                    const teamEl = document.createElement('div');
+                    teamEl.classList.add('bg-gray-700', 'p-4', 'hover:p-1', 'm-1', 'rounded-lg', 'flex', 'items-center');
+                    teamEl.innerHTML = `
+                <div class="min-w-full">
+              <div class="grid grid-cols-10 justify-items-center">
+                    <div class="text-base col-span-1 font-bold justify-self-center">${i + 1}. </div>
+                    <div class="text-base col-span-9 font-bold justify-self-start">${team.teamname}</div>
+                    <div class="text-base col-span-1"></div>
+                    <div class="text-base col-span-3 justify-self-start">ELO=${team.elo}</div>
+                    <div class="text-base col-span-2">W=${team.wins}</div>
+                    <div class="text-base col-span-2">L=${team.losses}</div>
+                    <div class="text-base col-span-2">D=${team.draws}</div>
+              </div></div>
+            `;
+                    teamsContainer.appendChild(teamEl);
+                });
+
+            });
+    }
+
+    // Update the list of matches every 5 seconds
+    setInterval(updateMatches, 5000);
+    updateMatches(); // Update the list of matches on page load
+</script>
+</html>

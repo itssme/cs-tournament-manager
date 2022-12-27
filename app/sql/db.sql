@@ -11,7 +11,7 @@ create table if not exists team
     tag       text        not null,
     name      text unique not null,
     elo       int default 0,
-    competing int default 0 -- 0 = not competing, 1 = competing
+    competing int default 0 -- 0 = not competing, 1 = competing, 2 = completely ignored (even not visible in the leaderboard)
 );
 
 create table if not exists team_assignment

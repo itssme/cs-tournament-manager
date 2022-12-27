@@ -9,8 +9,8 @@ import requests
 from starlette.responses import JSONResponse, FileResponse
 
 import csgo_events
-import rcon
 from rcon import RCON
+from rcon import get5_status
 from servers import ServerManager
 from match_conf_gen import MatchGen
 import db
@@ -30,9 +30,11 @@ logging.getLogger('pika').setLevel(logging.WARNING)
 
 app = FastAPI()
 api = FastAPI()
+public = FastAPI()
 csgo_api = FastAPI()
 app.mount("/api", api)
 api.mount("/csgo", csgo_api)
+app.mount("/public", public)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
@@ -125,6 +127,67 @@ async def matches(request: Request):
     return [match.to_json() for match in db.get_matches()]
 
 
+@public.get("/status")
+async def status(request: Request):
+    return templates.TemplateResponse("public_status.html", {"request": request})
+
+
+# TODO: implement caching here
+# TODO: catch exception if server is not reachable via rcon
+@api.get("/status", response_class=JSONResponse)
+async def status(request: Request):
+    matches = []
+    teams = []
+
+    matches_db = db.get_matches()
+    for match in matches_db:
+        if match.finished <= 0:
+            score = [0, 0]
+            team1 = db.get_team_by_id(match.team1)
+            team2 = db.get_team_by_id(match.team2)
+            server = db.get_server_for_match(match.matchid)
+
+            get5_stats = get5_status(server.ip, server.port)
+
+            matches.append({"score": score, "teamnames": [team1.name, team2.name], "team_elo": [team1.elo, team2.elo],
+                            "server_ip": f"{server.ip}:{server.port}",
+                            "status": get5_stats["gamestate"]})
+
+    for team in db.get_teams():
+        if team.competing != 2:
+            wins = 0
+            losses = 0
+            draws = 0  # currently not used
+
+            for match in matches_db:
+                if 1 <= match.finished <= 2:
+                    if match.team1 == team.id:
+                        wins += match.series_score_team1
+                        losses += match.series_score_team2
+                    elif match.team2 == team.id:
+                        wins += match.series_score_team2
+                        losses += match.series_score_team1
+
+            teams.append({"teamname": team.name, "elo": team.elo, "wins": wins, "losses": losses, "draws": draws})
+
+    # sort teams by elo
+    teams.sort(key=lambda x: x["elo"], reverse=True)
+
+    return {"matches": matches, "teams": teams}
+
+    # for testing
+    # return {"matches": [
+    #     {"score": [5, 14], "teamnames": ["airplebs", "Faceit LVL 1"],
+    #      "server_ip": "10.20.0.20:27015", "team_elo": [1406, 1326], "status": "running"},
+    #     {"score": [4, 8], "teamnames": ["Unranked", "Die Globale Elite"],
+    #      "server_ip": "10.20.0.20:27027", "team_elo": [1203, 1260], "status": "running"}
+    # ], "teams": [{"teamname": "airplebs", "elo": 1406, "wins": 5, "losses": 2, "draws": 0},
+    #              {"teamname": "Faceit LVL 1", "elo": 1326, "wins": 3, "losses": 4, "draws": 0},
+    #              {"teamname": "Die Globale Elite", "elo": 1260, "wins": 4, "losses": 3, "draws": 0},
+    #              {"teamname": "Unranked", "elo": 1203, "wins": 2, "losses": 5, "draws": 0}
+    #              ]}
+
+
 @api.get("/info", response_class=JSONResponse)
 async def status(request: Request):
     servers = db.get_servers()
@@ -136,7 +199,7 @@ async def status(request: Request):
 
     for server in servers:
         logging.info(f"Collecting stats for server: {server}")
-        get5_stats = rcon.get5_status(server.ip, server.port)
+        get5_stats = get5_status(server.ip, server.port)
 
         with RCON(server.ip, server.port, "pass") as rconn:
             # logging.info(rconn.exec_command("sm_slay Jöl"))
@@ -266,7 +329,8 @@ async def create_match(request: Request, match: MatchInfo):
 
         new_match = server_manger.create_match(match_cfg)
         if new_match[0]:
-            return {"ip": os.getenv('EXTERNAL_IP', '127.0.0.1'), "port": new_match[1], "match_id": match_cfg["matchid"]}
+            return {"ip": os.getenv('EXTERNAL_IP', '127.0.0.1'), "port": new_match[1],
+                    "match_id": match_cfg["matchid"]}
         else:
             raise HTTPException(status_code=500, detail="Unable to start container")
 
