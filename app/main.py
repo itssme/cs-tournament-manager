@@ -6,6 +6,9 @@ from typing import Union
 
 import aiofiles
 import requests
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.inmemory import InMemoryBackend
+from fastapi_cache.decorator import cache
 from starlette.responses import JSONResponse, FileResponse
 
 import csgo_events
@@ -77,9 +80,14 @@ if os.getenv("MASTER", "1") != "1":
         exit(1)
 
 
+@app.on_event("startup")
+async def startup():
+    FastAPICache.init(InMemoryBackend())
+
+
 @app.get("/", response_class=RedirectResponse)
 async def redirect_index():
-    return "/status"
+    return "/public/status"
 
 
 @app.get("/status", response_class=HTMLResponse)
@@ -132,8 +140,8 @@ async def status(request: Request):
     return templates.TemplateResponse("public_status.html", {"request": request})
 
 
-# TODO: implement caching here
 @api.get("/status", response_class=JSONResponse)
+@cache(expire=4)
 async def status(request: Request):
     matches = []
     teams = []
@@ -191,6 +199,7 @@ async def status(request: Request):
 
 
 @api.get("/info", response_class=JSONResponse)
+@cache(expire=1)
 async def status(request: Request):
     servers = db.get_servers()
 

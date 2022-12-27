@@ -10,3 +10,4 @@ docker
 numpy
 aiofiles
 python-multipart
+fastapi-cache2[memcache]
