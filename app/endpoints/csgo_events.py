@@ -6,6 +6,7 @@ from time import sleep
 import requests
 from fastapi import Request
 
+from endpoints import csgo_stats_event
 from rcon import RCON
 from sql import db
 from elo import calculate_elo
@@ -24,7 +25,7 @@ def demo_upload_ended(event: Dict):
             f"Match: {match.matchid} tried to upload demo, but failed. Demo is not saved and container cannot be shut down.")
         return
 
-    if match.finished == 1:
+    if match.finished == 1:  # TODO: check why this is not true
         logging.info(
             f"Demo upload for match: {match.matchid} but the series is not finished yet, not shutting down container.")
         return
@@ -86,8 +87,24 @@ def player_say(event: Dict):
             # TODO add random messages
 
 
-callbacks = {"player_say": player_say, "map_result": map_result, "series_end": series_end,
-             "demo_upload_ended": demo_upload_ended, "going_live": going_live}
+callbacks = {
+    "player_say": player_say,
+    "map_result": map_result,
+    "series_end": series_end,
+    "demo_upload_ended": demo_upload_ended,
+    "going_live": going_live,
+    "round_mvp": csgo_stats_event.stats_event,
+    "grenade_thrown": csgo_stats_event.stats_event,
+    "player_death": csgo_stats_event.stats_event,
+    "hegrenade_detonated": csgo_stats_event.stats_event,
+    "molotov_detonated": csgo_stats_event.stats_event,
+    "flashbang_detonated": csgo_stats_event.stats_event,
+    "smokegrenade_detonated": csgo_stats_event.stats_event,
+    "decoygrenade_started": csgo_stats_event.stats_event,
+    "bomb_planted": csgo_stats_event.stats_event,
+    "bomb_defused": csgo_stats_event.stats_event,
+    "bomb_exploded": csgo_stats_event.stats_event
+}
 
 
 def set_api_routes(app):

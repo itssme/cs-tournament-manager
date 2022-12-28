@@ -52,3 +52,11 @@ create table if not exists server
     container_name text default null,
     match          integer references match
 );
+
+create table if not exists stats
+(
+    id     serial primary key,
+    match  integer references match on delete cascade,
+    player integer references player on delete cascade default null,
+    type   integer not null
+);

@@ -102,7 +102,15 @@ class Match(DbObject):
         self.finished: int = finished
 
 
-T = TypeVar("T", Player, Team, Server, Match)
+class Stats(DbObject):
+    def __init__(self, id: int = None, match: int = None, player: int = None, type: int = None):
+        self.id: int = id
+        self.match: int = match
+        self.player: int = player
+        self.type: int = type
+
+
+T = TypeVar("T", Player, Team, Server, Match, Stats)
 
 
 class DbObjImpl(Generic[T]):
@@ -136,7 +144,7 @@ def setup_db():
 
             with conn.cursor() as cursor:
                 try:
-                    cursor.execute(open("db.sql", "r").read())
+                    cursor.execute(open("sql/db.sql", "r").read())
                 except Exception as e:
                     # for some reason postgres has some trouble handling "create table if not exists"
                     #   in combination with multiprocessing

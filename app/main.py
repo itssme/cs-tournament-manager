@@ -12,11 +12,12 @@ from fastapi_cache.decorator import cache
 from starlette.responses import JSONResponse, FileResponse
 
 from endpoints import csgo_events, error_routes, config_webinterface_routes, public_routes
+from endpoints.csgo_stats_event import event_map
 from rcon import RCON
 from rcon import get5_status
 from servers import ServerManager
 from match_conf_gen import MatchGen
-from sql import db
+from sql import db, db_stats
 
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
@@ -110,7 +111,7 @@ async def matches(request: Request):
 
 
 @api.get("/status", response_class=JSONResponse)
-@cache(expire=4)
+@cache(namespace="status", expire=4)
 async def status(request: Request):
     matches = []
     teams = []
@@ -125,6 +126,7 @@ async def status(request: Request):
 
             try:
                 get5_stats = get5_status(server.ip, server.port)
+                score = [get5_stats["team1"]["current_map_score"], get5_stats["team2"]["current_map_score"]]
             except ConnectionRefusedError as e:
                 get5_stats = {"gamestate": "unreachable"}
 
@@ -167,8 +169,21 @@ async def status(request: Request):
     #              ]}
 
 
+@api.get("/stats", response_class=JSONResponse)
+@cache(namespace="stats", expire=1)
+async def stats(request: Request):
+    stats = {}
+
+    for event in event_map.keys():
+        stats[event] = {}
+        stats[event]["occurred"] = db_stats.count_event_type(event_map[event])
+        stats[event]["player"] = db_stats.player_with_most(event_map[event])
+
+    return stats
+
+
 @api.get("/info", response_class=JSONResponse)
-@cache(expire=1)
+@cache(namespace="info", expire=1)
 async def status(request: Request):
     servers = db.get_servers()
 
