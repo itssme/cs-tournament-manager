@@ -29,7 +29,6 @@ def player_with_most(event: Events) -> str:
                 "select player.name from stats join player on stats.player = player.id where stats.type = %s group by player.name order by count(*) desc limit 1",
                 (event.value,))
             result = cursor.fetchall()
-            logging.info(f"player_with_most {event}: %s", result)
             if len(result) == 0:
                 return ""
             return result[0][0]

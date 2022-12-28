@@ -126,7 +126,8 @@ async def status(request: Request):
 
             try:
                 get5_stats = get5_status(server.ip, server.port)
-                score = [get5_stats["team1"]["current_map_score"], get5_stats["team2"]["current_map_score"]]
+                if "team1" in get5_stats.keys() and "team2" in get5_stats.keys():
+                    score = [get5_stats["team1"]["current_map_score"], get5_stats["team2"]["current_map_score"]]
             except ConnectionRefusedError as e:
                 get5_stats = {"gamestate": "unreachable"}
 

@@ -2,10 +2,14 @@
 <head>
     <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-800 text-white">
+<body id="body" class="bg-gray-800 text-white">
 <div class="lg:container lg:mx-auto">
     <h1 class="text-2xl font-bold ml-5 mt-5 mb-5">CS:GO LAN Tournament Status</h1>
-    <div class="grid grid-cols-10">
+    <div id="stats" class="flex flex-wrap font-extrabold flex-row justify-between">
+        <!-- List of stats will be inserted here -->
+    </div>
+
+    <div class="grid grid-cols-10 gap-4">
         <div id="teams" class="grid col-span-3 items-start content-start">
             <!-- List of teams will be inserted here -->
         </div>
@@ -15,24 +19,93 @@
     </div>
 </div>
 </body>
+<style>
+</style>
 <script>
+    let animating = 0;
+    let phonetic_event_names = {
+        "round_mvp": "MVPs",
+        "grenade_thrown": "Granades",
+        "player_death": "Deaths",
+        "hegrenade_detonated": "HE Grenades",
+        "molotov_detonated": "Molotovs",
+        "flashbang_detonated": "Flashbangs",
+        "smokegrenade_detonated": "Smokes",
+        "decoygrenade_started": "Decoys",
+        "bomb_planted": "Bombs Planted",
+        "bomb_defused": "Bombs Defused",
+        "bomb_exploded": "Bombs Exploded",
+        "player_killed": "Kills"
+    }
+
+    let update_queue = [];
+    let update_cache = {"matches": {}, "teams": {}, "stats": {}};
+
+    function process_update_queue() {
+        if (update_queue.length > 0 && animating === 0) {
+            let update = update_queue[0];
+            console.log(update);
+
+            if (update.type === "match") {
+                update_match(update);
+            } else if (update.type === "team") {
+                update_team(update);
+            } else if (update.type === "stats") {
+                update_stats(update);
+            }
+            update_queue.splice(0, 1);
+        }
+    }
+
+    class Update {
+        constructor() {
+            this.type = "";
+            this.html = "";
+            this.id = "";
+        }
+    }
+
+    function update_match(update) {
+        const matchesContainer = document.querySelector('#matches');
+        matchesContainer.innerHTML = update.html;
+    }
+
+    function update_team(update) {
+        const teamsContainer = document.querySelector('#teams');
+        teamsContainer.innerHTML = update.html;
+    }
+
+    function update_stats(update) {
+        document.getElementById(`${update.id}_value`).innerHTML = update.html;
+
+        if (!document.getElementById(`${update.id}_anim`).classList.contains("animate-ping")) {
+            document.getElementById(`${update.id}_anim`).style.display = "flex";
+            animating += 1;
+            document.getElementById(`${update.id}_anim`).classList.add("animate-ping");
+        }
+    }
+
     // Fetch the list of matches from the API
-    function updateMatches() {
+    function get_matches_and_teams() {
         fetch('/api/status')
             .then(response => response.json())
             .then(resp => {
                 const matches = resp["matches"];
-                // Insert each match into the page
-                const matchesContainer = document.querySelector('#matches');
-                if (matches.length === 0) {
-                    matchesContainer.innerHTML = 'Currently no matches are running.';
-                } else {
-                    matchesContainer.innerHTML = ''; // Clear previous matches
-                }
-                matches.forEach(match => {
-                    const matchEl = document.createElement('div');
-                    matchEl.classList.add('bg-gray-700', 'p-4', 'm-1', 'rounded-lg');
-                    matchEl.innerHTML = `
+                if (JSON.stringify(matches) !== JSON.stringify(update_cache["matches"])) {
+                    update_cache["matches"] = matches;
+                    let new_update = new Update();
+                    new_update.type = "match";
+
+                    const matchesContainer = document.createElement('div');
+                    if (matches.length === 0) {
+                        matchesContainer.innerHTML = 'Currently no matches are running.';
+                    } else {
+                        matchesContainer.innerHTML = ''; // Clear previous matches
+                    }
+                    matches.forEach(match => {
+                        const matchEl = document.createElement('div');
+                        matchEl.classList.add('bg-gray-700', 'p-4', 'm-1', 'rounded-lg');
+                        matchEl.innerHTML = `
               <div class="grid grid-cols-12 justify-items-center">
                 <div class="text-4xl col-span-5 justify-self-end flex items-center">${match.teamnames[0]}</div>
                 <div class="text-6xl col-span-2 font-bold">vs</div>
@@ -50,17 +123,25 @@
                 Status: ${match.status}
               </div>
             `;
-                    matchesContainer.appendChild(matchEl);
-                });
+                        matchesContainer.appendChild(matchEl);
+                    });
+                    new_update.html = matchesContainer.innerHTML;
+                    update_queue.push(new_update);
+                }
 
                 // Update the list of teams
                 const teams = resp["teams"];
-                const teamsContainer = document.querySelector('#teams');
-                teamsContainer.innerHTML = ''; // Clear previous teams
-                teams.forEach((team, i) => {
-                    const teamEl = document.createElement('div');
-                    teamEl.classList.add('bg-gray-700', 'p-4', 'hover:p-1', 'm-1', 'rounded-lg', 'flex', 'items-center');
-                    teamEl.innerHTML = `
+                if (JSON.stringify(teams) !== JSON.stringify(update_cache["teams"])) {
+                    update_cache["teams"] = teams;
+                    let new_update = new Update();
+                    new_update.type = "team";
+
+                    const teamsContainer = document.createElement('div');
+                    teamsContainer.innerHTML = ''; // Clear previous teams
+                    teams.forEach((team, i) => {
+                        const teamEl = document.createElement('div');
+                        teamEl.classList.add('bg-gray-700', 'p-4', 'm-1', 'rounded-lg', 'flex', 'items-center');
+                        teamEl.innerHTML = `
                 <div class="min-w-full">
               <div class="grid grid-cols-10 justify-items-center">
                     <div class="text-base col-span-1 font-bold justify-self-center">${i + 1}. </div>
@@ -72,14 +153,82 @@
                     <div class="text-base col-span-2">D=${team.draws}</div>
               </div></div>
             `;
-                    teamsContainer.appendChild(teamEl);
-                });
+                        teamsContainer.appendChild(teamEl);
+                    });
+                    new_update.html = teamsContainer.innerHTML;
+                    update_queue.push(new_update);
+                }
 
             });
     }
 
-    // Update the list of matches every 5 seconds
-    setInterval(updateMatches, 5000);
-    updateMatches(); // Update the list of matches on page load
+    function get_stats() {
+        fetch('/api/stats')
+            .then(response => response.json())
+            .then(resp => {
+                if (JSON.stringify(resp) !== JSON.stringify(update_cache["stats"])) {
+                    update_cache["stats"] = resp;
+                } else {
+                    return;
+                }
+
+                const statsContainer = document.querySelector('#stats');
+                Object.keys(resp).forEach(key => {
+
+                    if (phonetic_event_names[key] === undefined) {
+                        return;
+                    }
+
+                    if (document.getElementById(key) === null) {
+                        const statEl = document.createElement('div');
+                        statEl.classList.add('bg-pink-700', 'rounded-md', 'p-4', 'm-1', 'relative', 'flex-auto', 'flex-nowarp');
+                        statEl.id = key;
+                        statEl.innerHTML = `
+                            <div class="flex flex-col items-center">
+                                <div id="${key}_name">${phonetic_event_names[key]}</div>
+                                <div id="${key}_value">${resp[key]["occurred"]}</div>
+                            </div>
+                            <div style="overflow: hidden;">
+                                <div  id="${key}_anim" style="animation-iteration-count: 1; display: none" class="bg-pink-600 absolute rounded-md top-0 left-0 w-full h-full"></div>
+                            </div>
+                        `;
+                        statsContainer.appendChild(statEl);
+                        statEl.addEventListener('animationend', (event) => {
+                            document.getElementById(`${key}_anim`).style.display = "none";
+                            document.getElementById(`${key}_anim`).classList.remove("animate-ping");
+                            animating -= 1;
+                        });
+                    }
+
+                    const value_ref = document.getElementById(`${key}_value`);
+                    if (resp[key]["occurred"] !== parseInt(value_ref.innerHTML)) {
+                        // check if already in update_queue and replace value if in queue
+                        let found = false;
+                        for (let i = 0; i < update_queue.length; i++) {
+                            if (update_queue[i].id === key) {
+                                update_queue[i].html = resp[key]["occurred"];
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if (!found) {
+                            let new_update = new Update();
+                            new_update.type = "stats";
+                            new_update.html = resp[key]["occurred"];
+                            new_update.id = key;
+
+                            update_queue.push(new_update);
+                        }
+                    }
+                });
+            });
+    }
+
+    setInterval(get_matches_and_teams, 5000);
+    get_matches_and_teams();
+    setInterval(get_stats, 1000);
+    get_stats();
+    setInterval(process_update_queue, 100);
 </script>
 </html>

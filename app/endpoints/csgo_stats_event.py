@@ -67,4 +67,4 @@ def stats_event(event: Dict):
         stats = db.Stats(None, match.id, None, event_type.value)
 
     stats.insert_into_db()
-    logging.info(f"Event: {event_type} -> {stats}")
+    # logging.info(f"Event: {event_type} -> {stats}")
