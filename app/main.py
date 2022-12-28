@@ -11,19 +11,16 @@ from fastapi_cache.backends.inmemory import InMemoryBackend
 from fastapi_cache.decorator import cache
 from starlette.responses import JSONResponse, FileResponse
 
-import csgo_events
+from endpoints import csgo_events, error_routes, config_webinterface_routes, public_routes
 from rcon import RCON
 from rcon import get5_status
 from servers import ServerManager
 from match_conf_gen import MatchGen
-import db
+from sql import db
 
-import error_routes
-from fastapi import FastAPI, Request, File, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import RedirectResponse
 
 from pydantic import BaseModel
 
@@ -47,6 +44,8 @@ db.setup_db()
 error_routes.set_routes(app, templates)
 error_routes.set_api_routes(api)
 csgo_events.set_api_routes(csgo_api)
+config_webinterface_routes.set_routes(app, templates)
+public_routes.set_routes(public, templates)
 
 server_manger = ServerManager()
 
@@ -85,31 +84,6 @@ async def startup():
     FastAPICache.init(InMemoryBackend())
 
 
-@app.get("/", response_class=RedirectResponse)
-async def redirect_index():
-    return "/public/status"
-
-
-@app.get("/status", response_class=HTMLResponse)
-async def status(request: Request):
-    gameserver = [server.to_json() for server in db.get_servers()]
-    demos = os.listdir(os.getenv("DEMO_FILE_PATH", "/demofiles"))
-    return templates.TemplateResponse("status.html", {"request": request, "gameserver": gameserver, "demos": demos})
-
-
-@app.get("/demos", response_class=HTMLResponse)
-async def status(request: Request):
-    demos = os.listdir(os.getenv("DEMO_FILE_PATH", "/demofiles"))
-    return templates.TemplateResponse("demos.html", {"request": request, "demos": demos})
-
-
-@app.get("/config", response_class=HTMLResponse)
-async def status(request: Request):
-    teams = [team.to_json() for team in db.get_teams()]
-    servers = [host for host in db.get_hosts()]
-    return templates.TemplateResponse("config.html", {"request": request, "teams": teams, "servers": servers})
-
-
 @api.get("/players", response_class=JSONResponse)
 async def players(request: Request):
     return [player.to_json() for player in db.get_players()]
@@ -133,11 +107,6 @@ async def servers(request: Request):
 @api.get("/matches", response_class=JSONResponse)
 async def matches(request: Request):
     return [match.to_json() for match in db.get_matches()]
-
-
-@public.get("/status")
-async def status(request: Request):
-    return templates.TemplateResponse("public_status.html", {"request": request})
 
 
 @api.get("/status", response_class=JSONResponse)
@@ -204,36 +173,43 @@ async def status(request: Request):
     servers = db.get_servers()
 
     for server in servers:
-        server.gslt_token = None
+        server.gslt_token = None  # avoid leaking gslt tokens
 
     status_json = []
 
     for server in servers:
-        logging.info(f"Collecting stats for server: {server}")
-        get5_stats = get5_status(server.ip, server.port)
+        get5_stats = None
+        stats = None
+        try:
+            get5_stats = get5_status(server.ip, server.port)
+            with RCON(server.ip, server.port, "pass") as rconn:
+                # logging.info(rconn.exec_command("sm_slay Jöl"))
+                # logging.info(rconn.exec_command("cvarlist"))
 
-        with RCON(server.ip, server.port, "pass") as rconn:
-            # logging.info(rconn.exec_command("sm_slay Jöl"))
-            # logging.info(rconn.exec_command("cvarlist"))
+                # need to parse values: CPU   NetIn   NetOut    Uptime  Maps   FPS   Players  Svms    +-ms   ~tick
+                stats = rconn.exec_command("stats")
+        except ConnectionRefusedError as e:
+            pass
 
-            # need to parse values: CPU   NetIn   NetOut    Uptime  Maps   FPS   Players  Svms    +-ms   ~tick
-            stats = rconn.exec_command("stats")
-            stats_parsed = [float(value) for value in stats.split("\\n")[1].split(" ") if value != '']
+        stats_parsed = [float(value) for value in stats.split("\\n")[1].split(" ") if
+                        value != ''] if stats is not None else []
 
-            match = db.get_match_by_id(server.match)
-            team_1 = db.get_team_by_id(match.team1)
-            team_2 = db.get_team_by_id(match.team2)
+        match = db.get_match_by_id(server.match)
+        team_1 = db.get_team_by_id(match.team1)
+        team_2 = db.get_team_by_id(match.team2)
 
-            get5_stats["matchid"] = f"{team_1.name} vs {team_2.name}"
+        if get5_stats is None:
+            get5_stats = {"gamestate": "unreachable"}
 
-            status_json.append({"id": server.id,
-                                "ip": server.ip + ":" + str(server.port),
-                                "get5_stats": get5_stats,
-                                "stats": stats_parsed,
-                                "team1": team_1,
-                                "team2": team_2})
+        get5_stats["matchid"] = f"{team_1.name} vs {team_2.name}"
 
-    logging.info(f"Requested /info -> {status_json}")
+        status_json.append({"id": server.id,
+                            "ip": server.ip + ":" + str(server.port),
+                            "get5_stats": get5_stats,
+                            "stats": stats_parsed,
+                            "team1": team_1,
+                            "team2": team_2})
+
     return status_json
 
 

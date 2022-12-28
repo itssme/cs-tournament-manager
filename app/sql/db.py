@@ -136,7 +136,7 @@ def setup_db():
 
             with conn.cursor() as cursor:
                 try:
-                    cursor.execute(open("sql/db.sql", "r").read())
+                    cursor.execute(open("db.sql", "r").read())
                 except Exception as e:
                     # for some reason postgres has some trouble handling "create table if not exists"
                     #   in combination with multiprocessing

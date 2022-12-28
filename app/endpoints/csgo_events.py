@@ -6,11 +6,16 @@ from time import sleep
 import requests
 from fastapi import Request
 
-import db
+from rcon import RCON
+from sql import db
 from elo import calculate_elo
 
 
-# TODO: check notice if both teams are ready and change `finished` for match
+def going_live(event: Dict):
+    match: db.Match = db.get_match_by_matchid(event["matchid"])
+    match.finished = 0
+    match.update_attribute("finished")
+
 
 def demo_upload_ended(event: Dict):
     match: db.Match = db.get_match_by_matchid(event["matchid"])
@@ -72,22 +77,17 @@ def player_say(event: Dict):
     logging.info(f"Player said: {message}")
     if "!spin" in message:
         logging.info("Spinning")
-        # TODO get server ip and port
-        with RCON(server_ip, server_port, "pass") as rconn:
+
+        server = db.get_server_for_match(event["matchid"])
+
+        with RCON(server.ip, server.port, "pass") as rconn:
             rconn.exec_command("say spinning")
-            sleep(1)
-            rconn.exec_command("say 3")
-            sleep(1)
-            rconn.exec_command("say 2")
-            sleep(1)
-            rconn.exec_command("say 1")
-            sleep(1)
             rconn.exec_command("say done")
             # TODO add random messages
 
 
 callbacks = {"player_say": player_say, "map_result": map_result, "series_end": series_end,
-             "demo_upload_ended": demo_upload_ended}
+             "demo_upload_ended": demo_upload_ended, "going_live": going_live}
 
 
 def set_api_routes(app):

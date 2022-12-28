@@ -5,7 +5,7 @@ import random
 from threading import Lock
 from typing import List
 
-import db
+from sql import db
 
 import docker
 

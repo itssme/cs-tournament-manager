@@ -3,7 +3,7 @@ import logging
 import os
 import time
 
-import db
+from sql import db
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
