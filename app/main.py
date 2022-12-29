@@ -173,12 +173,12 @@ async def status(request: Request):
 @api.get("/stats", response_class=JSONResponse)
 @cache(namespace="stats", expire=1)
 async def stats(request: Request):
-    stats = {}
+    stats = {"version": public_routes.time_start}
 
     for event in event_map.keys():
         stats[event] = {}
         stats[event]["occurred"] = db_stats.count_event_type(event_map[event])
-        stats[event]["player"] = db_stats.player_with_most(event_map[event])
+        stats[event]["players"] = db_stats.player_with_most(event_map[event])
 
     return stats
 

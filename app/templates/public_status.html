@@ -1,6 +1,6 @@
 <html>
 <head>
-    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <link href="/static/css/output.css" rel="stylesheet">
 </head>
 <body id="body" class="bg-gray-800 text-white">
 <div class="lg:container lg:mx-auto">
@@ -17,12 +17,35 @@
             <!-- List of matches will be inserted here -->
         </div>
     </div>
+
+    <div class="grid grid-cols-10 gap-4">
+        <div class="grid col-span-2 items-start content-start">
+            <h1 class="text-2xl font-bold ml-5 mt-5 mb-5">Player Kills</h1>
+            <div id="player_kills">
+                <!-- List of player kills will be inserted here -->
+            </div>
+        </div>
+    </div>
 </div>
 </body>
 <style>
 </style>
 <script>
+    // https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript
+    String.prototype.hashCode = function () {
+        var hash = 0,
+            i, chr;
+        if (this.length === 0) return hash;
+        for (i = 0; i < this.length; i++) {
+            chr = this.charCodeAt(i);
+            hash = ((hash << 5) - hash) + chr;
+            hash |= 0; // Convert to 32bit integer
+        }
+        return hash;
+    }
+
     let animating = 0;
+    let version = {{ version }};
     let phonetic_event_names = {
         "round_mvp": "MVPs",
         "grenade_thrown": "Granades",
@@ -52,6 +75,8 @@
                 update_team(update);
             } else if (update.type === "stats") {
                 update_stats(update);
+            } else if (update.type === "player_stats") {
+                update_stats_player(update);
             }
             update_queue.splice(0, 1);
         }
@@ -62,6 +87,14 @@
             this.type = "";
             this.html = "";
             this.id = "";
+        }
+    }
+
+    class UpdatePlayer extends Update {
+        constructor() {
+            super();
+            this.new = false;
+            this.new_html = "";
         }
     }
 
@@ -85,6 +118,26 @@
         }
     }
 
+    function update_stats_player(update) {
+        if (update.new) {
+            const playerEl = document.createElement('div');
+            playerEl.classList.add('bg-cyan-600', 'rounded-md', 'p-4', 'm-1', 'flex-auto', 'flex-nowarp', 'font-extrabold');
+            playerEl.id = `player_${update.id}`;
+            playerEl.innerHTML = update.new_html;
+            playerEl.addEventListener('animationend', (event) => {
+                document.getElementById(`player_${update.id}_anim`).style.display = "none";
+                //document.getElementById(`${player}_anim`).classList.remove("animate-ping");
+                animating -= 1;
+            });
+
+            document.getElementById("player_kills").appendChild(playerEl);
+        }
+        const player = document.getElementById(`player_${update.id}_value`);
+        if (player !== null) {
+            player.innerHTML = update.html;
+        }
+    }
+
     // Fetch the list of matches from the API
     function get_matches_and_teams() {
         fetch('/api/status')
@@ -99,8 +152,6 @@
                     const matchesContainer = document.createElement('div');
                     if (matches.length === 0) {
                         matchesContainer.innerHTML = 'Currently no matches are running.';
-                    } else {
-                        matchesContainer.innerHTML = ''; // Clear previous matches
                     }
                     matches.forEach(match => {
                         const matchEl = document.createElement('div');
@@ -137,7 +188,6 @@
                     new_update.type = "team";
 
                     const teamsContainer = document.createElement('div');
-                    teamsContainer.innerHTML = ''; // Clear previous teams
                     teams.forEach((team, i) => {
                         const teamEl = document.createElement('div');
                         teamEl.classList.add('bg-gray-700', 'p-4', 'm-1', 'rounded-lg', 'flex', 'items-center');
@@ -166,24 +216,34 @@
         fetch('/api/stats')
             .then(response => response.json())
             .then(resp => {
+                if (resp["version"] !== version) {
+                    location.reload();
+                }
+
                 if (JSON.stringify(resp) !== JSON.stringify(update_cache["stats"])) {
                     update_cache["stats"] = resp;
                 } else {
                     return;
                 }
 
-                const statsContainer = document.querySelector('#stats');
-                Object.keys(resp).forEach(key => {
+                process_stats(resp);
+                process_player_stats(resp);
+            });
+    }
 
-                    if (phonetic_event_names[key] === undefined) {
-                        return;
-                    }
+    function process_stats(resp) {
+        const statsContainer = document.querySelector('#stats');
+        Object.keys(resp).forEach(key => {
 
-                    if (document.getElementById(key) === null) {
-                        const statEl = document.createElement('div');
-                        statEl.classList.add('bg-pink-700', 'rounded-md', 'p-4', 'm-1', 'relative', 'flex-auto', 'flex-nowarp');
-                        statEl.id = key;
-                        statEl.innerHTML = `
+            if (phonetic_event_names[key] === undefined) {
+                return;
+            }
+
+            if (document.getElementById(key) === null) {
+                const statEl = document.createElement('div');
+                statEl.classList.add('bg-pink-700', 'rounded-md', 'p-4', 'm-1', 'relative', 'flex-auto', 'flex-nowarp');
+                statEl.id = key;
+                statEl.innerHTML = `
                             <div class="flex flex-col items-center">
                                 <div id="${key}_name">${phonetic_event_names[key]}</div>
                                 <div id="${key}_value">${resp[key]["occurred"]}</div>
@@ -192,37 +252,73 @@
                                 <div  id="${key}_anim" style="animation-iteration-count: 1; display: none" class="bg-pink-600 absolute rounded-md top-0 left-0 w-full h-full"></div>
                             </div>
                         `;
-                        statsContainer.appendChild(statEl);
-                        statEl.addEventListener('animationend', (event) => {
-                            document.getElementById(`${key}_anim`).style.display = "none";
-                            document.getElementById(`${key}_anim`).classList.remove("animate-ping");
-                            animating -= 1;
-                        });
+                statsContainer.appendChild(statEl);
+                statEl.addEventListener('animationend', (event) => {
+                    document.getElementById(`${key}_anim`).style.display = "none";
+                    document.getElementById(`${key}_anim`).classList.remove("animate-ping");
+                    animating -= 1;
+                });
+            }
+
+            const value_ref = document.getElementById(`${key}_value`);
+            if (resp[key]["occurred"] !== parseInt(value_ref.innerHTML)) {
+                if (!check_if_already_in_update_queue(key, resp[key]["occurred"])) {
+                    let new_update = new Update();
+                    new_update.type = "stats";
+                    new_update.html = resp[key]["occurred"];
+                    new_update.id = key;
+
+                    update_queue.push(new_update);
+                }
+            }
+        });
+    }
+
+    tracked_player_stats = ["player_killed"];
+
+    function process_player_stats(resp) {
+        Object.keys(resp).forEach(key => {
+            if (tracked_player_stats.includes(key)) {
+                const player_stats = resp[key]["players"];
+                Object.keys(player_stats).forEach(player => {
+                    player = player_stats[player]; // just why, how can a foreach loop not give you the value...
+                    const new_update = new UpdatePlayer();
+                    new_update.type = "player_stats";
+                    new_update.id = player[0].hashCode();
+                    new_update.html = player[1];
+
+                    if (document.getElementById(`player_${new_update.id}`) === null) {
+                        new_update.new = true;
+                        new_update.new_html = `
+                            <div class="flex flex-col items-center">
+                                <div id="player_${new_update.id}_name">${player[0]}</div>
+                                <div id="player_${new_update.id}_value">${player[1]}</div>
+                            </div>
+                        `;
+                    } else {
+                        new_update.new = false;
                     }
 
-                    const value_ref = document.getElementById(`${key}_value`);
-                    if (resp[key]["occurred"] !== parseInt(value_ref.innerHTML)) {
-                        // check if already in update_queue and replace value if in queue
-                        let found = false;
-                        for (let i = 0; i < update_queue.length; i++) {
-                            if (update_queue[i].id === key) {
-                                update_queue[i].html = resp[key]["occurred"];
-                                found = true;
-                                break;
-                            }
-                        }
-
-                        if (!found) {
-                            let new_update = new Update();
-                            new_update.type = "stats";
-                            new_update.html = resp[key]["occurred"];
-                            new_update.id = key;
-
-                            update_queue.push(new_update);
-                        }
+                    if (!check_if_already_in_update_queue(new_update.id, new_update.html)) {
+                        update_queue.push(new_update);
                     }
                 });
-            });
+            }
+        });
+    }
+
+    function check_if_already_in_update_queue(id, new_html) {
+        // check if already in update_queue and replace value if in queue
+        let found = false;
+        for (let i = 0; i < update_queue.length; i++) {
+            if (update_queue[i].id === id) {
+                update_queue[i].html = new_html;
+                found = true;
+                break;
+            }
+        }
+
+        return found;
     }
 
     setInterval(get_matches_and_teams, 5000);
