@@ -28,6 +28,8 @@
     </div>
 </div>
 <div style="display: none" class="bg-sky-600"></div>
+<div style="display: none" class="bg-red-600"></div>
+<div style="display: none" class="bg-green-600"></div>
 </body>
 <style>
 </style>
@@ -65,24 +67,6 @@
     let update_queue = [];
     let update_cache = {"matches": {}, "teams": {}, "stats": {}};
 
-    function process_update_queue() {
-        if (update_queue.length > 0 && animating === 0) {
-            let update = update_queue[0];
-            console.log("Processing update", update);
-
-            if (update.type === "match") {
-                update_match(update);
-            } else if (update.type === "team") {
-                update_team(update);
-            } else if (update.type === "stats") {
-                update_stats(update);
-            } else if (update.type === "player_stats") {
-                update_stats_player(update);
-            }
-            update_queue.splice(0, 1);
-        }
-    }
-
     class Update {
         constructor() {
             this.type = "";
@@ -98,6 +82,33 @@
             this.delete = false;
             this.new_html = "";
             this.pos = -1;
+        }
+    }
+
+    function process_update_queue() {
+        if (update_queue.length > 0 && animating === 0) {
+            let update_i = 0;
+            // search for updates that are UpdatePlayer and have 'new' or 'delete' set to true
+            for (let i = 0; i < update_queue.length; i++) {
+                if ((update_queue[i] instanceof UpdatePlayer) && (update_queue[i].delete || update_queue[i].new)) {
+                    update_i = i;
+                    break;
+                }
+            }
+
+            let update = update_queue[update_i];
+            console.log("Processing update", update);
+
+            if (update.type === "match") {
+                update_match(update);
+            } else if (update.type === "team") {
+                update_team(update);
+            } else if (update.type === "stats") {
+                update_stats(update);
+            } else if (update.type === "player_stats") {
+                update_stats_player(update);
+            }
+            update_queue.splice(update_i, 1);
         }
     }
 
@@ -141,8 +152,8 @@
             player.innerHTML = update.html;
         }
 
-        const this_player = document.getElementById(`player_${update.id}`);
-        const swap_player = document.getElementById(`player_kills`).children[update.pos];
+        let this_player = document.getElementById(`player_${update.id}`);
+        let swap_player = document.getElementById(`player_kills`).children[update.pos];
 
         if (this_player.id === swap_player.id) {
             return;
@@ -163,6 +174,16 @@
                 swap_i = i;
                 break;
             }
+        }
+
+        if (swap_i > this_i) {
+            a = swap_i;
+            swap_i = this_i;
+            this_i = a;
+
+            a = swap_player;
+            swap_player = this_player;
+            this_player = a;
         }
 
         for (let i = 0; i < update_queue.length; i++) {
@@ -190,15 +211,25 @@
         height_diff *= 1.05;
 
         console.log("Height diff", height_diff);
-        let animationLength = 5000;
+        let animationLength = 1000;
 
-        this_player.setAttribute('style', `transform: translate(0px, -${height_diff}px); background-color: orange; transition: background-color ${animationLength / 2}ms ease-in-out, transform ${animationLength}ms`);
-        swap_player.setAttribute('style', `transform: translate(0px, ${height_diff}px); background-color: orange; transition: background-color ${animationLength / 2}ms ease-in-out, transform ${animationLength}ms`);
+        this_player.classList.remove("bg-cyan-600");
+        this_player.classList.add("bg-green-600");
+        swap_player.classList.remove("bg-cyan-600");
+        swap_player.classList.add("bg-red-600");
+
+        this_player.setAttribute('style', `transform: translate(0px, -${height_diff}px); transition: background-color ${animationLength / 2}ms ease-in-out, transform ${animationLength}ms`);
+        swap_player.setAttribute('style', `transform: translate(0px, ${height_diff}px); transition: background-color ${animationLength / 2}ms ease-in-out, transform ${animationLength}ms`);
 
         await sleep(animationLength / 2);
 
-        this_player.setAttribute('style', `transform: translate(0px, -${height_diff}px); background-color: bg-cyan-600; transition: background-color ${animationLength / 2}ms ease-in-out, transform ${animationLength}ms`);
-        swap_player.setAttribute('style', `transform: translate(0px, ${height_diff}px); background-color: bg-cyan-600; transition: background-color ${animationLength / 2}ms ease-in-out, transform ${animationLength}ms`);
+        this_player.classList.add("bg-cyan-600");
+        this_player.classList.remove("bg-green-600");
+        swap_player.classList.add("bg-cyan-600");
+        swap_player.classList.remove("bg-red-600");
+
+        this_player.setAttribute('style', `transform: translate(0px, -${height_diff}px); transition: background-color ${animationLength / 2}ms ease-in-out, transform ${animationLength}ms`);
+        swap_player.setAttribute('style', `transform: translate(0px, ${height_diff}px); transition: background-color ${animationLength / 2}ms ease-in-out, transform ${animationLength}ms`);
 
         await sleep(animationLength / 2);
 
