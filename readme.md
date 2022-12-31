@@ -5,7 +5,7 @@
 The software has been developed for the airlan21 (25.06.2021). A small csgo tournament organized for
 team-building by robo4you.at.
 
-**Currently, it is being updated and rewritten** for the 'airlan Winter Edition' which will take place in early january
+**Currently, it is being updated and rewritten** for the 'airlan Winter Edition' which will take place in early January
 
 2023.
 
@@ -49,7 +49,7 @@ BOT_TOKEN=your_token_here
 CHAT_IDS="chat_id_1,chat_id_2..."
 ```
 
-+ The first line is the telegram bot token of you bot. The second line specifies who has access to the bot and can send
++ The first line is the telegram bot token of your bot. The second line specifies who has access to the bot and can send
   messages/ commands to it. If you are not sure what your chat_id is, then leave the field empty for the time being and
   run
   the bot only with the bot token. Then add your bot and type `/help` in the chat. Look at the log output of the
