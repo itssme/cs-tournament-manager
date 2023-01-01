@@ -26,9 +26,13 @@ def set_routes(app, templates):
         return templates.TemplateResponse("demos.html", {"request": request, "demos": demos})
 
     @app.get("/backups", response_class=HTMLResponse)
-    async def demos(request: Request, current_user: auth_api.User = Depends(auth_api.get_current_user)):
+    async def backups(request: Request, current_user: auth_api.User = Depends(auth_api.get_current_user)):
         backups = os.listdir(os.getenv("BACKUP_FILE_PATH", "/backupfiles"))
-        return templates.TemplateResponse("backups.html", {"request": request, "backups": backups})
+        try:
+            backups.sort(key = lambda backups: backups.replace(" ", "_map").split("_map")[3])
+            return templates.TemplateResponse("backups.html", {"request": request, "backups": backups})
+        except:
+            return templates.TemplateResponse("backups.html", {"request": request, "backups": backups})
 
     @app.get("/config", response_class=HTMLResponse)
     async def config(request: Request, current_user: auth_api.User = Depends(auth_api.get_current_user)):
