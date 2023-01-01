@@ -4,9 +4,9 @@ from typing import Dict
 from time import sleep
 
 import requests
-from fastapi import Request
+from fastapi import Request, Depends
 
-from endpoints import csgo_stats_event
+from endpoints import csgo_stats_event, auth_api
 from rcon import RCON
 from sql import db
 from elo import calculate_elo
@@ -25,7 +25,7 @@ def demo_upload_ended(event: Dict):
             f"Match: {match.matchid} tried to upload demo, but failed. Demo is not saved and container cannot be shut down.")
         return
 
-    if match.finished == 1:  # TODO: check why this is not true
+    if match.finished != 1:
         logging.info(
             f"Demo upload for match: {match.matchid} but the series is not finished yet, not shutting down container.")
         return
@@ -35,7 +35,8 @@ def demo_upload_ended(event: Dict):
     match.finished = 2
     match.update_attribute("finished")
 
-    res = requests.delete(f"http://{server.ip}/api/match", json={"id": server.id}, timeout=60)
+    res = requests.delete(f"http://{server.ip}/api/match", json={"id": server.id}, timeout=60,
+                          headers=auth_api.login_to_master_headers())
     if res.status_code == 200:
         logging.info(
             f"After demo has been uploaded, container running matchid: {match.matchid}, (name={server.container_name}) has been stopped")
@@ -109,7 +110,7 @@ callbacks = {
 
 def set_api_routes(app):
     @app.post("/")
-    async def get5_event(request: Request):
+    async def get5_event(request: Request, current_user: auth_api.User = Depends(auth_api.get_current_user)):
         json_str = await request.body()
         event = json.loads(json_str)
         logging.info(f"Event: {event['event']}")

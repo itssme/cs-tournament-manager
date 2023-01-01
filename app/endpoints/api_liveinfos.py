@@ -1,7 +1,8 @@
+from fastapi import Depends
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from endpoints import public_routes
+from endpoints import public_routes, auth_api
 from endpoints.csgo_stats_event import event_map
 from rcon import get5_status, RCON
 from sql import db, db_stats
@@ -82,7 +83,7 @@ def set_api_routes(app, cache):
 
     @app.get("/info", response_class=JSONResponse)
     @cache(namespace="info", expire=1)
-    async def status(request: Request):
+    async def status(request: Request, current_user: auth_api.User = Depends(auth_api.get_current_user)):
         servers = db.get_servers()
 
         for server in servers:

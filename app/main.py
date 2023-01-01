@@ -12,14 +12,13 @@ from fastapi_cache.decorator import cache
 from starlette.responses import JSONResponse, FileResponse
 
 from endpoints import csgo_events, error_routes, config_webinterface_routes, public_routes, api_liveinfos, auth_api
-from endpoints.csgo_stats_event import event_map
 from rcon import RCON
 from rcon import get5_status
 from servers import ServerManager
 from match_conf_gen import MatchGen
-from sql import db, db_stats
+from sql import db
 
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -121,7 +120,8 @@ class SlayPlayer(BaseModel):
 
 
 @api.post("/slay", response_class=JSONResponse)
-async def slay_player(request: Request, slay: SlayPlayer):
+async def slay_player(request: Request, slay: SlayPlayer,
+                      current_user: auth_api.User = Depends(auth_api.get_current_user)):
     logging.info(f"Slaying player: {slay.player_name} on server: ip={slay.server_ip} port={slay.server_port}")
     try:
         with RCON(slay.server_ip, slay.server_port, "pass") as rconn:
@@ -139,7 +139,8 @@ class RconCommand(BaseModel):
 
 
 @api.post("/rcon", response_class=JSONResponse)
-async def rcon(request: Request, rcon_command: RconCommand):
+async def rcon(request: Request, rcon_command: RconCommand,
+               current_user: auth_api.User = Depends(auth_api.get_current_user)):
     logging.info(
         f"Running command: {rcon_command.rcon} on server: ip={rcon_command.server_ip} port={rcon_command.server_port}")
     try:
@@ -156,14 +157,14 @@ class ServerID(BaseModel):
 
 
 @api.delete("/match", response_class=JSONResponse)
-async def status(request: Request, server: ServerID):
+async def status(request: Request, server: ServerID, current_user: auth_api.User = Depends(auth_api.get_current_user)):
     logging.info(f"Called DELETE /match with server id: {server.id}")
     server_manger.stop_match(server.id)
     return {"status": 0}
 
 
 @api.post("/pause", response_class=JSONResponse)
-async def status(request: Request, server: ServerID):
+async def status(request: Request, server: ServerID, current_user: auth_api.User = Depends(auth_api.get_current_user)):
     logging.info(f"Running command: pause on server: id={server.id}")
 
     server = db.get_server_by_id(server.id)
@@ -177,7 +178,7 @@ async def status(request: Request, server: ServerID):
 
 
 @api.post("/unpause", response_class=JSONResponse)
-async def status(request: Request, server: ServerID):
+async def status(request: Request, server: ServerID, current_user: auth_api.User = Depends(auth_api.get_current_user)):
     logging.info(f"Running command: unpause on server: id={server.id}")
 
     server = db.get_server_by_id(server.id)
@@ -200,7 +201,8 @@ class MatchInfo(BaseModel):
 
 
 @api.post("/match")
-async def create_match(request: Request, match: MatchInfo):
+async def create_match(request: Request, match: MatchInfo,
+                       current_user: auth_api.User = Depends(auth_api.get_current_user)):
     logging.info(
         f"Called POST /match with MatchInfo: Team1: '{match.team1}', Team2: '{match.team2}', "
         f"best_of: '{match.best_of}', 'check_auths: {match.check_auths}', 'host: {match.host}'")
@@ -252,7 +254,12 @@ async def create_match(request: Request, match: MatchInfo):
 
     def create_match_remote():
         logging.info(f"Creating match on remote server: {match.host} -> {match.json()}")
-        res = requests.post(f"http://{match.host}/api/match", json=json.loads(match.json()))
+        if request.headers.get("Authorization", None) is None:
+            res = requests.post(f"http://{match.host}/api/match", json=json.loads(match.json()),
+                                cookies={"access_token": request.cookies.get("access_token")})
+        else:
+            res = requests.post(f"http://{match.host}/api/match", json=json.loads(match.json()),
+                                headers={"Authorization": request.headers["Authorization"]})
 
         try:
             response_data = res.json()
@@ -387,9 +394,9 @@ async def upload_backup(request: Request):
         filename = os.path.split(request.headers["get5-filename"])[-1]
     else:
         logging.info("No get5-filename header found, using default name")
-        filename = f"{time.time()}.dem"
+        filename = f"{time.time()}.cfg"
 
-    logging.info(f"Called POST /demo filename: {filename} and matchid: {request.headers['get5-matchid']}")
+    logging.info(f"Called POST /backup filename: {filename} and matchid: {request.headers['get5-matchid']}")
 
     async with aiofiles.open(os.path.join(os.getenv("BACKUP_FILE_PATH", "/backupfiles"), filename), 'wb') as out_file:
         content = await request.body()

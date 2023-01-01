@@ -1,25 +1,38 @@
+import logging
 import os
+import time
+import requests
 from datetime import datetime, timedelta
 from typing import Union
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, HTTPException, status, Cookie
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
+from starlette.requests import Request
+from starlette.responses import RedirectResponse
 
 # openssl rand -hex 32
-SECRET_KEY = "a5f51671533b66dd1e941d5c2be957919bb1ff59abbb45f349c031efa7360245"
+SECRET_KEY = os.getenv("ACCESS_SECRET_KEY", "this_is_not_a_secret")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60 * 24 * 2))
+
+if SECRET_KEY == "this_is_not_a_secret":
+    logging.warning("SECRET_KEY is NOT SET")
+    # time.sleep(2)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 users = {
+    "api_req": {
+        "username": "api_req",
+        "hashed_password": pwd_context.hash(os.getenv("API_PASSWORD", "admin"))
+    },
     "admin": {
         "username": "admin",
-        "hashed_password": pwd_context.hash(os.getenv("ADMIN_PASSWORD", "admin")),
+        "hashed_password": pwd_context.hash(os.getenv("ADMIN_PASSWORD", "admin"))
     }
 }
 
@@ -75,14 +88,22 @@ def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None
     return encoded_jwt
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(request: Request, access_token: Union[str, None] = Cookie(default=None)):
+    access_token_header = request.headers.get("Authorization", None)
+
+    if access_token is None:
+        access_token = access_token_header
+
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    if access_token is None:
+        raise credentials_exception
+
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
@@ -95,7 +116,22 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     return user
 
 
+def login_to_master():
+    session = requests.Session()
+    res = session.post(f"http://{os.getenv('MASTER_IP', '127.0.0.1')}/auth/token",
+                       data={"username": "api_req", "password": os.getenv("API_PASSWORD", "admin")})
+    return session.cookies.get("access_token")
+
+
+def login_to_master_headers():
+    return {"Authorization": login_to_master()}
+
+
 def set_api_routes(app, templates):
+    @app.get("/login")
+    async def login_for_access_token(request: Request):
+        return templates.TemplateResponse("login.html", {"request": request})
+
     @app.post("/token", response_model=Token)
     async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
         user = authenticate_user(users, form_data.username, form_data.password)
@@ -109,8 +145,11 @@ def set_api_routes(app, templates):
         access_token = create_access_token(
             data={"sub": user.username}, expires_delta=access_token_expires
         )
-        return {"access_token": access_token, "token_type": "bearer"}
 
-    @app.get("/users/me/", response_model=User)
+        response = RedirectResponse(url="/status", status_code=status.HTTP_302_FOUND)
+        response.set_cookie(key="access_token", value=f"{access_token}", httponly=True)
+        return response
+
+    @app.get("/me", response_model=User)
     async def read_users_me(current_user: User = Depends(get_current_user)):
         return current_user
