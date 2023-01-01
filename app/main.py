@@ -211,6 +211,15 @@ async def create_match(request: Request, match: MatchInfo):
 
     def create_match_local():
         logging.info(f"Creating match on this {os.getenv('EXTERNAL_IP', '127.0.0.1')} server")
+        if match.from_backup_url is not None:
+            match_id = match.from_backup_url.replace("_map", "_match").split("_match")[1]
+            match_old = db.get_match_by_matchid(match_id)
+            match.team1 = match_old.team1
+            match.team2 = match_old.team2
+            match.best_of = match_old.best_out_of
+            match_old.finished = 3
+            match_old.update_attribute("finished")
+            # TODO: delete server in db if exists
 
         match_cfg = MatchGen.from_team_ids(match.team1, match.team2, match.best_of)
         if match.check_auths is not None:
@@ -347,9 +356,6 @@ async def delete_player(request: Request, player_id: int):
 
 @api.post("/demo")
 async def upload_demo(request: Request):
-    logging.info(
-        f"Called POST /demo -> Header Keys: {request.headers.keys()}")  # 2022-12-23T19:15:14.975986996Z 2022-12-23 19:15:14,975 - root - INFO - Called POST /demo -> Header Keys: ['user-agent', 'get5-version', 'content-type', 'get5-filename', 'get5-matchid', 'get5-mapnumber', 'host', 'accept', 'accept-encoding', 'accept-charset', 'content-length']
-
     if "get5-filename" in request.headers.keys():
         logging.info(f"get5-filename: {request.headers['get5-filename']}")
         filename = os.path.split(request.headers["get5-filename"])[-1]
@@ -357,7 +363,7 @@ async def upload_demo(request: Request):
         logging.info("No get5-filename header found, using default name")
         filename = f"{time.time()}.dem"
 
-    logging.info(f"Called POST /demo filename: {filename}")
+    logging.info(f"Called POST /demo filename: {filename} and matchid: {request.headers['get5-matchid']}")
 
     async with aiofiles.open(os.path.join(os.getenv("DEMO_FILE_PATH", "/demofiles"), filename), 'wb') as out_file:
         content = await request.body()
@@ -372,6 +378,38 @@ async def get_demo(filename: str):
     logging.info(f"Called GET /demo filename: {filename}")
     filename = os.path.split(filename)[-1]
     return FileResponse(os.path.join(os.getenv("DEMO_FILE_PATH", "/demofiles"), filename))
+
+
+@api.post("/backup")
+async def upload_backup(request: Request):
+    if "get5-filename" in request.headers.keys():
+        logging.info(f"get5-filename: {request.headers['get5-filename']}")
+        filename = os.path.split(request.headers["get5-filename"])[-1]
+    else:
+        logging.info("No get5-filename header found, using default name")
+        filename = f"{time.time()}.dem"
+
+    logging.info(f"Called POST /demo filename: {filename} and matchid: {request.headers['get5-matchid']}")
+
+    async with aiofiles.open(os.path.join(os.getenv("BACKUP_FILE_PATH", "/backupfiles"), filename), 'wb') as out_file:
+        content = await request.body()
+        await out_file.write(content)
+
+    logging.info(f"Done writing file: {filename}")
+    return {"filename": filename}
+
+
+@api.get("/backup/{filename}")
+async def match_from_backup(request: Request, filename: str):
+    logging.info(f"Called GET /backup filename: {filename}")
+    filename = os.path.split(filename)[-1]
+    return FileResponse(os.path.join(os.getenv("BACKUP_FILE_PATH", "/backupfiles"), filename))
+
+
+@api.get("/backup")
+async def match_from_backup(request: Request):
+    logging.info(f"Called GET /backup")
+    return os.listdir(os.getenv("BACKUP_FILE_PATH", "/backupfiles"))
 
 
 @api.get("/healthcheck")

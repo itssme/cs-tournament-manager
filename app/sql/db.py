@@ -413,7 +413,7 @@ def get_match_by_id(match_id: int) -> Match:
             return DbObjImpl[Match]().from_tuple(cursor.fetchall()[0])
 
 
-def get_match_by_matchid(matchid: int) -> Match:
+def get_match_by_matchid(matchid: str) -> Match:
     with psycopg2.connect(
             host=os.getenv("DB_HOST", "db"),
             database="postgres",

@@ -23,6 +23,11 @@ def set_routes(app, templates):
         demos = os.listdir(os.getenv("DEMO_FILE_PATH", "/demofiles"))
         return templates.TemplateResponse("demos.html", {"request": request, "demos": demos})
 
+    @app.get("/backups", response_class=HTMLResponse)
+    async def demos(request: Request):
+        backups = os.listdir(os.getenv("BACKUP_FILE_PATH", "/backupfiles"))
+        return templates.TemplateResponse("backups.html", {"request": request, "backups": backups})
+
     @app.get("/config", response_class=HTMLResponse)
     async def config(request: Request):
         teams = [team.to_json() for team in db.get_teams()]

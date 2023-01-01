@@ -23,6 +23,7 @@ services:
       - ./teams.json:/app/teams.json
       - ./gslt.json:/app/gslt.json
       - ./demofiles:/demofiles
+      - ./backupfiles:/backupfiles
     ports:
       - 80:80
     extra_hosts:
