@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import Depends
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -21,6 +23,7 @@ def set_api_routes(app, cache):
                 score = [0, 0]
                 team1 = db.get_team_by_id(match.team1)
                 team2 = db.get_team_by_id(match.team2)
+                logging.info(match.matchid)
                 server = db.get_server_for_match(match.matchid)
 
                 try:

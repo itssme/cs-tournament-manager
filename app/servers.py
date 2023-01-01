@@ -27,8 +27,9 @@ class ServerManager:
             with open("gslt.json", "r") as gslt:
                 self.gslt_tokens = json.loads(gslt.read())
 
-    def create_match(self, match_cfg: dict) -> tuple[bool, int]:
-        return self.__start_container(match_cfg)
+    def create_match(self, match_cfg: dict, loadbackup_url: str = None) -> tuple[bool, int]:
+        logging.info(f"Creating match in server manager: {match_cfg['matchid']}")
+        return self.__start_container(match_cfg, loadbackup_url)
 
     def stop_match(self, server_id: int):
         container_name = db.get_server_by_id(server_id).container_name
@@ -38,15 +39,20 @@ class ServerManager:
         match.update_attribute("finished")
         db.delete_server(server_id)
 
-    def __start_container(self, match_cfg: dict) -> tuple[bool, int]:
+    def __start_container(self, match_cfg: dict, loadbackup_url: str = None) -> tuple[bool, int]:
         client = docker.from_env()
 
         container_name = f"CSGO_{match_cfg['team1']['id']}_{match_cfg['team2']['id']}"
 
-        match = db.Match(name=container_name, matchid=match_cfg["matchid"], team1=match_cfg['team1']['id'],
-                         team2=match_cfg['team2']['id'],
-                         best_out_of=match_cfg['num_maps'])
-        db.insert_match(match)
+        if loadbackup_url is None:
+            match = db.Match(name=container_name, matchid=match_cfg["matchid"], team1=match_cfg['team1']['id'],
+                             team2=match_cfg['team2']['id'],
+                             best_out_of=match_cfg['num_maps'])
+            db.insert_match(match)
+        else:
+            match = db.get_match_by_matchid(match_cfg["matchid"])
+            match.finished = 0
+            match.update_attribute("finished")
 
         server = db.Server(container_name=container_name, match=match.id,
                            ip=os.getenv("EXTERNAL_IP", "host.docker.internal"))
@@ -66,9 +72,15 @@ class ServerManager:
 
         if len(self.gslt_tokens):
             # TODO: catch exception if no tokens are available
+            logging.info(f"Using GSLT token for match: {match.matchid}")
             container_variables["SERVER_TOKEN"] = self.reserve_free_gslt_token(server)
 
+        if loadbackup_url is not None:
+            logging.info(f"Loading backup for match: {match.matchid} -> {loadbackup_url}")
+            container_variables["LOAD_BACKUP"] = loadbackup_url
+
         try:
+            logging.info(f"Starting container for match: {match.matchid}")
             if os.getenv("WINDOWS", "0") == "1":
                 logging.info("Starting container on Windows")
                 container = client.containers.run("get5-csgo:latest",

@@ -1,5 +1,8 @@
-import json
 import logging
+
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+
+import json
 import os
 import time
 from typing import Union
@@ -24,9 +27,7 @@ from fastapi.templating import Jinja2Templates
 
 from pydantic import BaseModel
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logging.info("server running")
-logging.getLogger('pika').setLevel(logging.WARNING)
 
 app = FastAPI()
 api = FastAPI()
@@ -43,6 +44,9 @@ templates = Jinja2Templates(directory="templates")
 
 db.setup_db()
 
+server_manger = ServerManager()
+csgo_events.set_server_manager(server_manger)
+
 error_routes.set_routes(app, templates)
 error_routes.set_api_routes(api)
 api_liveinfos.set_api_routes(api, cache)
@@ -50,8 +54,6 @@ csgo_events.set_api_routes(csgo_api)
 config_webinterface_routes.set_routes(app, templates)
 public_routes.set_routes(public, templates)
 auth_api.set_api_routes(auth, templates)
-
-server_manger = ServerManager()
 
 if os.getenv("MASTER", "1") != "1":
     logging.info("Running as slave instance.")
@@ -201,8 +203,7 @@ class MatchInfo(BaseModel):
 
 
 @api.post("/match")
-async def create_match(request: Request, match: MatchInfo,
-                       current_user: auth_api.User = Depends(auth_api.get_current_user)):
+async def create_match(request: Request, match: MatchInfo):
     logging.info(
         f"Called POST /match with MatchInfo: Team1: '{match.team1}', Team2: '{match.team2}', "
         f"best_of: '{match.best_of}', 'check_auths: {match.check_auths}', 'host: {match.host}'")
@@ -214,40 +215,33 @@ async def create_match(request: Request, match: MatchInfo,
     def create_match_local():
         logging.info(f"Creating match on this {os.getenv('EXTERNAL_IP', '127.0.0.1')} server")
         if match.from_backup_url is not None:
+            logging.info(f"Creating match from backup: {match.from_backup_url}")
             match_id = match.from_backup_url.replace("_map", "_match").split("_match")[1]
             match_old = db.get_match_by_matchid(match_id)
             match.team1 = match_old.team1
             match.team2 = match_old.team2
             match.best_of = match_old.best_out_of
+
             match_old.finished = 3
             match_old.update_attribute("finished")
             match.from_backup_url = f"http://{os.getenv('MASTER_IP', '127.0.0.1')}/api/backup/" + match.from_backup_url
             # TODO: delete server in db if exists
+        else:
+            logging.info(f"Creating new match not using any backup")
 
         match_cfg = MatchGen.from_team_ids(match.team1, match.team2, match.best_of)
         if match.check_auths is not None:
-            match_cfg.add_cvar("get5_check_auths", "1" if match.check_auths else "0")
+            match_cfg.add_cvar("get5_check_auths", 1 if match.check_auths else 0)
 
-        new_match = server_manger.create_match(match_cfg)
+        logging.info(match_cfg)
+        if match.from_backup_url is not None:
+            match_cfg.set_match_id(match_id)
+            new_match = server_manger.create_match(match_cfg,
+                                                   loadbackup_url=match.from_backup_url)
+        else:
+            new_match = server_manger.create_match(match_cfg)
+
         if new_match[0]:
-            if match.from_backup_url is not None:
-                reachable = False
-                timeout_count = 0
-                while not reachable and timeout_count < 10:
-                    try:
-                        get5_status('host.docker.internal', new_match[1])
-                    except ConnectionError as e:
-                        time.sleep(1)
-                        timeout_count += 1
-
-                if not reachable:
-                    # TODO: Handle this better
-                    logging.error(f"Unable to connect to server after 10 seconds")
-                    raise HTTPException(status_code=500, detail="Unable to start container")
-
-                with RCON('host.docker.internal', new_match[1], "pass") as rconn:
-                    rconn.exec_command(f"get5_loadmatch_url {match.from_backup_url}")
-
             return {"ip": os.getenv('EXTERNAL_IP', '127.0.0.1'), "port": new_match[1],
                     "match_id": match_cfg["matchid"]}
         else:

@@ -1,12 +1,9 @@
 import json
-import logging
 import os
 import time
 
 from endpoints import auth_api
 from sql import db
-
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 
 class MatchConfig(dict):
@@ -48,6 +45,11 @@ class MatchConfig(dict):
         key = "team1"
         if "team1" in self.keys():
             key = "team2"
+
+        # otherwise get5 won't recognize the team
+        del team.elo
+        del team.competing
+
         self[key] = team.to_json()
         self[key]["flag"] = "AT"
         self[key]["players"] = dict((player.steam_id, player.name) for player in db.get_team_players(team_id))
@@ -55,9 +57,10 @@ class MatchConfig(dict):
     def add_cvar(self, cvar_key, cvar_value):
         self["cvars"][cvar_key] = cvar_value
 
-    def generate_match_name(self):
+    def generate_match_id(self):
         if "team1" in self.keys() and "team2" in self.keys():
-            self.set_match_id(f"{self['team1']['name']} vs {self['team2']['name']} {time.time_ns()}")
+            self.set_match_id(
+                f"{self['team1']['name'].replace(' ', '_')}_vs_{self['team2']['name'].replace(' ', '_')}_{time.time_ns()}")
         else:
             raise ValueError("Cannot generate teamname, as team1 or team2 are not added yet.")
 
@@ -87,6 +90,8 @@ class MatchGen:
         matchcfg.add_cvar("get5_demo_upload_header_value", auth_api.login_to_master())
 
         matchcfg.add_cvar("get5_remote_backup_url", f"http://{os.getenv('MASTER_IP', '127.0.0.1')}/api/backup")
+        matchcfg.add_cvar("get5_remote_backup_header_key", "Authorization")
+        matchcfg.add_cvar("get5_remote_backup_header_value", auth_api.login_to_master())
 
         matchcfg.add_cvar("get5_print_update_notice", 0)
         matchcfg.add_cvar("get5_reset_cvars_on_end", 0)
@@ -95,6 +100,6 @@ class MatchGen:
         matchcfg.add_cvar("get5_time_to_start", 10 * 60)
         matchcfg.add_cvar("get5_auto_tech_pause_missing_players", 1)
 
-        matchcfg.generate_match_name()
+        matchcfg.generate_match_id()
 
         return matchcfg

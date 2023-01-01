@@ -116,14 +116,19 @@ async def get_current_user(request: Request, access_token: Union[str, None] = Co
     return user
 
 
-def login_to_master():
-    session = requests.Session()
-    res = session.post(f"http://{os.getenv('MASTER_IP', '127.0.0.1')}/auth/token",
-                       data={"username": "api_req", "password": os.getenv("API_PASSWORD", "admin")})
-    return session.cookies.get("access_token")
+def login_to_master() -> str:
+    if str(os.getenv("MASTER", 1)) == "0":
+        logging.info(f"Logging in to master -> {os.getenv('MASTER_URL')}")
+        session = requests.Session()
+        res = session.post(f"http://{os.getenv('MASTER_IP')}/auth/token",
+                           data={"username": "api_req", "password": os.getenv("API_PASSWORD", "admin")})
+        return session.cookies.get("access_token")
+    else:
+        return create_access_token(data={"sub": "api_req"},
+                                   expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
 
 
-def login_to_master_headers():
+def login_to_master_headers() -> dict:
     return {"Authorization": login_to_master()}
 
 

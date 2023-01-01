@@ -1,3 +1,4 @@
+import logging
 import os
 
 from fastapi import Depends
@@ -29,10 +30,11 @@ def set_routes(app, templates):
     async def backups(request: Request, current_user: auth_api.User = Depends(auth_api.get_current_user)):
         backups = os.listdir(os.getenv("BACKUP_FILE_PATH", "/backupfiles"))
         try:
-            backups.sort(key = lambda backups: backups.replace(" ", "_map").split("_map")[3])
-            return templates.TemplateResponse("backups.html", {"request": request, "backups": backups})
-        except:
-            return templates.TemplateResponse("backups.html", {"request": request, "backups": backups})
+            backups = sorted(sorted(backups, key=lambda backup: int(backup.split("_")[-3])))
+        except Exception as e:
+            pass
+
+        return templates.TemplateResponse("backups.html", {"request": request, "backups": backups})
 
     @app.get("/config", response_class=HTMLResponse)
     async def config(request: Request, current_user: auth_api.User = Depends(auth_api.get_current_user)):

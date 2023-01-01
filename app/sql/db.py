@@ -453,7 +453,7 @@ def get_server_for_match(matchid: str) -> Server:
             user="postgres",
             password="pass") as conn:
         with conn.cursor() as cursor:
-            cursor.execute("select server.* from server join match on server.id = match.id where match.matchid = %s",
+            cursor.execute("select server.* from server join match on server.match = match.id where match.matchid = %s",
                            (matchid,))
             return DbObjImpl[Server]().from_tuple(cursor.fetchall()[0])
 

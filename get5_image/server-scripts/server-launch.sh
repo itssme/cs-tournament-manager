@@ -103,19 +103,25 @@ if [ -v CUSTOM_ARGS ]
 then
     ARGS="$ARGS $CUSTOM_ARGS"
 fi
-if [ -v MATCH_CONFIG ]
-then
-    echo "Found match_config, writing to $CSGO_DIR/csgo/cfg/sourcemod/get5.cfg"
-    echo $MATCH_CONFIG > $CSGO_DIR/csgo/match_config.json
-    echo 'get5_autoload_config match_config.json' > $CSGO_DIR/csgo/cfg/sourcemod/get5.cfg
-    cat $CSGO_DIR/csgo/match_config.json
-    cat $CSGO_DIR/csgo/cfg/sourcemod/get5.cfg
-    echo "Done adding match_config to server"
-else
-    echo "No match_config supplied, running without one."
-    echo 'get5_check_auths 0' > $CSGO_DIR/csgo/cfg/sourcemod/get5.cfg
-fi
 
+if [ -v LOAD_BACKUP ]
+then
+    echo "Running backup of previous game, writing load command 'get5_loadmatch_url $LOAD_BACKUP' to $CSGO_DIR/csgo/cfg/sourcemod/get5.cfg"
+    echo "get5_loadbackup_url \"$LOAD_BACKUP\"" > $CSGO_DIR/csgo/cfg/sourcemod/get5.cfg
+else
+  if [ -v MATCH_CONFIG ]
+  then
+      echo "Found match_config, writing load command to $CSGO_DIR/csgo/cfg/sourcemod/get5.cfg"
+      echo $MATCH_CONFIG > $CSGO_DIR/csgo/match_config.json
+      echo 'get5_autoload_config match_config.json' > $CSGO_DIR/csgo/cfg/sourcemod/get5.cfg
+      cat $CSGO_DIR/csgo/match_config.json
+      cat $CSGO_DIR/csgo/cfg/sourcemod/get5.cfg
+      echo "Done adding match_config to server"
+  else
+      echo "No match_config supplied, running server without loading a match"
+      echo 'get5_check_auths 0' > $CSGO_DIR/csgo/cfg/sourcemod/get5.cfg
+    fi
+fi
 
 #################
 # Launch server #
