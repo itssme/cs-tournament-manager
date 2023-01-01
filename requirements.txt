@@ -11,3 +11,5 @@ numpy
 aiofiles
 python-multipart
 fastapi-cache2[memcache]
+python-jose[cryptography]
+passlib[bcrypt]

@@ -11,7 +11,7 @@ from fastapi_cache.backends.inmemory import InMemoryBackend
 from fastapi_cache.decorator import cache
 from starlette.responses import JSONResponse, FileResponse
 
-from endpoints import csgo_events, error_routes, config_webinterface_routes, public_routes, api_liveinfos
+from endpoints import csgo_events, error_routes, config_webinterface_routes, public_routes, api_liveinfos, auth_api
 from endpoints.csgo_stats_event import event_map
 from rcon import RCON
 from rcon import get5_status
@@ -33,9 +33,11 @@ app = FastAPI()
 api = FastAPI()
 public = FastAPI()
 csgo_api = FastAPI()
+auth = FastAPI()
 app.mount("/api", api)
 api.mount("/csgo", csgo_api)
 app.mount("/public", public)
+app.mount("/auth", auth)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
@@ -48,6 +50,7 @@ api_liveinfos.set_api_routes(api, cache)
 csgo_events.set_api_routes(csgo_api)
 config_webinterface_routes.set_routes(app, templates)
 public_routes.set_routes(public, templates)
+auth_api.set_api_routes(auth, templates)
 
 server_manger = ServerManager()
 
@@ -193,6 +196,7 @@ class MatchInfo(BaseModel):
     best_of: Union[int, None] = None
     check_auths: Union[bool, None] = None
     host: Union[str, None] = None
+    from_backup_url: Union[str, None] = None
 
 
 @api.post("/match")
@@ -214,6 +218,24 @@ async def create_match(request: Request, match: MatchInfo):
 
         new_match = server_manger.create_match(match_cfg)
         if new_match[0]:
+            if match.from_backup_url is not None:
+                reachable = False
+                timeout_count = 0
+                while not reachable and timeout_count < 10:
+                    try:
+                        get5_status('host.docker.internal', new_match[1])
+                    except ConnectionError as e:
+                        time.sleep(1)
+                        timeout_count += 1
+
+                if not reachable:
+                    # TODO: Handle this better
+                    logging.error(f"Unable to connect to server after 10 seconds")
+                    raise HTTPException(status_code=500, detail="Unable to start container")
+
+                with RCON('host.docker.internal', new_match[1], "pass") as rconn:
+                    rconn.exec_command(f"get5_loadmatch_url {match.from_backup_url}")
+
             return {"ip": os.getenv('EXTERNAL_IP', '127.0.0.1'), "port": new_match[1],
                     "match_id": match_cfg["matchid"]}
         else:
