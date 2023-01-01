@@ -221,6 +221,7 @@ async def create_match(request: Request, match: MatchInfo,
             match.best_of = match_old.best_out_of
             match_old.finished = 3
             match_old.update_attribute("finished")
+            match.from_backup_url = f"http://{os.getenv('MASTER_IP', '127.0.0.1')}/api/backup/" + match.from_backup_url
             # TODO: delete server in db if exists
 
         match_cfg = MatchGen.from_team_ids(match.team1, match.team2, match.best_of)
