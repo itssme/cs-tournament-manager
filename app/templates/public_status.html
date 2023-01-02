@@ -4,8 +4,10 @@
 </head>
 <body id="body" class="bg-gray-800 text-white">
 <div class="lg:container lg:mx-auto">
-    <h1 class="text-2xl font-bold ml-5 mt-5 mb-5">CS:GO LAN Tournament Status</h1>
-    <div id="stats" class="flex flex-wrap font-extrabold flex-row justify-between">
+    <h1 class="text-3xl font-bold ml-5 mt-5 mb-5">CS:GO LAN Tournament Status</h1>
+
+    <h1 class="text-2xl font-bold ml-5 mt-5 mb-5">Total Stats</h1>
+    <div id="stats" class="flex flex-wrap font-extrabold flex-row justify-between p-5 m-5" style="overflow: hidden;">
         <!-- List of stats will be inserted here -->
     </div>
 
@@ -18,13 +20,14 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-10 gap-4">
-        <div class="grid col-span-2 items-start content-start">
-            <h1 class="text-2xl font-bold ml-5 mt-5 mb-5">Player Kills</h1>
-            <div id="player_kills" class="relative">
-                <!-- List of player kills will be inserted here -->
+    <div id="leaderboards" class="grid grid-cols-10 gap-4 pt-5">
+        <div class="col-span-10">
+            <div id="leaderboards_names" class="grid grid-rows-1 grid-cols-10 justify-items-center">
+                <!-- List of leaderboard names will be inserted here -->
             </div>
         </div>
+
+        <!-- List of leaderboards will be inserted here -->
     </div>
 </div>
 <div style="display: none" class="bg-sky-600"></div>
@@ -48,6 +51,37 @@
     }
 
     let animating = 0;
+    let leaderboards = {
+        "player_kills": {
+            "name": "Player Kills",
+            "id": "leaderboard_player_kills"
+        },
+        "round_mvp": {
+            "name": "MVPs",
+            "id": "leaderboard_round_mvp"
+        },
+    }
+    let animating_leaderboard = {};
+
+    let tracked_player_stats = [];
+    for (let key in leaderboards) {
+        let new_leaderboard = document.createElement("div");
+        let leaderboard = leaderboards[key];
+        new_leaderboard.classList.add("grid", "col-span-2", "items-start", "content-start");
+        new_leaderboard.innerHTML = `<div id="${leaderboard.id}" class="relative">
+                                            <!-- List of ${leaderboard.name} will be inserted here -->
+                                     </div>`;
+
+        let new_leaderboard_name = document.createElement("h1");
+        new_leaderboard_name.classList.add("col-span-2", "text-2xl", "font-bold", "text-center");
+        new_leaderboard_name.innerHTML = leaderboard.name;
+        document.getElementById("leaderboards_names").appendChild(new_leaderboard_name);
+
+        document.getElementById("leaderboards").appendChild(new_leaderboard);
+        animating_leaderboard[leaderboard.id] = false;
+        tracked_player_stats.push(leaderboards[key].id);
+    }
+
     let version = "{{ version }}";
     let phonetic_event_names = {
         "round_mvp": "MVPs",
@@ -61,7 +95,7 @@
         "bomb_planted": "Bombs Planted",
         "bomb_defused": "Bombs Defused",
         "bomb_exploded": "Bombs Exploded",
-        "player_killed": "Kills"
+        "player_kills": "Kills"
     }
 
     let update_queue = [];
@@ -82,6 +116,7 @@
             this.delete = false;
             this.new_html = "";
             this.pos = -1;
+            this.leaderboard = "";
         }
     }
 
@@ -136,30 +171,30 @@
         if (update.new) {
             const playerEl = document.createElement('div');
             playerEl.classList.add('bg-cyan-600', 'rounded-md', 'p-4', 'm-1', 'flex-auto', 'flex-nowarp', 'font-extrabold');
-            playerEl.id = `player_${update.id}`;
+            playerEl.id = update.id;
             playerEl.innerHTML = update.new_html;
 
-            document.getElementById("player_kills").appendChild(playerEl);
+            document.getElementById(update.leaderboard).appendChild(playerEl);
         }
 
-        const player = document.getElementById(`player_${update.id}_value`);
         if (update.delete) {
-            document.getElementById(`player_${update.id}`).remove();
+            document.getElementById(update.id).remove();
             return;
         }
 
-        if (player !== null) {
-            player.innerHTML = update.html;
+        const player_value = document.getElementById(`${update.id}_value`);
+        if (player_value !== null) {
+            player_value.innerHTML = update.html;
         }
 
-        let this_player = document.getElementById(`player_${update.id}`);
-        let swap_player = document.getElementById(`player_kills`).children[update.pos];
+        let this_player = document.getElementById(update.id);
+        let swap_player = document.getElementById(update.leaderboard).children[update.pos];
 
         if (this_player.id === swap_player.id) {
             return;
         }
 
-        const container = document.getElementById("player_kills");
+        const container = document.getElementById(update.leaderboard);
         let this_i = -1;
         for (let i = 0; i < container.children.length; i++) {
             if (container.children[i].id === this_player.id) {
@@ -177,7 +212,7 @@
         }
 
         if (swap_i > this_i) {
-            a = swap_i;
+            let a = swap_i;
             swap_i = this_i;
             this_i = a;
 
@@ -187,14 +222,15 @@
         }
 
         for (let i = 0; i < update_queue.length; i++) {
-            if (update_queue[i].type === "player_stats" && `player_${update_queue[i].id}` === swap_player.id) {
-                document.getElementById(`player_${update_queue[i].id}_value`).innerHTML = update_queue[i].html;
+            if (update_queue[i].type === "player_stats" && update_queue[i].id === swap_player.id) {
+                document.getElementById(`${update_queue[i].id}_value`).innerHTML = update_queue[i].html;
                 update_queue.splice(i, 1);
                 break;
             }
         }
 
         animating += 1;
+        animating_leaderboard[update.leaderboard] = true;
         swap_animation(this_player, swap_player, this_i, swap_i, container);
     }
 
@@ -239,6 +275,7 @@
 
         await sleep(10);
         animating -= 1;
+        animating_leaderboard["leaderboard_player_kills"] = false;
     }
 
     function swapDom(a, b) {
@@ -365,9 +402,7 @@
                                 <div id="${key}_name">${phonetic_event_names[key]}</div>
                                 <div id="${key}_value">${resp[key]["occurred"]}</div>
                             </div>
-                            <div style="overflow: hidden;">
-                                <div  id="${key}_anim" style="animation-iteration-count: 1; display: none" class="bg-pink-600 absolute rounded-md top-0 left-0 w-full h-full"></div>
-                            </div>
+                            <div  id="${key}_anim" style="animation-iteration-count: 1; display: none" class="bg-pink-600 absolute rounded-md top-0 left-0 w-full h-full"></div>
                         `;
                 statsContainer.appendChild(statEl);
                 statEl.addEventListener('animationend', (event) => {
@@ -391,30 +426,30 @@
         });
     }
 
-    tracked_player_stats = ["player_killed"];
-
     function process_player_stats(resp) {
         Object.keys(resp).forEach(key => {
-            if (tracked_player_stats.includes(key)) {
+            if (tracked_player_stats.includes(`leaderboard_${key}`)) {
                 const player_stats = resp[key]["players"];
                 let current_players = [];
+                let add_updated = [];
                 Object.keys(player_stats).forEach(player => {
                     pos = parseInt(player); // WHY IS THIS A STRING????
                     player = player_stats[pos]; // just why, how can a foreach loop not give you the value...
                     const new_update = new UpdatePlayer();
                     new_update.type = "player_stats";
-                    new_update.id = player[0].hashCode();
                     new_update.html = player[1];
                     new_update.pos = pos;
+                    new_update.leaderboard = `leaderboard_${key}`;
+                    new_update.id = `${new_update.leaderboard}_${player[0].hashCode()}`;
 
                     current_players.push(new_update.id.toString());
 
-                    if (document.getElementById(`player_${new_update.id}`) === null) {
+                    if (document.getElementById(new_update.id) === null) {
                         new_update.new = true;
                         new_update.new_html = `
                             <div class="flex flex-col items-center text-center">
-                                <div id="player_${new_update.id}_name">${player[0]}</div>
-                                <div id="player_${new_update.id}_value">${player[1]}</div>
+                                <div id="${new_update.id}_name">${player[0]}</div>
+                                <div id="${new_update.id}_value">${player[1]}</div>
                             </div>
                         `;
                     } else {
@@ -422,24 +457,31 @@
                     }
 
                     if (!check_if_already_in_update_queue(new_update.id, new_update.html, new_update.pos)) {
-                        update_queue.push(new_update);
+                        //update_queue.push(new_update);
+                        add_updated.push(new_update);
                     }
                 });
 
                 // Remove players that are no longer in the list
-                let container = document.getElementById("player_kills");
+                let container = document.getElementById(`leaderboard_${key}`);
                 for (let i = 0; i < container.children.length; i++) {
                     let child = container.children[i];
-                    console.log(current_players, child.id.split("_")[1]);
-                    if (!current_players.includes(child.id.split("_")[1])) {
-                        new_update = new UpdatePlayer();
+                    console.log(child.id, current_players);
+                    if (!current_players.includes(child.id)) {
+                        console.log("removing", child.id);
+                        let new_update = new UpdatePlayer();
                         new_update.type = "player_stats";
-                        new_update.id = child.id.split("_")[1];
+                        new_update.id = child.id
+                        new_update.leaderboard = `leaderboard_${key}`;
                         new_update.delete = true;
                         if (!check_if_already_in_update_queue(new_update.id, new_update.html, new_update.pos)) {
                             update_queue.push(new_update);
                         }
                     }
+                }
+
+                for (let i = 0; i < add_updated.length; i++) {
+                    update_queue.push(add_updated[i]);
                 }
             }
         });

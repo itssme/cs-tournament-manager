@@ -17,7 +17,7 @@ class Events(Enum):
     bomb_planted = 8
     bomb_defused = 9
     bomb_exploded = 10
-    player_killed = 11  # event derived from player_death, this event says a plyer has killed someone else
+    player_kills = 11  # event derived from player_death, this event says a plyer has killed someone else
 
 
 event_map = {
@@ -32,7 +32,7 @@ event_map = {
     "bomb_planted": Events.bomb_planted,
     "bomb_defused": Events.bomb_defused,
     "bomb_exploded": Events.bomb_exploded,
-    "player_killed": Events.player_killed
+    "player_kills": Events.player_kills
 }
 
 steamid64ident = 76561197960265728
@@ -62,7 +62,7 @@ def stats_event(event: Dict):
 
         if event_type == Events.player_death:
             player = db.get_player_by_steam_id(commid_to_steamid(event["attacker"]["steamid"]))
-            stats = db.Stats(None, match.id, player.id, Events.player_killed.value)
+            stats = db.Stats(None, match.id, player.id, Events.player_kills.value)
     else:
         stats = db.Stats(None, match.id, None, event_type.value)
 
