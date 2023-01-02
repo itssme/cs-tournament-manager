@@ -50,7 +50,19 @@
         return hash;
     }
 
+    // https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
+    /* Randomize array in-place using Durstenfeld shuffle algorithm */
+    function shuffleArray(array) {
+        for (var i = array.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+        }
+    }
+
     let animating = 0;
+    const maximum_animating = 3;
     let leaderboards = {
         "player_kills": {
             "name": "Player Kills",
@@ -60,6 +72,18 @@
             "name": "MVPs",
             "id": "leaderboard_round_mvp"
         },
+        "bomb_planted": {
+            "name": "Bomb Plants",
+            "id": "leaderboard_bomb_planted"
+        },
+        "bomb_defused": {
+            "name": "Bomb Defuses",
+            "id": "leaderboard_bomb_defused"
+        },
+        "headshot_kills": {
+            "name": "Headshot Kills",
+            "id": "leaderboard_headshot_kills"
+        }
     }
     let animating_leaderboard = {};
 
@@ -95,7 +119,11 @@
         "bomb_planted": "Bombs Planted",
         "bomb_defused": "Bombs Defused",
         "bomb_exploded": "Bombs Exploded",
-        "player_kills": "Kills"
+        "player_kills": "Kills",
+        "friendly_fire": "Friendly Fire",
+        "player_flashed": "Flashed",
+        "friendly_flash": "Friendly Flash",
+        "headshot_kills": "Headshot Kills"
     }
 
     let update_queue = [];
@@ -121,29 +149,44 @@
     }
 
     function process_update_queue() {
-        if (update_queue.length > 0 && animating === 0) {
-            let update_i = 0;
-            // search for updates that are UpdatePlayer and have 'new' or 'delete' set to true
-            for (let i = 0; i < update_queue.length; i++) {
-                if ((update_queue[i] instanceof UpdatePlayer) && (update_queue[i].delete || update_queue[i].new)) {
-                    update_i = i;
-                    break;
-                }
+        // search for updates that are UpdatePlayer and have 'new' or 'delete' set to true
+        let removed = false;
+        let j_inv = 0;
+        let length = update_queue.length;
+        for (let j = 0; j < length; j++) {
+            let index = j - j_inv;
+            if ((update_queue[index] instanceof UpdatePlayer) && (update_queue[index].delete || update_queue[index].new)) {
+                update_stats_player(update_queue[index]);
+                console.log("Processed (new/del) update", update_queue[index]);
+                update_queue.splice(index, 1);
+                j_inv += 1;
+                removed = true;
             }
+        }
+        if (removed) {
+            return;
+        }
 
-            let update = update_queue[update_i];
-            console.log("Processing update", update);
-
+        for (let i = 0; i < update_queue.length; i++) {
+            let update = update_queue[i];
             if (update.type === "match") {
                 update_match(update);
             } else if (update.type === "team") {
                 update_team(update);
             } else if (update.type === "stats") {
+                if (animating >= maximum_animating) {
+                    continue
+                }
                 update_stats(update);
             } else if (update.type === "player_stats") {
+                if (animating_leaderboard[update.leaderboard]) {
+                    continue
+                }
                 update_stats_player(update);
             }
-            update_queue.splice(update_i, 1);
+            console.log("Processed update", update);
+            update_queue.splice(i, 1);
+            return;
         }
     }
 
@@ -229,7 +272,6 @@
             }
         }
 
-        animating += 1;
         animating_leaderboard[update.leaderboard] = true;
         swap_animation(this_player, swap_player, this_i, swap_i, container);
     }
@@ -274,7 +316,6 @@
         swap_player.removeAttribute('style');
 
         await sleep(10);
-        animating -= 1;
         animating_leaderboard["leaderboard_player_kills"] = false;
     }
 
@@ -386,6 +427,8 @@
     }
 
     function process_stats(resp) {
+        let add_updates = [];
+
         const statsContainer = document.querySelector('#stats');
         Object.keys(resp).forEach(key => {
 
@@ -420,10 +463,15 @@
                     new_update.html = resp[key]["occurred"];
                     new_update.id = key;
 
-                    update_queue.push(new_update);
+                    add_updates.push(new_update);
                 }
             }
         });
+
+        shuffleArray(add_updates);
+        for (let i = 0; i < add_updates.length; i++) {
+            update_queue.push(add_updates[i]);
+        }
     }
 
     function process_player_stats(resp) {
@@ -431,7 +479,7 @@
             if (tracked_player_stats.includes(`leaderboard_${key}`)) {
                 const player_stats = resp[key]["players"];
                 let current_players = [];
-                let add_updated = [];
+                let add_updates = [];
                 Object.keys(player_stats).forEach(player => {
                     pos = parseInt(player); // WHY IS THIS A STRING????
                     player = player_stats[pos]; // just why, how can a foreach loop not give you the value...
@@ -458,7 +506,7 @@
 
                     if (!check_if_already_in_update_queue(new_update.id, new_update.html, new_update.pos)) {
                         //update_queue.push(new_update);
-                        add_updated.push(new_update);
+                        add_updates.push(new_update);
                     }
                 });
 
@@ -468,7 +516,6 @@
                     let child = container.children[i];
                     console.log(child.id, current_players);
                     if (!current_players.includes(child.id)) {
-                        console.log("removing", child.id);
                         let new_update = new UpdatePlayer();
                         new_update.type = "player_stats";
                         new_update.id = child.id
@@ -480,8 +527,8 @@
                     }
                 }
 
-                for (let i = 0; i < add_updated.length; i++) {
-                    update_queue.push(add_updated[i]);
+                for (let i = 0; i < add_updates.length; i++) {
+                    update_queue.push(add_updates[i]);
                 }
             }
         });
@@ -508,6 +555,6 @@
     get_matches_and_teams();
     setInterval(get_stats, 1000);
     get_stats();
-    setInterval(process_update_queue, 100);
+    setInterval(process_update_queue, 200);
 </script>
 </html>

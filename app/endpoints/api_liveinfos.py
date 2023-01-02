@@ -1,5 +1,3 @@
-import logging
-
 from fastapi import Depends
 from starlette.requests import Request
 from starlette.responses import JSONResponse

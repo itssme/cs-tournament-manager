@@ -1,5 +1,8 @@
 import logging
 
+from redis import asyncio as aioredis
+from fastapi_cache.backends.redis import RedisBackend
+
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 import json
@@ -35,9 +38,11 @@ public = FastAPI()
 csgo_api = FastAPI()
 auth = FastAPI()
 app.mount("/api", api)
-api.mount("/csgo", csgo_api)
-app.mount("/public", public)
-app.mount("/auth", auth)
+
+if os.getenv("MASTER", "1") == "1":
+    api.mount("/csgo", csgo_api)
+    app.mount("/public", public)
+    app.mount("/auth", auth)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
@@ -87,7 +92,8 @@ if os.getenv("MASTER", "1") != "1":
 
 @app.on_event("startup")
 async def startup():
-    FastAPICache.init(InMemoryBackend())
+    redis = aioredis.from_url("redis://redis", encoding="utf8", decode_responses=True)
+    FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
 
 
 @api.get("/players", response_class=JSONResponse)

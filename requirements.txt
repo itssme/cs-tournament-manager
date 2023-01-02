@@ -10,6 +10,7 @@ docker
 numpy
 aiofiles
 python-multipart
-fastapi-cache2[memcache]
+fastapi-cache2[redis]
 python-jose[cryptography]
 passlib[bcrypt]
+redis

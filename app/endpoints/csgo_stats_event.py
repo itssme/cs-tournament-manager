@@ -18,6 +18,10 @@ class Events(Enum):
     bomb_defused = 9
     bomb_exploded = 10
     player_kills = 11  # event derived from player_death, this event says a plyer has killed someone else
+    friendly_fire = 12  # event derived from player_death, this event says a player has killed a teammate
+    player_flashed = 13  # event derived from flashbang_detonated, this event says a player has been flashed
+    friendly_flash = 14  # event derived from flashbang_detonated, this event says a player has flashed a teammate
+    headshot_kills = 15  # event derived from player_death, this event says a player has killed someone with a headshot
 
 
 event_map = {
@@ -32,7 +36,11 @@ event_map = {
     "bomb_planted": Events.bomb_planted,
     "bomb_defused": Events.bomb_defused,
     "bomb_exploded": Events.bomb_exploded,
-    "player_kills": Events.player_kills
+    "player_kills": Events.player_kills,
+    "friendly_fire": Events.friendly_fire,
+    "player_flashed": Events.player_flashed,
+    "friendly_flash": Events.friendly_flash,
+    "headshot_kills": Events.headshot_kills
 }
 
 steamid64ident = 76561197960265728
@@ -59,12 +67,31 @@ def stats_event(event: Dict):
     if event_type != Events.bomb_exploded:
         player = db.get_player_by_steam_id(commid_to_steamid(event["player"]["steamid"]))
         stats = db.Stats(None, match.id, player.id, event_type.value)
+        stats.insert_into_db()
 
         if event_type == Events.player_death:
             player = db.get_player_by_steam_id(commid_to_steamid(event["attacker"]["steamid"]))
-            stats = db.Stats(None, match.id, player.id, Events.player_kills.value)
+
+            if event["friendly_fire"]:
+                stats = db.Stats(None, match.id, player.id, Events.friendly_fire.value)
+                stats.insert_into_db()
+            else:
+                stats = db.Stats(None, match.id, player.id, Events.player_kills.value)
+                stats.insert_into_db()
+
+                if event["headshot"]:
+                    stats = db.Stats(None, match.id, player.id, Events.headshot_kills.value)
+                    stats.insert_into_db()
+
+        if event_type == Events.flashbang_detonated:
+            for victim in event["victims"]:
+                player_victim = db.get_player_by_steam_id(commid_to_steamid(victim["player"]["steamid"]))
+                stats = db.Stats(None, match.id, player_victim.id, Events.player_flashed.value)
+                stats.insert_into_db()
+
+                if victim["friendly_fire"]:
+                    stats = db.Stats(None, match.id, player.id, Events.friendly_flash.value)
+                    stats.insert_into_db()
     else:
         stats = db.Stats(None, match.id, None, event_type.value)
-
-    stats.insert_into_db()
-    # logging.info(f"Event: {event_type} -> {stats}")
+        stats.insert_into_db()

@@ -41,7 +41,8 @@ create table if not exists host
 );
 
 insert into host
-values ('host.docker.internal');
+values ('host.docker.internal')
+on conflict do nothing;
 
 create table if not exists server
 (
