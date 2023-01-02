@@ -1,4 +1,4 @@
-FROM python:3.9
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.11
 
 WORKDIR /
 
@@ -19,4 +19,4 @@ RUN echo "module.exports = { content: ['./templates/**/*.html'], darkMode: false
 RUN tailwindcss -i ./static/css/input.css -o ./static/css/output.css
 
 EXPOSE 80 80
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+#CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]

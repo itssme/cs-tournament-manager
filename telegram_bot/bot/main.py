@@ -94,7 +94,7 @@ class TelegramBOT:
 
             logging.info(f"Parsed /createMatch -> {data}")
 
-            res = requests.post("http://csgo_manager/api/team", json=data)
+            res = requests.post(f"http://csgo_manager/api/team", json=data)
             if res.status_code == 200:
                 bot.send_message(chat_id, f"Successfully created team '{data['name']}' with tag '{data['tag']}'")
             else:

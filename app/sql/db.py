@@ -25,7 +25,7 @@ class DbObject(object):
                 host=os.getenv("DB_HOST", "db"),
                 database="postgres",
                 user="postgres",
-                password="pass") as conn:
+                password=os.getenv("DB_PASSWORD", "pass")) as conn:
             with conn.cursor() as cursor:
                 self.insert_into_db_with_cursor(cursor)
 
@@ -48,7 +48,7 @@ class DbObject(object):
                 host=os.getenv("DB_HOST", "db"),
                 database="postgres",
                 user="postgres",
-                password="pass") as conn:
+                password=os.getenv("DB_PASSWORD", "pass")) as conn:
             with conn.cursor() as cursor:
                 self.update_attribute_with_cursor(cursor, attr)
 
@@ -139,7 +139,7 @@ def setup_db():
                 host=os.getenv("DB_HOST", "db"),
                 database="postgres",
                 user="postgres",
-                password="pass") as conn:
+                password=os.getenv("DB_PASSWORD", "pass")) as conn:
             connected = True
 
             with conn.cursor() as cursor:
@@ -153,7 +153,7 @@ def setup_db():
             logging.info("Creating tables done")
 
         if not connected:
-            logging.warning("Could not setup database, retrying in 5 sec...")
+            logging.warning("Could not connect to database, retrying in 5 sec...")
             time.sleep(5)
 
     logging.info("Parsing teams.json")
@@ -181,7 +181,7 @@ def insert_player_or_set_id(player: Player):
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute("select id from player where steam_id = %s", (player.steam_id,))
             res = cursor.fetchall()
@@ -200,7 +200,7 @@ def insert_team_or_set_id(team: Team):
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute("select id from team where name = %s", (team.name,))
             res = cursor.fetchall()
@@ -219,7 +219,7 @@ def insert_team_assignment_if_not_exists(team: Team, player: Player):
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute("select * from team_assignment where team = %s and player = %s", (team.id, player.id))
             res = cursor.fetchall()
@@ -235,7 +235,7 @@ def delete_team_assignment(team: Team, player: Player):
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute("delete from team_assignment where team = %s and player = %s", (team.id, player.id))
 
@@ -245,7 +245,7 @@ def get_player(player_id: int) -> Player:
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute("select * from player where id = %s", (player_id,))
             player_tuple = cursor.fetchall()[0]
@@ -257,7 +257,7 @@ def delete_player(player_id: int):
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute("delete from player where id = %s", (player_id,))
 
@@ -267,7 +267,7 @@ def delete_team(team_id: int):
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute("delete from team where id = %s", (team_id,))
 
@@ -277,7 +277,7 @@ def get_players() -> List[Player]:
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute("select * from player")
             player_tuple_list = cursor.fetchall()
@@ -289,7 +289,7 @@ def get_player_by_steam_id(player_steam_id: str):
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute("select * from player where steam_id = %s", (player_steam_id,))
             player_tuple = cursor.fetchall()[0]
@@ -301,7 +301,7 @@ def get_team_by_id(team_id: int) -> Team:
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute("select * from team where id = %s", (team_id,))
             team_tuple = cursor.fetchall()[0]
@@ -313,7 +313,7 @@ def get_teams() -> List[Team]:
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute("select * from team order by id")
             team_tuple_list = cursor.fetchall()
@@ -325,7 +325,7 @@ def get_free_teams() -> List[Team]:
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute(
                 "select * from team except select team.* from team join match on team.id = match.team1 or team.id = match.team2 where match.finished < 1 and team.competing = 1;")
@@ -338,7 +338,7 @@ def get_team_players(team_id: int) -> List[Player]:
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute(
                 "select player.id, player.name, player.steam_id from player join team_assignment on player.id = team_assignment.player where team_assignment.team = %s",
@@ -352,7 +352,7 @@ def get_servers() -> List[Server]:
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute("select * from server")
             servers = cursor.fetchall()
@@ -364,7 +364,7 @@ def insert_server(server: Server):
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             server.insert_into_db_with_cursor(cursor)
 
@@ -374,7 +374,7 @@ def get_server_by_id(server_id: int) -> Server:
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute("select * from server where id = %s", (server_id,))
             return DbObjImpl[Server]().from_tuple(cursor.fetchall()[0])
@@ -385,7 +385,7 @@ def delete_server(server_id: int):
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute("delete from server where id = %s", (server_id,))
 
@@ -395,7 +395,7 @@ def get_matches() -> List[Match]:
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute("select * from match")
             matches = cursor.fetchall()
@@ -407,7 +407,7 @@ def get_match_by_id(match_id: int) -> Match:
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute("select * from match where id = %s", (match_id,))
             return DbObjImpl[Match]().from_tuple(cursor.fetchall()[0])
@@ -418,7 +418,7 @@ def get_match_by_matchid(matchid: str) -> Match:
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute("select * from match where matchid = %s", (matchid,))
             return DbObjImpl[Match]().from_tuple(cursor.fetchall()[0])
@@ -429,7 +429,7 @@ def get_match_by_serverid(server_id: int) -> Match:
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute("select match.* from match join server on server.match = match.id where server.id = %s",
                            (server_id,))
@@ -441,7 +441,7 @@ def insert_match(match: Match):
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             match.insert_into_db_with_cursor(cursor)
 
@@ -451,7 +451,7 @@ def get_server_for_match(matchid: str) -> Server:
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute("select server.* from server join match on server.match = match.id where match.matchid = %s",
                            (matchid,))
@@ -463,7 +463,7 @@ def get_hosts() -> List[str]:
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute("select * from host")
             server_tuple_list = cursor.fetchall()
@@ -475,7 +475,7 @@ def get_least_used_host_ips():
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute(
                 "select host.* from host left join server on host.ip = server.ip group by host.ip order by count(server.ip) asc")

@@ -23,7 +23,6 @@ def set_api_routes(app, cache):
                 score = [0, 0]
                 team1 = db.get_team_by_id(match.team1)
                 team2 = db.get_team_by_id(match.team2)
-                logging.info(match.matchid)
                 server = db.get_server_for_match(match.matchid)
 
                 try:
@@ -75,7 +74,7 @@ def set_api_routes(app, cache):
     @app.get("/stats", response_class=JSONResponse)
     @cache(namespace="stats", expire=1)
     async def stats(request: Request):
-        stats = {"version": public_routes.time_start}
+        stats = {"version": public_routes.version}
 
         for event in event_map.keys():
             stats[event] = {}
@@ -99,7 +98,7 @@ def set_api_routes(app, cache):
             stats = None
             try:
                 get5_stats = get5_status(server.ip, server.port)
-                with RCON(server.ip, server.port, "pass") as rconn:
+                with RCON(server.ip, server.port) as rconn:
                     # logging.info(rconn.exec_command("sm_slay Jöl"))
                     # logging.info(rconn.exec_command("cvarlist"))
 

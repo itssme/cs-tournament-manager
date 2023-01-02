@@ -28,6 +28,8 @@ services:
       - 80:80
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    environment:
+      - MAX_WORKERS=10
   telegram_bot:
     depends_on:
       - csgo_manager

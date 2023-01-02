@@ -120,7 +120,7 @@ def login_to_master() -> str:
     if str(os.getenv("MASTER", 1)) == "0":
         logging.info(f"Logging in to master -> {os.getenv('MASTER_URL')}")
         session = requests.Session()
-        res = session.post(f"http://{os.getenv('MASTER_IP')}/auth/token",
+        res = session.post(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP')}/auth/token",
                            data={"username": "api_req", "password": os.getenv("API_PASSWORD", "admin")})
         return session.cookies.get("access_token")
     else:

@@ -77,7 +77,7 @@ if os.getenv("MASTER", "1") != "1":
                  os.getenv("DB_HOST"), os.getenv("EXTERNAL_IP"))
     logging.info("Checking if master is online...")
 
-    res = requests.get("http://" + os.getenv("MASTER_IP") + "/api/healthcheck")
+    res = requests.get(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP')}/api/healthcheck")
     if res.status_code == 200:
         logging.info("Master is online.")
     else:
@@ -126,7 +126,7 @@ async def slay_player(request: Request, slay: SlayPlayer,
                       current_user: auth_api.User = Depends(auth_api.get_current_user)):
     logging.info(f"Slaying player: {slay.player_name} on server: ip={slay.server_ip} port={slay.server_port}")
     try:
-        with RCON(slay.server_ip, slay.server_port, "pass") as rconn:
+        with RCON(slay.server_ip, slay.server_port) as rconn:
             logging.info(rconn.exec_command(f"sm_slay {slay.player_name}"))
     except ConnectionError as e:
         logging.error(f"Unable to slay player: {e}")
@@ -146,7 +146,7 @@ async def rcon(request: Request, rcon_command: RconCommand,
     logging.info(
         f"Running command: {rcon_command.rcon} on server: ip={rcon_command.server_ip} port={rcon_command.server_port}")
     try:
-        with RCON(rcon_command.server_ip, rcon_command.server_port, "pass") as rconn:
+        with RCON(rcon_command.server_ip, rcon_command.server_port) as rconn:
             res = rconn.exec_command(rcon_command.rcon)
     except ConnectionError as e:
         logging.error(f"Unable to run rcon command: {e}")
@@ -171,7 +171,7 @@ async def status(request: Request, server: ServerID, current_user: auth_api.User
 
     server = db.get_server_by_id(server.id)
     try:
-        with RCON(server.ip, server.port, "pass") as rconn:
+        with RCON(server.ip, server.port) as rconn:
             res = rconn.exec_command("sm_pause")
     except ConnectionError as e:
         logging.error(f"Unable to run pause rcon command: {e}")
@@ -185,7 +185,7 @@ async def status(request: Request, server: ServerID, current_user: auth_api.User
 
     server = db.get_server_by_id(server.id)
     try:
-        with RCON(server.ip, server.port, "pass") as rconn:
+        with RCON(server.ip, server.port) as rconn:
             res = rconn.exec_command("sm_unpause")
     except ConnectionError as e:
         logging.error(f"Unable to run unpause rcon command: {e}")

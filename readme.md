@@ -81,6 +81,19 @@ Currently, an ELO rating system for teams is being implemented.
 + `DB_HOST`="db": IP/ Hostname of the database host (this should be set to the same as MASTER_IP on slaves)
 + `EXTERNAL_IP`="127.0.0.1": The external IP of the game host (the one that is used to connect to the csgo servers).
 
+## Securing the API
+
++ `ACCESS_SECRET_KEY`="this_is_not_a_secret": Should be a random generated secret like: `openssl rand -hex 32`
++ `ACCESS_TOKEN_EXPIRE_MINUTES`=60 * 24 * 2: How long the access tokens are valid (in minutes) (Can be left at default
+  value)
++ `API_PASSWORD`="admin": The password for the API user
++ `ADMIN_PASSWORD`="admin": The password for the admin user in the webinterface (login at: `/auth/login`)
++ `HTTP_PROTOCOL`="http": The protocol used to connect to the api
++ `RCON_PASSWORD`="pass": The password for the rcon connections to the csgo servers.
++ `GOTV_PASSWORD`="pass": The password for the GOTV connections to the csgo servers.
++ `DB_PASSWORD`="pass": The password for the database connection. (Important: This must be set to the same value as the
+  ENV variable `POSTGRES_PASSWORD` is set for postgres.)
+
 ## Banned Players
 
 | SteamID             | Reason                              |

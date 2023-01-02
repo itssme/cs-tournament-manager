@@ -42,7 +42,7 @@ def demo_upload_ended(event: Dict):
 
     if os.getenv("EXTERNAL_IP", "127.0.0.1") != server.ip and server.ip != "host.docker.internal":
         logging.info(f"Shutting down remote container: server={server.ip}, match_id={match.matchid}")
-        res = requests.delete(f"http://{server.ip}/api/match", json={"id": server.id}, timeout=60,
+        res = requests.delete(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{server.ip}/api/match", json={"id": server.id}, timeout=60,
                               headers=auth_api.login_to_master_headers())
 
         if res.status_code == 200:
@@ -80,7 +80,7 @@ def map_result(event: Dict):
     logging.info(f"Updated ELO: {team1.elo}, {team2.elo}, {event['team1_score']}, {event['team2_score']}")
 
     server: db.Server = db.get_server_for_match(match.matchid)
-    with RCON(server.ip, server.port, "pass") as rconn:
+    with RCON(server.ip, server.port) as rconn:
         rconn.exec_command("say ELO updated:")
         rconn.exec_command(f"say {team1.name}: {team1.elo}, diff: {team1.elo - team1_elo}")
         rconn.exec_command(f"say {team2.name}: {team2.elo}, diff: {team2.elo - team2_elo}")
@@ -102,7 +102,7 @@ def player_say(event: Dict):
 
         server = db.get_server_for_match(event["matchid"])
 
-        with RCON(server.ip, server.port, "pass") as rconn:
+        with RCON(server.ip, server.port) as rconn:
             rconn.exec_command("say spinning")
             rconn.exec_command("say done")
 

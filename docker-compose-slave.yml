@@ -18,3 +18,4 @@ services:
       - DB_HOST=10.20.4.13
       - MASTER_IP=10.20.4.13
       - EXTERNAL_IP=10.20.6.125
+      - MAX_WORKERS=10

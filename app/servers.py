@@ -61,8 +61,8 @@ class ServerManager:
         port = self.reserve_free_port(server)
 
         container_variables = {
-            "RCON_PASSWORD": "pass",  # TODO
-            "GOTV_PASSWORD": "pass",
+            "RCON_PASSWORD": os.getenv("RCON_PASSWORD", "pass"),
+            "GOTV_PASSWORD": os.getenv("GOTV_PASSWORD", "pass"),
             "PORT": port,
             "TICKRATE": 128,
             "MAP": "cs_agency",
@@ -105,11 +105,14 @@ class ServerManager:
     def __stop_container_and_delete(self, container_name: str):
         client = docker.from_env()
         logging.info(f"Stopping container: {container_name}")
-        container = client.containers.get(container_name)
-        container.stop(timeout=10)
-        logging.info(f"Stopped container: {container_name}")
-        container.remove()
-        logging.info(f"Removed container: {container_name}")
+        try:
+            container = client.containers.get(container_name)
+            container.stop(timeout=10)
+            logging.info(f"Stopped container: {container_name}")
+            container.remove()
+            logging.info(f"Removed container: {container_name}")
+        except docker.errors.NotFound:
+            logging.error(f"Container not found: {container_name}")
 
     def reserve_free_port(self, server: db.Server) -> int:
         with self.port_lock:
