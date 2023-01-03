@@ -71,9 +71,11 @@ class ServerManager:
         }
 
         if len(self.gslt_tokens):
-            # TODO: catch exception if no tokens are available
-            logging.info(f"Using GSLT token for match: {match.matchid}")
-            container_variables["SERVER_TOKEN"] = self.reserve_free_gslt_token(server)
+            logging.info(f"Tying to reserving GSLT token for match: {match.matchid}")
+            try:
+                container_variables["SERVER_TOKEN"] = self.reserve_free_gslt_token(server)
+            except IndexError:
+                logging.error(f"No GSLT tokens left for match: {match.matchid}, starting without gstl token")
 
         if loadbackup_url is not None:
             logging.info(f"Loading backup for match: {match.matchid} -> {loadbackup_url}")
