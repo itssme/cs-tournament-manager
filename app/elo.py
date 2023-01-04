@@ -74,6 +74,8 @@ def calculate_team_elo(team_ranks: List[CSRank]):
 
 
 def main():
+    #print(calculate_team_elo([CSRank(int(input("?: "))) for _ in range(5)]))
+
     team1 = calculate_team_elo([
         CSRank.Supreme_Master_First_Class,
         CSRank.Supreme_Master_First_Class,
