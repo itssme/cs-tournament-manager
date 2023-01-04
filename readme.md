@@ -75,11 +75,17 @@ Currently, an ELO rating system for teams is being implemented.
 
 ## Multiple Game Hosts
 
+Set the following environment variables in the slave docker-compose file for the csgo_manager:
+
 + Change the following ENV Variables on slave game hosts:
 + `MASTER`=1: Set this ENV var to 0 on all game hosts except one.
 + `MASTER_IP`="127.0.0.1": The IP of the master server (the one that runs the database etc.)
 + `DB_HOST`="db": IP/ Hostname of the database host (this should be set to the same as MASTER_IP on slaves)
+
+Set this on the slaves and the master:
 + `EXTERNAL_IP`="127.0.0.1": The external IP of the game host (the one that is used to connect to the csgo servers).
+
+Connect to the master on port :8080 and login to adminer. The username and database is "postgres", for the password see the env variables below "Securing the API".
 
 ## Securing the API
 
@@ -93,6 +99,8 @@ Currently, an ELO rating system for teams is being implemented.
 + `GOTV_PASSWORD`="pass": The password for the GOTV connections to the csgo servers.
 + `DB_PASSWORD`="pass": The password for the database connection. (Important: This must be set to the same value as the
   ENV variable `POSTGRES_PASSWORD` is set for postgres.)
+
+If the ENV variables here are changed, you will also need to set them in the slave instances.
 
 ## Banned Players
 
