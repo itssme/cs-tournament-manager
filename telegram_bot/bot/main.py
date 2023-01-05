@@ -10,6 +10,7 @@ import telegram
 from telegram.ext import Updater, CommandHandler
 from typing import Union
 
+from utils import login_to_api
 from utils import escape_string
 from utils import str2bool
 
@@ -94,7 +95,7 @@ class TelegramBOT:
 
             logging.info(f"Parsed /createMatch -> {data}")
 
-            res = requests.post(f"http://csgo_manager/api/team", json=data)
+            res = requests.post(f"http://csgo_manager/api/team", json=data, headers=login_to_api())
             if res.status_code == 200:
                 bot.send_message(chat_id, f"Successfully created team '{data['name']}' with tag '{data['tag']}'")
             else:
@@ -112,7 +113,7 @@ class TelegramBOT:
 
             data = {"steam_id": steam_id, "name": name}
 
-            res = requests.post("http://csgo_manager/api/player", json=data)
+            res = requests.post("http://csgo_manager/api/player", json=data, headers=login_to_api())
             if res.status_code == 200:
                 bot.send_message(chat_id,
                                  f"Successfully created player {data['name']} with steam id {data['steam_id']}")
@@ -127,7 +128,7 @@ class TelegramBOT:
 
             team_id = context.args[0]
 
-            res = requests.delete(f"http://csgo_manager/api/team/", params={"team_id": team_id})
+            res = requests.delete(f"http://csgo_manager/api/team/", params={"team_id": team_id}, headers=login_to_api())
 
             if res.status_code == 200:
                 bot.send_message(chat_id, f"Successfully deleted team {team_id}")
@@ -140,7 +141,7 @@ class TelegramBOT:
             chat_id = update.effective_chat["id"]
             user_id = update.effective_user["id"]
 
-            res = requests.get("http://csgo_manager/api/teams")
+            res = requests.get("http://csgo_manager/api/teams", headers=login_to_api())
             if res.status_code == 200:
                 parsed = json.loads(res.text)
                 result = f"Teams:\n```json\n{json.dumps(parsed, indent=4, ensure_ascii=False)}\n```"
@@ -154,7 +155,7 @@ class TelegramBOT:
             chat_id = update.effective_chat["id"]
             user_id = update.effective_user["id"]
 
-            res = requests.get("http://csgo_manager/api/players")
+            res = requests.get("http://csgo_manager/api/players", headers=login_to_api())
             if res.status_code == 200:
                 parsed = json.loads(res.text)
                 result = f"Players:\n```json\n{json.dumps(parsed, indent=4, ensure_ascii=False)}\n```"
@@ -168,7 +169,7 @@ class TelegramBOT:
             chat_id = update.effective_chat["id"]
             user_id = update.effective_user["id"]
 
-            res = requests.get("http://csgo_manager/api/matches")
+            res = requests.get("http://csgo_manager/api/matches", headers=login_to_api())
             if res.status_code == 200:
                 parsed = json.loads(res.text)
                 result = f"Matches:\n```json\n{json.dumps(parsed, indent=4, ensure_ascii=False)}\n```"
@@ -185,7 +186,7 @@ class TelegramBOT:
             team_id = context.args[0]
             player_id = context.args[1]
             data = {"team_id": team_id, "player_id": player_id}
-            res = requests.post(f"http://csgo_manager/api/teamAssignment", json=data)
+            res = requests.post(f"http://csgo_manager/api/teamAssignment", json=data, headers=login_to_api())
             if res.status_code == 200:
                 bot.send_message(chat_id, f"Successfully added player {player_id} to team {team_id}")
             else:
@@ -200,7 +201,7 @@ class TelegramBOT:
             team_id = context.args[0]
             player_id = context.args[1]
             data = {"team_id": team_id, "player_id": player_id}
-            res = requests.delete(f"http://csgo_manager/api/teamAssignment", json=data)
+            res = requests.delete(f"http://csgo_manager/api/teamAssignment", json=data, headers=login_to_api())
             if res.status_code == 200:
                 bot.send_message(chat_id, f"Successfully added player {player_id} to team {team_id}")
             else:
@@ -213,7 +214,8 @@ class TelegramBOT:
             user_id = update.effective_user["id"]
 
             team_id = context.args[0]
-            res = requests.get(f"http://csgo_manager/api/teamPlayers/", params={"team_id": team_id})
+            res = requests.get(f"http://csgo_manager/api/teamPlayers/", params={"team_id": team_id},
+                               headers=login_to_api())
             if res.status_code == 200:
                 parsed = json.loads(res.text)
                 result = f"Members:\n```json\n{json.dumps(parsed, indent=4, ensure_ascii=False)}\n```"
@@ -246,7 +248,7 @@ class TelegramBOT:
                     "check_auths": checkAuths}
 
             logging.info(f"Parsed POST /match -> {data}")
-            res = requests.post("http://csgo_manager/api/match", json=data)
+            res = requests.post("http://csgo_manager/api/match", json=data, headers=login_to_api())
             if res.status_code == 200:
                 bot.send_message(chat_id, res.text)
             else:
@@ -273,7 +275,7 @@ class TelegramBOT:
                     "competing": competing}
 
             logging.info(f"Parsed POST /competing -> {data}")
-            res = requests.post("http://csgo_manager/api/competing", json=data)
+            res = requests.post("http://csgo_manager/api/competing", json=data, headers=login_to_api())
             if res.status_code == 200:
                 bot.send_message(chat_id,
                                  f"Successfully set team {team_id} to **{'' if competing else 'not'} compete**",
@@ -391,10 +393,10 @@ def matchmaker():
         time.sleep(10)
         if matchmaking_enabled:
             free_teams = [(team["id"], team["elo"], team["tag"]) for team in
-                          requests.get("http://csgo_manager/api/freeTeams").json()]
+                          requests.get("http://csgo_manager/api/freeTeams", headers=login_to_api()).json()]
             all_matches = [(match["team1"], match["team2"]) for match in
                            list(filter(lambda x: 0 < x["finished"] < 3,
-                                       requests.get("http://csgo_manager/api/matches").json()))]
+                                       requests.get("http://csgo_manager/api/matches", headers=login_to_api()).json()))]
             logging.info(f"Found {len(free_teams)} free teams and {len(all_matches)} matches.")
             if len(free_teams) < 3:
                 continue
@@ -431,10 +433,11 @@ def matchmaker():
                 for match in start_matches])
             for match in start_matches:
                 data = {"team1": match[0], "team2": match[1], "best_of": 1, "check_auths": True}
-                # TODO requests.post("http://csgo_manager/api/match", json=data)
+                res = requests.post("http://csgo_manager/api/match", json=data, headers=login_to_api())
+                json_res = res.json()
                 name_length = max(len(match[-2]), len(match[-1]))
-                ip = "10.10.10.10"
-                port = "27015"
+                ip = json_res["ip"]
+                port = json_res["port"]
                 telegram_bot.send_announcement(f"New match created:\n"
                                                f"```text\n"
                                                f"{match[-2].ljust(name_length)} ELO: {match[4]}\n"
