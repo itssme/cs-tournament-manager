@@ -13,7 +13,7 @@ def count_event_type(event: Events) -> int:
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute("select count(*) from stats where type = %s", (event.value,))
             return cursor.fetchall()[0][0]
@@ -24,7 +24,7 @@ def player_with_most(event: Events) -> List[Tuple[str, int]]:
             host=os.getenv("DB_HOST", "db"),
             database="postgres",
             user="postgres",
-            password="pass") as conn:
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute(
                 "select player.name, count(*) from stats join player on stats.player = player.id where stats.type = %s group by player.name order by count(*) desc limit 5",
