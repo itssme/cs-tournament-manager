@@ -42,7 +42,8 @@ def demo_upload_ended(event: Dict):
 
     if os.getenv("EXTERNAL_IP", "127.0.0.1") != server.ip and server.ip != "host.docker.internal":
         logging.info(f"Shutting down remote container: server={server.ip}, match_id={match.matchid}")
-        res = requests.delete(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{server.ip}/api/match", json={"id": server.id}, timeout=60,
+        res = requests.delete(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{server.ip}/api/match", json={"id": server.id},
+                              timeout=60,
                               headers=auth_api.login_to_master_headers())
 
         if res.status_code == 200:
@@ -52,7 +53,7 @@ def demo_upload_ended(event: Dict):
             logging.error(f"Unable to stop container for match: {match}, server: {server} -> {res.text}")
     else:
         logging.info(f"Shutting down local container: server={server.ip}, match_id={match.matchid}")
-        server_manger.stop_match(server.id)
+        server_manger.stop_match(server.id, 2)
 
 
 def map_result(event: Dict):

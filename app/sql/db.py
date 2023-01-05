@@ -329,7 +329,7 @@ def get_free_teams() -> List[Team]:
             password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute(
-                "select * from team except select team.* from team join match on team.id = match.team1 or team.id = match.team2 where match.finished < 1 and team.competing = 1;")
+                "select * from team where team.competing != 1 except select team.* from team join match on team.id = match.team1 or team.id = match.team2 where match.finished < 1;")
             team_tuple_list = cursor.fetchall()
             return [DbObjImpl[Team]().from_tuple(team_tuple) for team_tuple in team_tuple_list]
 

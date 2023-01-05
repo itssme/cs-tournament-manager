@@ -394,14 +394,18 @@ class TelegramBOT:
             self.bot.send_message(chat_id=chat_id, text=text, parse_mode="MarkdownV2")
 
     def send_announcement(self, text):
-        for chat_id in self.chat_ids:
-            self.bot.send_message(chat_id=chat_id, text=text, parse_mode="MarkdownV2")
+        if os.getenv("PUBLIC_ID", "0") != "0":
+            self.bot.send_message(chat_id=int(os.getenv("PUBLIC_ID", "")), text=text, parse_mode="MarkdownV2")
+        self.send_admin(text)
 
 
 telegram_bot: Union[TelegramBOT, None] = None
 
 
 def matchmaker():
+    MAX_DIFF = 800
+    PLAY_PUNISH = 200
+
     # TODO refactor this mess
     logging.info("Starting matchmaker")
     while True:
@@ -429,7 +433,7 @@ def matchmaker():
                             matchups[team[0]][match[0] if match[0] != team[0] else match[1]] += 1
             logging.info(f"Matchups: {matchups}")
             match_combinations = [
-                [match, abs(match[0][1] - match[1][1]) + matchups[match[0][0]].get(match[1][0], 0) * 100] for
+                [match, abs(match[0][1] - match[1][1]) + matchups[match[0][0]].get(match[1][0], 0) * PLAY_PUNISH] for
                 match in list(itertools.combinations(free_teams, 2))]
             consider_matches = sorted(match_combinations, key=lambda x: x[1])
 
@@ -438,7 +442,7 @@ def matchmaker():
             logging.info(f"Consider matches: {consider_matches}")
             for potential_match in consider_matches:
                 if not potential_match[0][0][0] in matched_matches and not potential_match[0][1][0] in matched_matches \
-                        and abs(potential_match[0][0][1] - potential_match[0][1][1]) < 300:
+                        and abs(potential_match[0][0][1] - potential_match[0][1][1]) < MAX_DIFF:
                     matched_matches.add(potential_match[0][0][0])
                     matched_matches.add(potential_match[0][1][0])
                     start_matches.append((potential_match[0][0][0], potential_match[0][1][0],
@@ -457,14 +461,17 @@ def matchmaker():
                 name_length = max(len(match[-2]), len(match[-1]))
                 ip = json_res["ip"]
                 port = json_res["port"]
-                telegram_bot.send_announcement(f"New match created:\n"
-                                               f"```text\n"
-                                               f"{match[-2].ljust(name_length)} ELO: {match[4]}\n"
-                                               f"vs\n"
-                                               f"{match[-1].ljust(name_length)} ELO: {match[5]}\n"
-                                               f"Command: connect {ip}:{port}\n"
-                                               f"```"
-                                               f"Type `\\!ready` in the csgo chat as soon as you are ready to play\\.\n")
+                telegram_bot.send_announcement(escape_string(
+                    f"New match created:\n"
+                    f"```text\n"
+                    f"{match[-2].ljust(name_length)} ELO: {match[4]}\n"
+                    f"vs\n"
+                    f"{match[-1].ljust(name_length)} ELO: {match[5]}\n"
+                    f"Command: connect {ip}:{port}\n"
+                    f"```\n"
+                    f"Type `!ready` in the csgo chat as soon as you are ready to play.\n"
+                    f"See your stats at: csgo.robo4you.at\n"
+                ))
             logging.info(f"Starting matches: {start_matches}")
 
 
@@ -472,6 +479,7 @@ def main():
     global chat_ids
     global telegram_bot
     chat_ids.extend([int(elm) for elm in os.environ['CHAT_IDS'].split(",")])
+    logging.info(f"Chat ids: {chat_ids}")
     matchmaking_thread = threading.Thread(target=matchmaker)
     telegram_bot = TelegramBOT(os.environ['BOT_TOKEN'])
     matchmaking_thread.start()

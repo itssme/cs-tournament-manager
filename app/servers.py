@@ -31,11 +31,11 @@ class ServerManager:
         logging.info(f"Creating match in server manager: {match_cfg['matchid']}")
         return self.__start_container(match_cfg, loadbackup_url)
 
-    def stop_match(self, server_id: int):
+    def stop_match(self, server_id: int, finished: int = 3):
         container_name = db.get_server_by_id(server_id).container_name
         self.__stop_container_and_delete(container_name)
         match = db.get_match_by_serverid(server_id)
-        match.finished = 3
+        match.finished = finished
         match.update_attribute("finished")
         db.delete_server(server_id)
 
