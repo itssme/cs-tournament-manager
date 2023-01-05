@@ -1,5 +1,7 @@
+import json
 import logging
 import os
+import time
 
 import requests
 
@@ -30,7 +32,7 @@ def str2bool(v):
 
 
 def login_to_api() -> str:
-    logging.info(f"Logging in to master -> {os.getenv('MASTER_URL')}")
+    logging.info(f"Logging in to master -> {os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP')}/auth/token")
     session = requests.Session()
     res = session.post(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP')}/auth/token",
                        data={"username": "api_req", "password": os.getenv("API_PASSWORD", "admin")})
@@ -39,3 +41,18 @@ def login_to_api() -> str:
 
 def login_to_master_headers() -> dict:
     return {"Authorization": login_to_api()}
+
+
+def send_long_message(bot, message, chat_id):
+    if len(message.split("\n")) < 50:
+        logging.info(f"short message > {message}")
+        result = f"```json\n{message}\n```"
+        bot.send_message(chat_id, result, parse_mode="MarkdownV2")
+    else:
+        message_lines = message.split("\n")
+        bot.send_message(chat_id, "Teams:", parse_mode="MarkdownV2")
+        for i in range(0, len(message_lines), 50):
+            result = '\n'.join(message_lines[i:i + 50])
+            result = f"```json\n{result}\n```"
+            bot.send_message(chat_id, result, parse_mode="MarkdownV2")
+            time.sleep(2)
