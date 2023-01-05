@@ -34,6 +34,8 @@ services:
       - "host.docker.internal:host-gateway"
     environment:
       - MAX_WORKERS=10
+    env_file:
+      - ./master.env
   telegram_bot:
     depends_on:
       - csgo_manager

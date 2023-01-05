@@ -9,13 +9,12 @@ services:
       - ./teams.json:/app/teams.json
       - ./gslt.json:/app/gslt.json
       - ./demofiles:/demofiles
+      - ./backupfiles:/backupfiles
     ports:
       - 80:80
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
-      - MASTER=0
-      - DB_HOST=10.20.4.13
-      - MASTER_IP=10.20.4.13
-      - EXTERNAL_IP=10.20.6.125
       - MAX_WORKERS=10
+    env_file:
+      - ./slave.env
