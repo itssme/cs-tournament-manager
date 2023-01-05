@@ -27,7 +27,7 @@ def player_with_most(event: Events) -> List[Tuple[str, int]]:
             password=os.getenv("DB_PASSWORD", "pass")) as conn:
         with conn.cursor() as cursor:
             cursor.execute(
-                "select player.name, count(*) from stats join player on stats.player = player.id where stats.type = %s group by player.name order by count(*) desc limit 5",
+                "select player.name, count(*) from stats join player on stats.player = player.id where stats.type = %s group by player.name order by count(*) desc, player.name limit 5",
                 (event.value,))
             result = cursor.fetchall()
             if len(result) == 0:

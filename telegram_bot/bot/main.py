@@ -215,9 +215,9 @@ class TelegramBOT:
                                   json=data,
                                   headers=login_to_master_headers())
             if res.status_code == 200:
-                bot.send_message(chat_id, f"Successfully added player {player_id} to team {team_id}")
+                bot.send_message(chat_id, f"Successfully removed player {player_id} from team {team_id}")
             else:
-                bot.send_message(chat_id, f"Unable to add player to team: {res.status_code}, {res.text}")
+                bot.send_message(chat_id, f"Unable to remove player from team: {res.status_code}, {res.text}")
 
         @REQUIRE_AUTH
         def list_members(update, context):
