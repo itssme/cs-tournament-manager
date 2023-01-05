@@ -98,14 +98,30 @@ def series_end(event: Dict):
 def player_say(event: Dict):
     message = event["message"]
     logging.info(f"Player said: {message}")
-    if "!spin" in message:
-        logging.info("Spinning")
 
+    challenges = [
+        "You have to play with the car mouse",
+        "Your whole team can only use the Desert Eagle",
+        "Everyone has to switch to another setup",
+        "Everyone in your team has to switch headphones with someone else",
+        "Everyone in your team has to flip their headset",
+        "Your team is not allowed to use voice chat",
+        "Everyone has to multiply their sensitivity by 5",
+        "Everyone has to divide their sensitivity by 5",
+        "Your whole team can only use Shotguns",
+        "Your whole team has to set \"cl_draw_only_deathnotices\" to 1",
+        "Your whole team must hold down the \"W\" key all the time",
+        "Only one person in your team is allowed to fight at once",
+        "Your whole team has to play with the \"cl_crosshairsize 0\" set to 0",
+        "Your whole team has to mute the game"
+    ]
+
+    if "!spin" in message.lower():
         server = db.get_server_for_match(event["matchid"])
 
         with RCON(server.ip, server.port) as rconn:
-            rconn.exec_command("say spinning")
-            rconn.exec_command("say done")
+            rconn.exec_command("say A new challenge has been set for the team that used the command:")
+            rconn.exec_command("say " + random.choice(challenges))
 
 
 callbacks = {
