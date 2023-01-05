@@ -13,7 +13,7 @@ def escape_string(input_str: str) -> str:
     input_str = input_str.replace("(", "\\(")
     input_str = input_str.replace(")", "\\)")
     input_str = input_str.replace("~", "\\~")
-    input_str = input_str.replace("`", "\\`")
+    # input_str = input_str.replace("`", "\\`")
     input_str = input_str.replace(">", "\\>")
     input_str = input_str.replace("#", "\\#")
     input_str = input_str.replace("+", "\\+")

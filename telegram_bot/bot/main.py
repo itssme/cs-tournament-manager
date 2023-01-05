@@ -246,7 +246,7 @@ class TelegramBOT:
             if len(context.args) < 2 or len(context.args) > 4:
                 logging.error("/createMatch called with invalid amount of arguments.")
                 bot.send_message(chat_id,
-                                 escape_string("/createMatch called with invalid amount of arguments. See /help"),
+                                 "/createMatch called with invalid amount of arguments. See /help",
                                  parse_mode="MarkdownV2")
                 return
 
@@ -278,7 +278,7 @@ class TelegramBOT:
             if len(context.args) != 2:
                 logging.error("/setCompeting called with invalid amount of arguments.")
                 bot.send_message(chat_id,
-                                 escape_string("/setCompeting called with invalid amount of arguments. See /help"),
+                                 "/setCompeting called with invalid amount of arguments. See /help",
                                  parse_mode="MarkdownV2")
                 return
 
@@ -391,11 +391,12 @@ class TelegramBOT:
 
     def send_admin(self, text):
         for chat_id in self.chat_ids:
-            self.bot.send_message(chat_id=chat_id, text=text, parse_mode="MarkdownV2")
+            self.bot.send_message(chat_id=chat_id, text=escape_string(text), parse_mode="MarkdownV2")
 
     def send_announcement(self, text):
         if os.getenv("PUBLIC_ID", "0") != "0":
-            self.bot.send_message(chat_id=int(os.getenv("PUBLIC_ID", "")), text=text, parse_mode="MarkdownV2")
+            self.bot.send_message(chat_id=int(os.getenv("PUBLIC_ID", "")), text=escape_string(text),
+                                  parse_mode="MarkdownV2")
         self.send_admin(text)
 
 
@@ -461,7 +462,7 @@ def matchmaker():
                 name_length = max(len(match[-2]), len(match[-1]))
                 ip = json_res["ip"]
                 port = json_res["port"]
-                telegram_bot.send_announcement(escape_string(
+                telegram_bot.send_announcement(
                     f"New match created:\n"
                     f"```text\n"
                     f"{match[-2].ljust(name_length)} ELO: {match[4]}\n"
@@ -471,7 +472,7 @@ def matchmaker():
                     f"```\n"
                     f"Type `!ready` in the csgo chat as soon as you are ready to play.\n"
                     f"See your stats at: csgo.robo4you.at\n"
-                ))
+                )
             logging.info(f"Starting matches: {start_matches}")
 
 
