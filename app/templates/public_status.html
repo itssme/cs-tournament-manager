@@ -62,7 +62,7 @@
     }
 
     let animating = 0;
-    const maximum_animating = 3;
+    const maximum_animating = 5;
     let leaderboards = {
         "player_kills": {
             "name": "Player Kills",
@@ -211,7 +211,9 @@
     }
 
     function update_stats_player(update) {
-        if (update.new) {
+        animating_leaderboard[update.leaderboard] = true;
+
+        if (update.new && document.getElementById(update.id) === null) {
             const playerEl = document.createElement('div');
             playerEl.classList.add('bg-cyan-600', 'rounded-md', 'p-4', 'm-1', 'flex-auto', 'flex-nowarp', 'font-extrabold');
             playerEl.id = update.id;
@@ -222,18 +224,18 @@
 
         if (update.delete) {
             document.getElementById(update.id).remove();
+            animating_leaderboard[update.leaderboard] = false;
             return;
         }
 
         const player_value = document.getElementById(`${update.id}_value`);
-        if (player_value !== null) {
-            player_value.innerHTML = update.html;
-        }
+        player_value.innerHTML = update.html;
 
         let this_player = document.getElementById(update.id);
         let swap_player = document.getElementById(update.leaderboard).children[update.pos];
 
         if (this_player.id === swap_player.id) {
+            animating_leaderboard[update.leaderboard] = false;
             return;
         }
 
@@ -272,15 +274,14 @@
             }
         }
 
-        animating_leaderboard[update.leaderboard] = true;
-        swap_animation(this_player, swap_player, this_i, swap_i, container);
+        swap_animation(this_player, swap_player, this_i, swap_i, container, update.leaderboard);
     }
 
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    async function swap_animation(this_player, swap_player, this_i, swap_i, container) {
+    async function swap_animation(this_player, swap_player, this_i, swap_i, container, leaderboard_id) {
         let height_diff = 0;
 
         for (let i = Math.min(this_i, swap_i); i < Math.max(this_i, swap_i); i++) {
@@ -316,7 +317,7 @@
         swap_player.removeAttribute('style');
 
         await sleep(10);
-        animating_leaderboard["leaderboard_player_kills"] = false;
+        animating_leaderboard[leaderboard_id] = false;
     }
 
     function swapDom(a, b) {
@@ -362,11 +363,11 @@
                 <div class="text-4xl col-span-2 font-bold">${match.score[0]} : ${match.score[1]}</div>
                 <div class="text-base col-span-5 mt-1 justify-self-start flex items-center">${match.team_elo[1]} ELO</div>
               </div>
-              <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" href="steam://rungame/730/76561202255233023/+connect%20${match.server_ip}" >
-                 Connect
-              </button>
               <div class="text-sm mb-2">
                 Server IP: ${match.server_ip}
+              <a class="transition-colors bg-cyan-500 hover:bg-emerald-700 text-white p-1 font-extrabold rounded" href="steam://rungame/730/76561202255233023/+connect ${match.server_ip}" >
+                 Connect
+              </a>
               </div>
               <div class="text-sm">
                 Status: ${match.status}
@@ -508,7 +509,6 @@
                     }
 
                     if (!check_if_already_in_update_queue(new_update.id, new_update.html, new_update.pos)) {
-                        //update_queue.push(new_update);
                         add_updates.push(new_update);
                     }
                 });
@@ -558,6 +558,6 @@
     get_matches_and_teams();
     setInterval(get_stats, 1000);
     get_stats();
-    setInterval(process_update_queue, 200);
+    setInterval(process_update_queue, 50);
 </script>
 </html>

@@ -130,6 +130,7 @@ def setup_db():
     if os.getenv("MASTER", "1") != "1":
         logging.info("Not a master instance, wont create tables in db and ignore teams.json")
         return
+    return None
 
     logging.info("Creating tables..")
     connected = False
