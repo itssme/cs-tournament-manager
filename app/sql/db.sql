@@ -40,9 +40,10 @@ create table if not exists host
     ip text primary key
 );
 
-insert into host
-values ('host.docker.internal')
-on conflict do nothing;
+-- TODO: fix this after lan
+-- #insert into host
+-- values ('host.docker.internal')
+-- on conflict do nothing;
 
 create table if not exists server
 (
