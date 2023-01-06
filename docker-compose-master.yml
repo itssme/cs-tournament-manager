@@ -55,7 +55,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
-      - MAX_WORKERS=10
+      - MAX_WORKERS=20
     env_file:
       - ./master.env
   telegram_bot:

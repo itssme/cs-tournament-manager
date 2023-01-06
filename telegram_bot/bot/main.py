@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import random
 import threading
 import time
 import itertools
@@ -324,6 +325,17 @@ class TelegramBOT:
             matchmaking_enabled = False
             bot.send_message(chat_id, "Matchmaking disabled.")
 
+        @REQUIRE_AUTH
+        def announce(update, context):
+            global matchmaking_enabled
+            bot: telegram.bot.Bot = context.bot
+            chat_id = update.effective_chat["id"]
+            user_id = update.effective_user["id"]
+
+            announcement = " ".join(context.args)
+            logging.info("Announcement: " + announcement)
+            self.send_announcement("Announcement:\n" + announcement)
+
         dp.add_handler(CommandHandler("help", help_msgs,
                                       pass_args=True,
                                       pass_job_queue=True,
@@ -380,6 +392,10 @@ class TelegramBOT:
                                       pass_args=True,
                                       pass_job_queue=True,
                                       pass_chat_data=True))
+        dp.add_handler(CommandHandler("announce", announce,
+                                      pass_args=True,
+                                      pass_job_queue=True,
+                                      pass_chat_data=True))
 
         dp.add_error_handler(self.error)
         self.updater.start_polling()
@@ -423,6 +439,10 @@ def matchmaker():
             logging.info(f"Found {len(free_teams)} free teams and {len(all_matches)} matches.")
             if len(free_teams) < 3:
                 continue
+            if len(free_teams) % 2 == 1:
+                remove_team = random.randint(0, len(free_teams) - 1)
+                logging.info(f"Odd number of teams, removing one. {free_teams[remove_team]}")
+                del free_teams[remove_team]
             matchups = {}
             for team in free_teams:
                 matchups[team[0]] = {}

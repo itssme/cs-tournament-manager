@@ -24,7 +24,8 @@
         "name": "Kostiantyn Krolyk"
       }
     ],
-    "elo": 1045
+    "elo": 1045,
+    "competing": 0
   },
   {
     "name": "Faceit LVL 1",
@@ -51,7 +52,8 @@
         "name": "Marc Kühmayer"
       }
     ],
-    "elo": 1576
+    "elo": 1462,
+    "competing": 0
   },
   {
     "name": "airplebs",
@@ -78,7 +80,8 @@
         "name": "Koka"
       }
     ],
-    "elo": 1423
+    "elo": 1536,
+    "competing": 0
   },
   {
     "name": "Winton Overwat",
@@ -105,7 +108,8 @@
         "name": "Denis Golban"
       }
     ],
-    "elo": 1024
+    "elo": 1024,
+    "competing": 0
   },
   {
     "name": "SchnitzelBusters",
@@ -132,7 +136,8 @@
         "name": "Tobias Zamecnik"
       }
     ],
-    "elo": 1085
+    "elo": 1085,
+    "competing": 0
   },
   {
     "name": "PLATIN DRRACHE",
@@ -159,7 +164,8 @@
         "name": "Marco Schedel"
       }
     ],
-    "elo": 1240
+    "elo": 1240,
+    "competing": 0
   },
   {
     "name": "MOSFET",
@@ -186,7 +192,8 @@
         "name": "Tobias Kaltenegger"
       }
     ],
-    "elo": 1233
+    "elo": 1233,
+    "competing": 0
   },
   {
     "name": "Minussinus",
@@ -201,46 +208,20 @@
         "name": "Justin Geppert"
       },
       {
-        "steam_id": "STEAM_0:0:559364535",
-        "name": "Luis Doczi"
-      },
-      {
         "steam_id": "STEAM_0:1:427504362",
         "name": "Samuel Pfeffer"
       },
       {
         "steam_id": "STEAM_0:1:743369075",
         "name": "Marcel Pinter"
-      }
-    ],
-    "elo": 1020
-  },
-  {
-    "name": "The Tactical Terrorists",
-    "tag": "TTT",
-    "players": [
+      },
       {
         "steam_id": "STEAM_0:0:430334076",
         "name": "Yunus Emre Güclü"
-      },
-      {
-        "steam_id": "STEAM_0:1:507159404",
-        "name": "Elvin Sabani"
-      },
-      {
-        "steam_id": "STEAM_0:1:505794572",
-        "name": "Marcel Marijanovic"
-      },
-      {
-        "steam_id": "STEAM_0:1:151928158",
-        "name": "Samuel Nagy"
-      },
-      {
-        "steam_id": "STEAM_0:1:129584822",
-        "name": "Ilyas Teber"
       }
     ],
-    "elo": 1203
+    "elo": 1020,
+    "competing": 0
   },
   {
     "name": "Ez_cLaP",
@@ -267,7 +248,8 @@
         "name": "Aslan Abdüssamet"
       }
     ],
-    "elo": 1009
+    "elo": 1009,
+    "competing": 0
   },
   {
     "name": "TestingOne",
@@ -278,7 +260,8 @@
         "name": "Jöl"
       }
     ],
-    "elo": 1000
+    "elo": 1000,
+    "competing": 0
   },
   {
     "name": "TestingTwo",
@@ -297,6 +280,7 @@
         "name": "Sebastian Kawicher"
       }
     ],
-    "elo": 1000
+    "elo": 1000,
+    "competing": 0
   }
 ]
