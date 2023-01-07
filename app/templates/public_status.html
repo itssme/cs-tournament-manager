@@ -169,6 +169,8 @@
 
         for (let i = 0; i < update_queue.length; i++) {
             let update = update_queue[i];
+            console.log("Processed update", update);
+            update_queue.splice(i, 1);
             if (update.type === "match") {
                 update_match(update);
             } else if (update.type === "team") {
@@ -184,8 +186,6 @@
                 }
                 update_stats_player(update);
             }
-            console.log("Processed update", update);
-            update_queue.splice(i, 1);
             return;
         }
     }

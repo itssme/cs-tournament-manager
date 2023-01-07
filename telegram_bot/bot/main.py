@@ -420,8 +420,8 @@ telegram_bot: Union[TelegramBOT, None] = None
 
 
 def matchmaker():
-    MAX_DIFF = 800
-    PLAY_PUNISH = 200
+    MAX_DIFF = 10000
+    PLAY_PUNISH = 400
 
     # TODO refactor this mess
     logging.info("Starting matchmaker")

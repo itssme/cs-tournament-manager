@@ -18,7 +18,6 @@ class MatchConfig(dict):
         self["skip_veto"] = False
         self["veto_first"] = "team1"
         self["side_type"] = "standard"
-        self["players_per_team"] = 5
         self["min_players_to_ready"] = 1
         self["min_spectators_to_ready"] = 0
         self["maplist"] = ["de_anubis", "de_inferno", "de_mirage", "de_cbbl", "de_ancient", "de_vertigo", "de_overpass"]
@@ -81,15 +80,18 @@ class MatchGen:
         matchcfg.add_cvar("get5_demo_name_format", "{TIME}_{MATCHID}_map{MAPNUMBER}_{MAPNAME}")
         matchcfg.add_cvar("get5_kick_when_no_match_loaded", 1)
 
-        matchcfg.add_cvar("get5_remote_log_url", f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP', '127.0.0.1')}/api/csgo/")
+        matchcfg.add_cvar("get5_remote_log_url",
+                          f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP', '127.0.0.1')}/api/csgo/")
         matchcfg.add_cvar("get5_remote_log_header_key", "Authorization")
         matchcfg.add_cvar("get5_remote_log_header_value", auth_api.login_to_master())
 
-        matchcfg.add_cvar("get5_demo_upload_url", f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP', '127.0.0.1')}/api/demo")
+        matchcfg.add_cvar("get5_demo_upload_url",
+                          f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP', '127.0.0.1')}/api/demo")
         matchcfg.add_cvar("get5_demo_upload_header_key", "Authorization")
         matchcfg.add_cvar("get5_demo_upload_header_value", auth_api.login_to_master())
 
-        matchcfg.add_cvar("get5_remote_backup_url", f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP', '127.0.0.1')}/api/backup")
+        matchcfg.add_cvar("get5_remote_backup_url",
+                          f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP', '127.0.0.1')}/api/backup")
         matchcfg.add_cvar("get5_remote_backup_header_key", "Authorization")
         matchcfg.add_cvar("get5_remote_backup_header_value", auth_api.login_to_master())
 
