@@ -36,7 +36,7 @@ def set_api_routes(app, cache):
                      "status": get5_stats["gamestate"]})
 
         for team in db.get_teams():
-            if team.competing != 1:
+            if team.competing != 2:
                 wins = 0
                 losses = 0
                 draws = 0  # currently not used
