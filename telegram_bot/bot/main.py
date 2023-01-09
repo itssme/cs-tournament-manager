@@ -420,6 +420,7 @@ telegram_bot: Union[TelegramBOT, None] = None
 
 
 def matchmaker():
+    # TODO: make these variables configurable via env vars or the telegram bot
     MAX_DIFF = 10000
     PLAY_PUNISH = 400
 
