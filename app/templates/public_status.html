@@ -558,6 +558,17 @@
     get_matches_and_teams();
     setInterval(get_stats, 1000);
     get_stats();
-    setInterval(process_update_queue, 50);
+
+    function process_update_queue_wrapper() {
+        try {
+            process_update_queue();
+        } catch (e) {
+            // TODO: maybe send error to server and log there
+            console.log(e);
+            location.reload();
+        }
+    }
+
+    setInterval(process_update_queue_wrapper, 50);
 </script>
 </html>
