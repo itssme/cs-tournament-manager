@@ -40,11 +40,6 @@ create table if not exists host
     ip text primary key
 );
 
--- TODO: fix this after lan
--- #insert into host
--- values ('host.docker.internal')
--- on conflict do nothing;
-
 create table if not exists server
 (
     id             serial primary key,

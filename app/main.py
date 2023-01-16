@@ -362,6 +362,18 @@ async def delete_player(request: Request, player_id: int):
     db.update_config()
 
 
+@api.post("/host")
+async def add_host(request: Request, host: str):
+    logging.info(f"Called POST /host host: {host}")
+    db.insert_host(host)
+
+
+@api.delete("/host")
+async def delete_host(request: Request, host: str):
+    logging.info(f"Called DELETE /host host: {host}")
+    db.delete_host(host)
+
+
 @api.post("/demo")
 async def upload_demo(request: Request):
     if "get5-filename" in request.headers.keys():

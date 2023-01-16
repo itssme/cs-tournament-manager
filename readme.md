@@ -36,23 +36,27 @@ config file will be transferred and loaded to the csgo server. It also displays 
   using the servers in a LAN setting, you can simply create the file and leave the list empty (like: `[]`) and then the
   server manager will start the CSGO servers without a GSLT Token. (More information about GSLT
   Tokens: https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Dedicated_Servers)
++ Create a postgres.env file with the following content:
+  ```
+  POSTGRES_USER=postgres
+  POSTGRES_PASSWORD=pass
+  POSTGRES_DB=postgres
+  ```
 
 ### 3. Telegram BOT
 
 + Create .env file in the folder `telegram_bot/.env`
 + Fill it with the following content:
-
-```env
-BOT_TOKEN=your_token_here
-CHAT_IDS="chat_id_1,chat_id_2..."
-```
-
+  ```env
+  BOT_TOKEN=your_token_here
+  CHAT_IDS="chat_id_1,chat_id_2..."
+  ```
 + The first line is the telegram bot token of your bot. The second line specifies who has access to the bot and can send
   messages/ commands to it. If you are not sure what your chat_id is, then leave the field empty for the time being and
   run
   the bot only with the bot token. Then add your bot and type `/help` in the chat. Look at the log output of the
   software, and you will see your chat_id printed there.
-+ (todo) Start group phase matchmaking
++ Start group phase matchmaking using the command ```/startMatchmaking```
 
 ### 4. Start the software
 
@@ -66,12 +70,14 @@ CHAT_IDS="chat_id_1,chat_id_2..."
 that of a VPN network)
 
 + Connect to the server, on the ip shown in the webinterface/ on telegram
++ Webinterface: Public Webinterface containing stats is available at: /public/stats
++ Admin webinterface is available at: /auth/login (login there and get redirected to the admin webinterface)
 
 ### ELO
 
 Currently, an ELO rating system for teams is being implemented.
 
-## Multiple Game Hosts
+## Multiple Game Hosts (still in development)
 
 Set the following environment variables in the slave docker-compose file for the csgo_manager:
 

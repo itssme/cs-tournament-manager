@@ -57,7 +57,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
-      - MAX_WORKERS=20
+      - MAX_WORKERS=1 # TODO: fix the loading of the sql schema and then scale this correctly again
     env_file:
       - ./master.env
   telegram_bot:

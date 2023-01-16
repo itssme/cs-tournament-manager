@@ -40,5 +40,10 @@ def set_routes(app, templates):
     @app.get("/config", response_class=HTMLResponse)
     async def config(request: Request, current_user: auth_api.User = Depends(auth_api.get_current_user)):
         teams = [team.to_json() for team in db.get_teams()]
-        servers = [host for host in db.get_hosts()]
+        servers = db.get_hosts()
+
+        if len(servers) == 0:
+            db.insert_host(os.getenv("EXTERNAL_IP", "host.docker.internal"))
+            servers = db.get_hosts()
+
         return templates.TemplateResponse("config.html", {"request": request, "teams": teams, "servers": servers})

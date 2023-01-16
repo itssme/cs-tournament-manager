@@ -130,8 +130,8 @@ def setup_db():
     if os.getenv("MASTER", "1") != "1":
         logging.info("Not a master instance, wont create tables in db and ignore teams.json")
         return
-    return None
 
+    # TODO: fix this
     logging.info("Creating tables..")
     connected = False
 
@@ -481,7 +481,13 @@ def get_least_used_host_ips():
             cursor.execute(
                 "select host.* from host left join server on host.ip = server.ip group by host.ip order by count(server.ip) asc")
             host_list = cursor.fetchall()
-            logging.info(host_list)
+            if len(host_list) == 0:
+                logging.info(
+                    f"get_least_used_host_ips: no hosts found -> inserting external ip or default value: {os.getenv('EXTERNAL_IP', 'host.docker.internal')}")
+                insert_host(os.getenv("EXTERNAL_IP", "host.docker.internal"))
+                return get_least_used_host_ips()
+
+            logging.info(f"get_least_used_host_ips: {host_list}")
             return host_list[0][0]
 
 
@@ -503,3 +509,23 @@ def update_config():
 
     with open("teams.json", mode="w", encoding="utf-8") as outfile:
         json.dump(team_config, outfile, indent=2, ensure_ascii=False)
+
+
+def insert_host(host_ip: str):
+    with psycopg2.connect(
+            host=os.getenv("DB_HOST", "db"),
+            database="postgres",
+            user="postgres",
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("insert into host (ip) values (%s)", (host_ip,))
+
+
+def delete_host(host_ip: str):
+    with psycopg2.connect(
+            host=os.getenv("DB_HOST", "db"),
+            database="postgres",
+            user="postgres",
+            password=os.getenv("DB_PASSWORD", "pass")) as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("delete from host where ip = %s", (host_ip,))
