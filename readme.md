@@ -3,9 +3,11 @@
 ## Status
 
 The software has been developed for the airlan21 (25.06.2021). A small csgo tournament organized for
-team-building by robo4you.at.
+team-building by robo4you.at. It was also used at the airlan23 winter (07.01.2023).
 
-**Currently, it is being updated and rewritten** for the 'airlan Winter Edition' which will take place in early January 2023.
+**Currently, it is being updated and rewritten** for the 'airLAN23 Summer' which will take place in mid 2023.
+
+**This software is still more in development than it is production ready**
 
 ## What does this software do?
 
@@ -106,7 +108,16 @@ Connect to the master on port :8080 and login to adminer. The username and datab
 
 If the ENV variables here are changed, you will also need to set them in the slave instances.
 
-## Banned Players
+Note: Most of these security measures only make sense if you also use https. So putting the software behind a haproxy etc. will be nessasary.
+
+# Major TOODS
+
++ refactor backend structure, split functionality into different services, e.g. stats collecting, match management etc.
++ clearer seperation between master and slaves, maybe only management instance is the real "master" and all other servers only host games and provide nothing else
++ improve matchamking algorithm and document it better/ at all
++ improve api security
+
+# Banned Players
 
 | SteamID             | Reason                              |
 |---------------------|-------------------------------------|
