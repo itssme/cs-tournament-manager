@@ -24,7 +24,7 @@ class Events(Enum):
     friendly_flash = 14  # event derived from flashbang_detonated, this event says a player has flashed a teammate
     headshot_kills = 15  # event derived from player_death, this event says a player has killed someone with a headshot
 
-
+# needs to be synced with frontend (ART service)
 event_map = {
     "round_mvp": Events.round_mvp,
     "grenade_thrown": Events.grenade_thrown,
