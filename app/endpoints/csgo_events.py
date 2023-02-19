@@ -3,15 +3,14 @@ import logging
 import os
 import random
 from typing import Dict
-from time import sleep
 
 import requests
 from fastapi import Request, Depends
 
 from endpoints import csgo_stats_event, auth_api
-from rcon import RCON
+from utils.rcon import RCON
 from servers import ServerManager
-from sql import db
+from utils import db
 from elo import calculate_elo
 
 server_manger: ServerManager = None

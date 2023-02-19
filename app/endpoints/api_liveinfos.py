@@ -4,8 +4,8 @@ from starlette.responses import JSONResponse
 
 from endpoints import public_routes, auth_api
 from endpoints.csgo_stats_event import event_map
-from rcon import get5_status, RCON
-from sql import db, db_stats
+from utils.rcon import get5_status, RCON
+from utils import db_stats, db
 
 
 def set_api_routes(app, cache):

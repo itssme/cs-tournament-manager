@@ -1,11 +1,9 @@
-import logging
 import os
 from typing import Tuple, List
 
 import psycopg2
 
 from endpoints.csgo_stats_event import Events
-from sql.db import DbObjImpl, Stats
 
 
 def count_event_type(event: Events) -> int:

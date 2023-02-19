@@ -1,9 +1,7 @@
-import logging
 from enum import Enum
 from typing import Dict
 
-from sql import db
-import requests
+from utils import db
 
 
 class Events(Enum):

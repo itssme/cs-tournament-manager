@@ -1,14 +1,11 @@
-import logging
 import os
-import time
 
 from fastapi import Depends
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, HTMLResponse
 
 from endpoints import auth_api
-from endpoints import auth_api
-from sql import db
+from utils import db
 
 
 def set_routes(app, templates):

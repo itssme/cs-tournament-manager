@@ -3,7 +3,7 @@ import os
 import time
 
 from endpoints import auth_api
-from sql import db
+from utils import db
 
 
 class MatchConfig(dict):
