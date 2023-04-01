@@ -3,13 +3,11 @@ services:
   csgo_manager:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: app/Dockerfile
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./teams.json:/app/teams.json
       - ./gslt.json:/app/gslt.json
-      - ./demofiles:/demofiles
-      - ./backupfiles:/backupfiles
     ports:
       - 80:80
     extra_hosts:
@@ -17,4 +15,4 @@ services:
     environment:
       - MAX_WORKERS=10
     env_file:
-      - ./slave.env
+      - ./csgo_host.env

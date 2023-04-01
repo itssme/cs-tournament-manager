@@ -1,3 +1,3 @@
-[submodule "app/utils"]
-	path = app/utils
+[submodule "webserver/utils"]
+	path = webserver/utils
 	url = git@github.com:itssme/airlan-utils.git

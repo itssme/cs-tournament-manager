@@ -44,10 +44,9 @@ services:
       - db
       - redis
     build:
-      context: .
+      context: app
       dockerfile: Dockerfile
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
       - ./gslt.json:/app/gslt.json
       - ./demofiles:/demofiles
       - ./backupfiles:/backupfiles
@@ -58,7 +57,7 @@ services:
     environment:
       - MAX_WORKERS=10
     env_file:
-      - ./master.env
+      - ./webserver.env
   telegram_bot:
     depends_on:
       - csgo_manager
