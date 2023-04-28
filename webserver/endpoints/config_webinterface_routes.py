@@ -1,31 +1,32 @@
 import os
 
 from fastapi import Depends
+from playhouse.shortcuts import model_to_dict
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, HTMLResponse
 
 from endpoints import auth_api
-from utils import db
+from utils import db, db_models
 
 
 def set_routes(app, templates):
-    @app.get("/", response_class=RedirectResponse)
-    async def redirect_index():
-        return "/public/status"
+    @app.get("/")
+    def redirect_index():
+        return RedirectResponse("/public/status")
 
-    @app.get("/status", response_class=HTMLResponse)
-    async def status(request: Request, current_user: auth_api.User = Depends(auth_api.get_current_user)):
-        gameserver = [server.to_json() for server in db.get_servers()]
+    @app.get("/status", response_class=HTMLResponse, dependencies=[Depends(db.get_db)])
+    def status(request: Request, current_user: db_models.Account = Depends(auth_api.get_current_user)):
+        gameserver = [model_to_dict(server) for server in db_models.Server.select()]
         demos = os.listdir(os.getenv("DEMO_FILE_PATH", "/demofiles"))
         return templates.TemplateResponse("status.html", {"request": request, "gameserver": gameserver, "demos": demos})
 
-    @app.get("/demos", response_class=HTMLResponse)
-    async def demos(request: Request, current_user: auth_api.User = Depends(auth_api.get_current_user)):
+    @app.get("/demos", response_class=HTMLResponse, dependencies=[Depends(db.get_db)])
+    def demos(request: Request, current_user: db_models.Account = Depends(auth_api.get_current_user)):
         demos = os.listdir(os.getenv("DEMO_FILE_PATH", "/demofiles"))
         return templates.TemplateResponse("demos.html", {"request": request, "demos": demos})
 
-    @app.get("/backups", response_class=HTMLResponse)
-    async def backups(request: Request, current_user: auth_api.User = Depends(auth_api.get_current_user)):
+    @app.get("/backups", response_class=HTMLResponse, dependencies=[Depends(db.get_db)])
+    def backups(request: Request, current_user: db_models.Account = Depends(auth_api.get_current_user)):
         backups = os.listdir(os.getenv("BACKUP_FILE_PATH", "/backupfiles"))
         try:
             backups = sorted(sorted(backups, key=lambda backup: int(backup.split("_")[-3])))
@@ -34,13 +35,9 @@ def set_routes(app, templates):
 
         return templates.TemplateResponse("backups.html", {"request": request, "backups": backups})
 
-    @app.get("/config", response_class=HTMLResponse)
-    async def config(request: Request, current_user: auth_api.User = Depends(auth_api.get_current_user)):
-        teams = [team.to_json() for team in db.get_teams()]
-        servers = db.get_hosts()
-
-        if len(servers) == 0:
-            db.insert_host(os.getenv("EXTERNAL_IP", "host.docker.internal"))
-            servers = db.get_hosts()
+    @app.get("/config", response_class=HTMLResponse, dependencies=[Depends(db.get_db)])
+    def config(request: Request, current_user: db_models.Account = Depends(auth_api.get_current_user)):
+        teams = [model_to_dict(team) for team in db_models.Team.select()]
+        servers = [model_to_dict(server) for server in db_models.Server.select()]
 
         return templates.TemplateResponse("config.html", {"request": request, "teams": teams, "servers": servers})

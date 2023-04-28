@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Dict
 
-from utils import db
+from utils import db, db_models
 
 
 class Events(Enum):
@@ -21,6 +21,7 @@ class Events(Enum):
     player_flashed = 13  # event derived from flashbang_detonated, this event says a player has been flashed
     friendly_flash = 14  # event derived from flashbang_detonated, this event says a player has flashed a teammate
     headshot_kills = 15  # event derived from player_death, this event says a player has killed someone with a headshot
+
 
 # needs to be synced with frontend (ART service)
 event_map = {
@@ -62,35 +63,29 @@ def commid_to_steamid(commid):
 def stats_event(event: Dict):
     event_type = event_map[event["event"]]
 
-    match = db.get_match_by_matchid(event["matchid"])
-    if event_type != Events.bomb_exploded:
+    match: db_models.Match = db_models.Match.select().where(db_models.Match.matchid == event["matchid"]).get()
+    if event_type != Events.bomb_exploded:  # Events with player reference
         player = db.get_player_by_steam_id(commid_to_steamid(event["player"]["steamid"]))
-        stats = db.Stats(None, match.id, player.id, event_type.value)
-        stats.insert_into_db()
+        db_models.Stats.create(match=match, player=player, event=event_type.value)
 
         if event_type == Events.player_death:
             player = db.get_player_by_steam_id(commid_to_steamid(event["attacker"]["steamid"]))
 
             if event["friendly_fire"]:
-                stats = db.Stats(None, match.id, player.id, Events.friendly_fire.value)
-                stats.insert_into_db()
+                db_models.Stats.create(match=match, player=player, event=Events.friendly_fire.value)
             else:
-                stats = db.Stats(None, match.id, player.id, Events.player_kills.value)
-                stats.insert_into_db()
+                db_models.Stats.create(match=match, player=player, event=Events.player_kills.value)
 
                 if event["headshot"]:
-                    stats = db.Stats(None, match.id, player.id, Events.headshot_kills.value)
-                    stats.insert_into_db()
+                    db_models.Stats.create(match=match, player=player,
+                                           event=Events.headshot_kills.value)
 
         if event_type == Events.flashbang_detonated:
             for victim in event["victims"]:
                 player_victim = db.get_player_by_steam_id(commid_to_steamid(victim["player"]["steamid"]))
-                stats = db.Stats(None, match.id, player_victim.id, Events.player_flashed.value)
-                stats.insert_into_db()
+                db_models.Stats.create(match=match, player=player_victim, event=Events.player_flashed.value)
 
                 if victim["friendly_fire"]:
-                    stats = db.Stats(None, match.id, player.id, Events.friendly_flash.value)
-                    stats.insert_into_db()
-    else:
-        stats = db.Stats(None, match.id, None, event_type.value)
-        stats.insert_into_db()
+                    db_models.Stats.create(match=match, player=player_victim, event=Events.friendly_flash.value)
+    else:  # Events without player reference
+        db_models.Stats.create(match=match, event=event_type.value)

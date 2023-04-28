@@ -1,36 +1,12 @@
 version: '3'
 services:
   db:
-    build:
-      context: app/utils/postgres
-      dockerfile: Dockerfile
+    image: postgres
     restart: unless-stopped
     ports:
       - 5432:5432
     env_file:
-      - app/utils/postgres/postgres.env
-  pgbackups:
-    image: prodrigestivill/postgres-backup-local
-    restart: always
-    user: postgres:postgres
-    volumes:
-      - /var/opt/pgbackups:/backups
-    links:
-      - db
-    depends_on:
-      - db
-    environment:
-      - POSTGRES_HOST=db
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_EXTRA_OPTS=-Z6 --schema=public --blobs
-      - SCHEDULE=@every 0h15m00s
-      - BACKUP_KEEP_DAYS=7
-      - BACKUP_KEEP_WEEKS=4
-      - BACKUP_KEEP_MONTHS=6
-      - HEALTHCHECK_PORT=8080
-    env_file:
-      - app/utils/postgres/postgres.env
+      - webserver/utils/postgres/postgres.env
   adminer:
     image: adminer
     restart: unless-stopped
@@ -44,7 +20,7 @@ services:
       - db
       - redis
     build:
-      context: app
+      context: webserver
       dockerfile: Dockerfile
     volumes:
       - ./gslt.json:/app/gslt.json
@@ -56,8 +32,6 @@ services:
       - "host.docker.internal:host-gateway"
     environment:
       - MAX_WORKERS=10
-    env_file:
-      - ./webserver.env
   telegram_bot:
     depends_on:
       - csgo_manager

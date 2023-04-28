@@ -7,13 +7,15 @@ from playhouse.shortcuts import model_to_dict
 from starlette.responses import JSONResponse
 from fastapi import FastAPI, Request, HTTPException, Depends
 
+from endpoints import auth_api
 from utils import db_models, db
 from utils.json_objects import *
 
 
 def set_api_routes(app, cache, server_manger):
-    @app.post("/team")
-    async def create_team(request: Request, team: TeamInfo):  # TODO: maybe make put? And use post only to update?
+    @app.post("/team", dependencies=[Depends(db.get_db)])
+    def create_team(request: Request, team: TeamInfo, current_user: db_models.Account = Depends(
+        auth_api.get_admin_user)):  # TODO: maybe make put? And use post only to update?
         logging.info(
             f"Called POST /team with TeamInfo: TeamName: '{team.name}', TeamTag: '{team.tag}'")
 
@@ -22,19 +24,22 @@ def set_api_routes(app, cache, server_manger):
 
         db_models.Team.create(name=team.name, tag=team.tag)
 
-    @app.post("/player")
-    async def create_player(request: Request, player: PlayerInfo):
+    @app.post("/player", dependencies=[Depends(db.get_db)])
+    def create_player(request: Request, player: PlayerInfo,
+                            current_user: db_models.Account = Depends(auth_api.get_admin_user)):
         logging.info(f"Called POST /player with PlayerInfo: PlayerName: '{player.name}', SteamID: '{player.steam_id}'")
 
         db.insert_player_or_set_id(db.Player(name=player.name, steam_id=player.steam_id))
 
-    @app.get("/teamPlayers")
-    async def get_team_players(request: Request, team_id: int):
+    @app.get("/teamPlayers", dependencies=[Depends(db.get_db)])
+    def get_team_players(request: Request, team_id: int,
+                               current_user: db_models.Account = Depends(auth_api.get_admin_user)):
         logging.info(f"Called GET /teamPlayers for team: {team_id}")
         return [team_player.to_json() for team_player in db.get_team_players(team_id)]
 
-    @app.post("/teamAssignment")
-    async def create_team_assignment(request: Request, team_assignment: TeamAssignmentInfo):
+    @app.post("/teamAssignment", dependencies=[Depends(db.get_db)])
+    def create_team_assignment(request: Request, team_assignment: TeamAssignmentInfo,
+                                     current_user: db_models.Account = Depends(auth_api.get_admin_user)):
         logging.info(
             f"Called POST /teamAssignment with TeamAssignmentInfo: TeamID: '{team_assignment.team_id}', PlayerID: '{team_assignment.player_id}'")
         team = db.get_team_by_id(team_assignment.team_id)
@@ -42,8 +47,9 @@ def set_api_routes(app, cache, server_manger):
         db.insert_team_assignment_if_not_exists(team, player)
         db.update_config()
 
-    @app.delete("/teamAssignment")
-    async def delete_team_assignment(request: Request, team_assignment: TeamAssignmentInfo):
+    @app.delete("/teamAssignment", dependencies=[Depends(db.get_db)])
+    def delete_team_assignment(request: Request, team_assignment: TeamAssignmentInfo,
+                                     current_user: db_models.Account = Depends(auth_api.get_admin_user)):
         logging.info(
             f"Called DELETE /teamAssignment with TeamAssignment: TeamID: '{team_assignment.team_id}', PlayerID: '{team_assignment.player_id}'")
         team = db.get_team_by_id(team_assignment.team_id)
@@ -51,37 +57,41 @@ def set_api_routes(app, cache, server_manger):
         db.delete_team_assignment(team, player)
         db.update_config()
 
-    @app.delete("/team")
-    async def delete_team(request: Request, team_id: int):
+    @app.delete("/team", dependencies=[Depends(db.get_db)])
+    def delete_team(request: Request, team_id: int,
+                          current_user: db_models.Account = Depends(auth_api.get_admin_user)):
         logging.info(f"Called DELETE /team player_id: {team_id}")
 
         db.delete_team(team_id)
         db.update_config()
 
-    @app.post("/competing", response_class=JSONResponse)
-    async def set_competing(request: Request, competing_info: CompetingInfo):
+    @app.post("/competing", response_class=JSONResponse, dependencies=[Depends(db.get_db)])
+    def set_competing(request: Request, competing_info: CompetingInfo,
+                            current_user: db_models.Account = Depends(auth_api.get_admin_user)):
         team = db.get_team_by_id(competing_info.team_id)
         team.competing = competing_info.competing
         team.update_attribute("competing")
 
-    @app.delete("/player")
-    async def delete_player(request: Request, player_id: int):
+    @app.delete("/player", dependencies=[Depends(db.get_db)])
+    def delete_player(request: Request, player_id: int,
+                            current_user: db_models.Account = Depends(auth_api.get_admin_user)):
         logging.info(f"Called DELETE /player player_id: {player_id}")
         db.delete_player(player_id)
         db.update_config()
 
-    @app.post("/host")
-    async def add_host(request: Request, host: str):
+    @app.post("/host", dependencies=[Depends(db.get_db)])
+    def add_host(request: Request, host: str, current_user: db_models.Account = Depends(auth_api.get_admin_user)):
         logging.info(f"Called POST /host host: {host}")
         db.insert_host(host)
 
-    @app.delete("/host")
-    async def delete_host(request: Request, host: str):
+    @app.delete("/host", dependencies=[Depends(db.get_db)])
+    def delete_host(request: Request, host: str,
+                          current_user: db_models.Account = Depends(auth_api.get_admin_user)):
         logging.info(f"Called DELETE /host host: {host}")
         db.delete_host(host)
 
-    @app.post("/demo")
-    async def upload_demo(request: Request):
+    @app.post("/demo", dependencies=[Depends(db.get_db)])
+    def upload_demo(request: Request, current_user: db_models.Account = Depends(auth_api.get_admin_user)):
         if "get5-filename" in request.headers.keys():
             logging.info(f"get5-filename: {request.headers['get5-filename']}")
             filename = os.path.split(request.headers["get5-filename"])[-1]
@@ -98,8 +108,8 @@ def set_api_routes(app, cache, server_manger):
         logging.info(f"Done writing file: {filename}")
         return {"filename": filename}
 
-    @app.post("/backup")
-    async def upload_backup(request: Request):
+    @app.post("/backup", dependencies=[Depends(db.get_db)])
+    def upload_backup(request: Request, current_user: db_models.Account = Depends(auth_api.get_admin_user)):
         if "get5-filename" in request.headers.keys():
             logging.info(f"get5-filename: {request.headers['get5-filename']}")
             filename = os.path.split(request.headers["get5-filename"])[-1]
