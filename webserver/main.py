@@ -18,7 +18,7 @@ from endpoints.db_endpoints import get
 from utils.rcon import RCON
 from servers import ServerManager
 from match_conf_gen import MatchGen
-from utils import db
+from utils import db, db_models
 
 from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.staticfiles import StaticFiles
@@ -93,19 +93,6 @@ async def startup():
     FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
 
 
-@api.post("/slay", response_class=JSONResponse)
-async def slay_player(request: Request, slay: SlayPlayer,
-                      current_user: auth_api.User = Depends(auth_api.get_current_user)):
-    logging.info(f"Slaying player: {slay.player_name} on server: ip={slay.server_ip} port={slay.server_port}")
-    try:
-        with RCON(slay.server_ip, slay.server_port) as rconn:
-            logging.info(rconn.exec_command(f"sm_slay {slay.player_name}"))
-    except ConnectionError as e:
-        logging.error(f"Unable to slay player: {e}")
-        return {"error": "Unable to connect to this server"}
-    return {"status": 0}
-
-
 @api.post("/rcon", response_class=JSONResponse)
 async def rcon(request: Request, rcon_command: RconCommand,
                current_user: auth_api.User = Depends(auth_api.get_current_user)):
@@ -121,10 +108,15 @@ async def rcon(request: Request, rcon_command: RconCommand,
 
 
 @api.post("/pause", response_class=JSONResponse)
-async def status(request: Request, server: ServerID, current_user: auth_api.User = Depends(auth_api.get_current_user)):
-    logging.info(f"Running command: pause on server: id={server.id}")
+async def pause(request: Request, server_id: ServerID,
+                current_user: auth_api.User = Depends(auth_api.get_current_user)):
+    logging.info(f"Running command: pause on server: id={server_id.id}")
 
-    server = db.get_server_by_id(server.id)
+    server = db_models.Server.select().where(db_models.Server.id == server_id.id).get_or_none()
+    if server is None:
+        logging.error(f"Unable to find server with id: {server_id.id}")
+        raise HTTPException(status_code=404, detail="Server not found")
+
     try:
         with RCON(server.ip, server.port) as rconn:
             res = rconn.exec_command("sm_pause")
@@ -135,10 +127,15 @@ async def status(request: Request, server: ServerID, current_user: auth_api.User
 
 
 @api.post("/unpause", response_class=JSONResponse)
-async def status(request: Request, server: ServerID, current_user: auth_api.User = Depends(auth_api.get_current_user)):
-    logging.info(f"Running command: unpause on server: id={server.id}")
+async def unpause(request: Request, server_id: ServerID,
+                  current_user: auth_api.User = Depends(auth_api.get_current_user)):
+    logging.info(f"Running command: unpause on server: id={server_id.id}")
 
-    server = db.get_server_by_id(server.id)
+    server = db_models.Server.select().where(db_models.Server.id == server_id.id).get_or_none()
+    if server is None:
+        logging.error(f"Unable to find server with id: {server_id.id}")
+        raise HTTPException(status_code=404, detail="Server not found")
+
     try:
         with RCON(server.ip, server.port) as rconn:
             res = rconn.exec_command("sm_unpause")

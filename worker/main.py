@@ -18,7 +18,7 @@ from endpoints.db_endpoints import get
 from utils.rcon import RCON
 from servers import ServerManager
 from match_conf_gen import MatchGen
-from utils import db
+from utils import db, db_models
 
 from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.staticfiles import StaticFiles
@@ -45,48 +45,6 @@ error_routes.set_api_routes(api)
 auth_api.set_api_routes(auth, templates)
 
 
-@api.post("/rcon", response_class=JSONResponse)
-async def rcon(request: Request, rcon_command: RconCommand,
-               current_user: auth_api.User = Depends(auth_api.get_current_user)):
-    logging.info(
-        f"Running command: {rcon_command.rcon} on server: ip={rcon_command.server_ip} port={rcon_command.server_port}")
-    try:
-        with RCON(rcon_command.server_ip, rcon_command.server_port) as rconn:
-            res = rconn.exec_command(rcon_command.rcon)
-    except ConnectionError as e:
-        logging.error(f"Unable to run rcon command: {e}")
-        return {"error": "Unable to connect to this server"}
-    return res
-
-
-@api.post("/pause", response_class=JSONResponse)
-async def status(request: Request, server: ServerID, current_user: auth_api.User = Depends(auth_api.get_current_user)):
-    logging.info(f"Running command: pause on server: id={server.id}")
-
-    server = db.get_server_by_id(server.id)
-    try:
-        with RCON(server.ip, server.port) as rconn:
-            res = rconn.exec_command("sm_pause")
-    except ConnectionError as e:
-        logging.error(f"Unable to run pause rcon command: {e}")
-        return {"error": "Unable to connect to this server"}
-    return res
-
-
-@api.post("/unpause", response_class=JSONResponse)
-async def status(request: Request, server: ServerID, current_user: auth_api.User = Depends(auth_api.get_current_user)):
-    logging.info(f"Running command: unpause on server: id={server.id}")
-
-    server = db.get_server_by_id(server.id)
-    try:
-        with RCON(server.ip, server.port) as rconn:
-            res = rconn.exec_command("sm_unpause")
-    except ConnectionError as e:
-        logging.error(f"Unable to run unpause rcon command: {e}")
-        return {"error": "Unable to connect to this server"}
-    return res
-
-
 @api.post("/match")
 async def create_match(request: Request, match: MatchInfo):
     logging.info(
@@ -97,7 +55,11 @@ async def create_match(request: Request, match: MatchInfo):
     if match.from_backup_url is not None:
         logging.info(f"Creating match from backup: {match.from_backup_url}")
         match_id = match.from_backup_url.replace("_map", "_match").split("_match")[1]
-        match_old = db.get_match_by_matchid(match_id)
+        match_old = db_models.Match.select().where(db_models.Match.matchid == match_id).get_or_none()
+        if match_old is None:
+            logging.error(f"Unable to find match with id: {match_id}")
+            raise HTTPException(status_code=404, detail="Match not found")
+
         match.team1 = match_old.team1
         match.team2 = match_old.team2
         match.best_of = match_old.best_out_of
