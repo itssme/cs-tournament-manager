@@ -63,7 +63,7 @@ RUN apt-get -qq update \
 ENV METAMOD_URL=https://mms.alliedmods.net/mmsdrop/1.12/mmsource-1.12.0-git1164-linux.tar.gz \
     SOURCEMOD_URL=https://sm.alliedmods.net/smdrop/1.12/sourcemod-1.12.0-git6936-linux.tar.gz \
     STEAMWORKS_URL=https://github.com/KyleSanderson/SteamWorks/releases/download/1.2.3c/package-lin.tgz \
-    GET5_URL=https://github.com/splewis/get5/releases/download/v0.12.0/get5-v0.12.0.tar.gz
+    GET5_URL=https://github.com/splewis/get5/releases/download/v0.14.5/get5-v0.14.5.tar.gz
 
 RUN su user -c  \
        "wget -q -O - $METAMOD_URL | tar -xz -C $CSGO_DIR/csgo \
