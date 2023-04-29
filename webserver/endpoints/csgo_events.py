@@ -12,6 +12,7 @@ from utils.rcon import RCON
 from servers import ServerManager
 from utils import db, db_models
 from elo import calculate_elo
+from utils.utils_funcs import get_body
 
 server_manger: ServerManager = None
 
@@ -145,9 +146,9 @@ callbacks = {
 
 def set_api_routes(app):
     @app.post("/", dependencies=[Depends(db.get_db)])
-    async def get5_event(request: Request,
-                         current_user=Depends(auth_api.get_current_user)):  # TODO: check if this auth still works
-        json_str = await request.body()  # TODO: remove async, but how to access body?
+    def get5_event(body=Depends(get_body),
+                   current_user: db_models.Account = Depends(auth_api.get_admin_user)):
+        json_str = body.decode("utf-8")  # TODO: is decode right here?
         event = json.loads(json_str)
         logging.info(f"Event: {event['event']}")
         logging.info(event)

@@ -5,7 +5,7 @@ import random
 from threading import Lock
 from typing import List
 
-from utils import db
+from utils import db, db_models
 
 import docker
 
@@ -32,12 +32,12 @@ class ServerManager:
         return self.__start_container(match_cfg, loadbackup_url)
 
     def stop_match(self, server_id: int, finished: int = 3):
-        container_name = db.get_server_by_id(server_id).container_name
+        container_name: str = db_models.Server.select().where(db_models.Server.id == server_id).get().container_name
         self.__stop_container_and_delete(container_name)
         match = db.get_match_by_serverid(server_id)
         match.finished = finished
-        match.update_attribute("finished")
-        db.delete_server(server_id)
+        match.save()
+        db_models.Server.select().where(db_models.Server.id == server_id).get().delete_instance()
 
     def __start_container(self, match_cfg: dict, loadbackup_url: str = None) -> tuple[bool, int]:
         client = docker.from_env()
@@ -45,18 +45,18 @@ class ServerManager:
         container_name = f"CSGO_{match_cfg['team1']['id']}_{match_cfg['team2']['id']}"
 
         if loadbackup_url is None:
-            match = db.Match(name=container_name, matchid=match_cfg["matchid"], team1=match_cfg['team1']['id'],
-                             team2=match_cfg['team2']['id'],
-                             best_out_of=match_cfg['num_maps'])
-            db.insert_match(match)
+            match: db_models.Match = db_models.Match.create(name=container_name, matchid=match_cfg["matchid"],
+                                                            team1=match_cfg['team1']['id'],
+                                                            team2=match_cfg['team2']['id'],
+                                                            best_out_of=match_cfg['num_maps'])
         else:
-            match = db.get_match_by_matchid(match_cfg["matchid"])
+            match: db_models.Match = db_models.Match.select().where(
+                db_models.Match.matchid == match_cfg["matchid"]).get()
             match.finished = 0
-            match.update_attribute("finished")
+            match.save()
 
-        server = db.Server(container_name=container_name, match=match.id,
-                           ip=os.getenv("EXTERNAL_IP", "host.docker.internal"))
-        db.insert_server(server)
+        server: db_models.Server = db_models.Server.create(container_name=container_name, match=match.id,
+                                                           ip=os.getenv("EXTERNAL_IP", "host.docker.internal"))
 
         port = self.reserve_free_port(server)
 
@@ -101,7 +101,7 @@ class ServerManager:
             logging.error(f"Failed to start container ({match.matchid}) in server manager: {e}")
             match.finished = 3
             match.update_attribute("finished")
-            db.delete_server(server.id)
+            db_models.Server.select().where(db_models.Server.id == server.id).get().delete_instance()
             return False, port
 
     def __stop_container_and_delete(self, container_name: str):
@@ -116,10 +116,11 @@ class ServerManager:
         except docker.errors.NotFound:
             logging.error(f"Container not found: {container_name}")
 
-    def reserve_free_port(self, server: db.Server) -> int:
+    def reserve_free_port(self, server: db_models.Server) -> int:
         with self.port_lock:
             available_ports = PORTS.copy()
-            reserved_ports = [server.port for server in db.get_servers()]
+            reserved_ports = [server.port for server in
+                              db_models.Server.select()]  # TODO: only on servers that are running on this instance?
             free_ports = list(filter(lambda port: False if port in reserved_ports else True, available_ports))
 
             port = random.choice(free_ports)
@@ -128,10 +129,10 @@ class ServerManager:
 
             return port
 
-    def reserve_free_gslt_token(self, server: db.Server) -> str:
+    def reserve_free_gslt_token(self, server: db_models.Server) -> str:
         with self.gslt_lock:
             available_tokens = self.gslt_tokens.copy()
-            reserved_tokens = [server.gslt_token for server in db.get_servers()]
+            reserved_tokens = [server.gslt_token for server in db_models.Server.select()]
             free_tokens = list(filter(lambda token: False if token in reserved_tokens else True, available_tokens))
 
             gslt_token = random.choice(free_tokens)
