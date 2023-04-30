@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="flex flex-col">
+        <div class="">
+            <div class="inline-block min-w-full py-2 sm:px-6 lg:px-8">
+                <div class="overflow-hidden">
+                    <table class="min-w-full text-center text-sm font-light">
+                        <thead class="border-b bg-neutral-800 font-medium text-white dark:border-neutral-500 dark:bg-neutral-900">
+                        <tr>
+                            <th scope="col" class="px-2 py-2">#</th>
+                            <th scope="col" class="px-2 py-2">matchid</th>
+                            <th scope="col" class="px-2 py-2">name</th>
+                            <th scope="col" class="px-2 py-2">team1</th>
+                            <th scope="col" class="px-2 py-2">team2</th>
+                            <th scope="col" class="px-2 py-2">best_out_of</th>
+                            <th scope="col" class="px-2 py-2">number_in_map_series</th>
+                            <th scope="col" class="px-2 py-2">series_score_team1</th>
+                            <th scope="col" class="px-2 py-2">series_score_team2</th>
+                            <th scope="col" class="px-2 py-2">finished</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for match in matches %}
+                            <tr class="border-b dark:border-neutral-500 text-black dark:text-white">
+                                <td class="whitespace-nowrap px-2 py-2 font-medium">{{ match.id }}</td>
+                                <td class="whitespace-nowrap px-2 py-2">{{ match.matchid }}</td>
+                                <td class="whitespace-nowrap px-2 py-2">{{ match.name }}</td>
+                                <td class="whitespace-nowrap px-2 py-2">{{ match.team1 }}</td>
+                                <td class="whitespace-nowrap px-2 py-2">{{ match.team2 }}</td>
+                                <td class="whitespace-nowrap px-2 py-2">{{ match.best_out_of }}</td>
+                                <td class="whitespace-nowrap px-2 py-2">{{ match.number_in_map_series }}</td>
+                                <td class="whitespace-nowrap px-2 py-2">{{ match.series_score_team1 }}</td>
+                                <td class="whitespace-nowrap px-2 py-2">{{ match.series_score_team2 }}</td>
+                                <td class="whitespace-nowrap px-2 py-2">{{ match.finished }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

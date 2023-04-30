@@ -16,13 +16,13 @@ def set_routes(app, templates):
 
     @app.get("/team")
     def redirect_index():
-        return RedirectResponse("/public/status")
+        return RedirectResponse("/public/matches")
 
-    @app.get("/status", response_class=HTMLResponse, dependencies=[Depends(db.get_db)])
+    @app.get("/matches", response_class=HTMLResponse, dependencies=[Depends(db.get_db)])
     def status(request: Request, current_user: db_models.Account = Depends(auth_api.get_admin_user)):
-        gameserver = [model_to_dict(server) for server in db_models.Server.select()]
-        demos = os.listdir(os.getenv("DEMO_FILE_PATH", "/demofiles"))
-        return templates.TemplateResponse("public/status.html", {"request": request, "gameserver": gameserver, "demos": demos})
+        matches = [model_to_dict(match) for match in db_models.Match.select()]
+        return templates.TemplateResponse("public/matches.html",
+                                          {"request": request, "matches": matches})
 
     @app.get("/demos", response_class=HTMLResponse, dependencies=[Depends(db.get_db)])
     def demos(request: Request, current_user: db_models.Account = Depends(auth_api.get_admin_user)):
@@ -44,4 +44,11 @@ def set_routes(app, templates):
         teams = [model_to_dict(team) for team in db_models.Team.select()]
         servers = [model_to_dict(server) for server in db_models.Server.select()]
 
-        return templates.TemplateResponse("public/config.html", {"request": request, "teams": teams, "servers": servers})
+        return templates.TemplateResponse("public/config.html",
+                                          {"request": request, "teams": teams, "servers": servers})
+
+    @app.get("/create_match", response_class=HTMLResponse, dependencies=[Depends(db.get_db)])
+    def backups(request: Request, current_user: db_models.Account = Depends(auth_api.get_admin_user)):
+        return templates.TemplateResponse("public/create_match.html",
+                                          {"request": request, "players": db_models.Player.select(),
+                                           "teams": db_models.Team.select(), "hosts": db_models.Host.select()})
