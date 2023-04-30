@@ -3,22 +3,21 @@ import logging
 from redis import asyncio as aioredis
 from fastapi_cache.backends.redis import RedisBackend
 
+from endpoints.auth_api import get_password_hash
+
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 import json
-import os
 
 import requests
 from fastapi_cache import FastAPICache
 from fastapi_cache.decorator import cache
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, RedirectResponse
 
 from endpoints import csgo_events, error_routes, config_webinterface_routes, auth_api
-from endpoints.db_endpoints import init as db_api_endpoints
 from utils.rcon import RCON
 from servers import ServerManager
-from match_conf_gen import MatchGen
-from utils import db, db_models, limiter
+from utils import db, db_models, limiter, db_migrations
 
 from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.staticfiles import StaticFiles
@@ -28,6 +27,13 @@ from utils.json_objects import *
 
 logging.info("server running")
 
+logging.info("applying migrations")
+db_migrations.apply_migrations()
+logging.info("applying migrations - done")
+
+# uncomment for dev stuff
+# db_models.Account.create(username="admin", password=get_password_hash("admin"), verification_code="", verified=1, role="admin")
+
 app = FastAPI()
 limiter.init_limiter(app)
 
@@ -36,14 +42,12 @@ public = FastAPI()
 csgo_api = FastAPI()
 auth = FastAPI()
 limiter.init_limiter(auth)
-db_api = FastAPI()
 
 app.mount("/api", api)
 
 api.mount("/csgo", csgo_api)
 app.mount("/public", public)
 app.mount("/auth", auth)
-app.mount("/db", db_api)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
@@ -54,16 +58,19 @@ csgo_events.set_server_manager(server_manger)
 error_routes.set_routes(app, templates)
 error_routes.set_api_routes(api)
 csgo_events.set_api_routes(csgo_api)
-config_webinterface_routes.set_routes(app, templates)
+config_webinterface_routes.set_routes(public, templates)
 auth_api.set_api_routes(auth, templates)
-
-db_api_endpoints.set_api_routes(db_api, cache, server_manger)
 
 
 @app.on_event("startup")
 async def startup():
     redis = aioredis.from_url("redis://redis", encoding="utf8", decode_responses=True)
     FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
+
+
+@app.get("/")
+def rcon(request: Request):
+    return RedirectResponse(url="/auth/login")
 
 
 @api.post("/rcon", response_class=JSONResponse, dependencies=[Depends(db.get_db)])

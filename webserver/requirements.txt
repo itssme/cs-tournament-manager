@@ -16,3 +16,5 @@ passlib[bcrypt]
 redis
 peewee
 pika
+yoyo-migrations
+slowapi

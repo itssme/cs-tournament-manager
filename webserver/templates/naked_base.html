@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>airLAN</title>
+    <link href="/static/css/output.css" rel="stylesheet">
+    {% block header %}{% endblock %}
+</head>
+<body class="dark:bg-zinc-700">
+<div class="min-h-screen min-w-screen">
+    <div class="flex flex-col h-screen justify-between">
+        {% block base_content %}
+        {% endblock base_content %}
+    </div>
+</div>
+<script src="/static/node_modules/tw-elements/dist/js/tw-elements.umd.min.js"></script>
+</body>

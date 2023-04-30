@@ -65,7 +65,7 @@ async def create_match(request: Request, match: MatchInfo):
         match.best_of = match_old.best_out_of
 
         match_old.finished = 3
-        match_old.update_attribute("finished")
+        match_old.save()
         match.from_backup_url = f"http://{os.getenv('MASTER_IP', '127.0.0.1')}/api/backup/" + match.from_backup_url
         # TODO: delete server in db if exists
     else:

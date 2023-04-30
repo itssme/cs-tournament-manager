@@ -100,7 +100,7 @@ class ServerManager:
         except Exception as e:
             logging.error(f"Failed to start container ({match.matchid}) in server manager: {e}")
             match.finished = 3
-            match.update_attribute("finished")
+            match.save()
             db_models.Server.select().where(db_models.Server.id == server.id).get().delete_instance()
             return False, port
 
@@ -125,7 +125,7 @@ class ServerManager:
 
             port = random.choice(free_ports)
             server.port = port
-            server.update_attribute("port")
+            server.save()
 
             return port
 
@@ -137,5 +137,5 @@ class ServerManager:
 
             gslt_token = random.choice(free_tokens)
             server.gslt_token = gslt_token
-            server.update_attribute("gslt_token")
+            server.save()
             return gslt_token

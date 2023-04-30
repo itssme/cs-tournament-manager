@@ -5,7 +5,8 @@
 The software has been developed for the airlan21 (25.06.2021). A small csgo tournament organized for
 team-building by robo4you.at. It was also used at the airlan23 winter (07.01.2023).
 
-**Currently, it is being updated and rewritten** for the 'airLAN23' which will take place in around 'Pfingsten' 2023 (27.05.2023 - 29.05.2023).
+**Currently, it is being updated and rewritten** for the 'airLAN23' which will take place in around 'Pfingsten' 2023 (
+27.05.2023 - 29.05.2023).
 
 **This software is still more in development than it is production ready**
 
@@ -81,40 +82,33 @@ Currently, an ELO rating system for teams is being implemented.
 
 ## Multiple Game Hosts (still in development)
 
-Set the following environment variables in the slave docker-compose file for the csgo_manager:
-
-+ Change the following ENV Variables on slave game hosts:
-+ `MASTER`=1: Set this ENV var to 0 on all game hosts except one.
-+ `MASTER_IP`="127.0.0.1": The IP of the master server (the one that runs the database etc.)
-+ `DB_HOST`="db": IP/ Hostname of the database host (this should be set to the same as MASTER_IP on slaves)
-
-Set this on the slaves and the master:
-+ `EXTERNAL_IP`="127.0.0.1": The external IP of the game host (the one that is used to connect to the csgo servers).
-
-Connect to the master on port :8080 and login to adminer. The username and database is "postgres", for the password see the env variables below "Securing the API".
+TODO
 
 ## Securing the API
 
 + `ACCESS_SECRET_KEY`="this_is_not_a_secret": Should be a random generated secret like: `openssl rand -hex 32`
-+ `ACCESS_TOKEN_EXPIRE_MINUTES`=60 * 24 * 2: How long the access tokens are valid (in minutes) (Can be left at default
-  value)
-+ `API_PASSWORD`="admin": The password for the API user
++ `API_USERNAME`="API": The username that is used in the background for API requests.
 + `ADMIN_PASSWORD`="admin": The password for the admin user in the webinterface (login at: `/auth/login`)
 + `HTTP_PROTOCOL`="http": The protocol used to connect to the api
 + `RCON_PASSWORD`="pass": The password for the rcon connections to the csgo servers.
 + `GOTV_PASSWORD`="pass": The password for the GOTV connections to the csgo servers.
-+ `DB_PASSWORD`="pass": The password for the database connection. (Important: This must be set to the same value as the
-  ENV variable `POSTGRES_PASSWORD` is set for postgres.)
++ `POSTGRES_DB`="postgres": The postgres database name.
++ `POSTGRES_DB_HOST`="db": Hostname/ IP of the database.
++ `POSTGRES_DB_PORT`="5432": The port of the database.
++ `POSTGRES_USER`="postgres": The username for the database connection.
++ `POSTGRES_PASSWORD`="pass": The password for the database connection.
 
-If the ENV variables here are changed, you will also need to set them in the slave instances.
+If the ENV variables here are changed, you will also need to set them in the worker instances.
 
-Note: Most of these security measures only make sense if you also use https. So putting the software behind a haproxy etc. will be nessasary.
+Note: Most of these security measures only make sense if you also use https. So putting the software behind a haproxy
+etc. will be necessary.
 
 # Major TOODS
 
 + refactor backend structure, split functionality into different services, e.g. stats collecting, match management etc.
-+ clearer seperation between master and slaves, maybe only management instance is the real "master" and all other servers only host games and provide nothing else
-+ improve matchamking algorithm and document it better/ at all
++ clearer separation between master and slaves, maybe only management instance is the real "master" and all other
+  servers only host games and provide nothing else
++ improve matchmaking algorithm and document it better/ at all
 + improve api security
 
 # Banned Players

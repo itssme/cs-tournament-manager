@@ -2,8 +2,10 @@ import json
 import logging
 import os
 import random
+import time
 from typing import Dict
 
+import aiofiles
 import requests
 from fastapi import Request, Depends
 
@@ -20,7 +22,7 @@ server_manger: ServerManager = None
 def going_live(event: Dict):
     match: db_models.Match = db_models.Match.select().where(db_models.Match.matchid == event["matchid"]).get()
     match.finished = 0
-    match.update_attribute("finished")
+    match.save()
 
 
 def demo_upload_ended(event: Dict):
@@ -38,32 +40,29 @@ def demo_upload_ended(event: Dict):
     server: db_models.Server = db.get_server_for_match(match.matchid)
 
     match.finished = 2
-    match.update_attribute("finished")
+    match.save()
 
-    if os.getenv("EXTERNAL_IP", "127.0.0.1") != server.ip and server.ip != "host.docker.internal":
-        logging.info(f"Shutting down remote container: server={server.ip}, match_id={match.matchid}")
-        res = requests.delete(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{server.ip}/api/match", json={"id": server.id},
-                              timeout=60,
-                              headers=auth_api.login_to_master_headers())  # TODO: fix login by creating token from secret
+    logging.info(f"Shutting down remote container: server={server.ip}, match_id={match.matchid}")
+    res = requests.delete(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{server.ip}/api/match", json={"id": server.id},
+                          timeout=60,
+                          headers=auth_api.create_access_token(
+                              data={"sub": os.getenv("API_USERNAME", "API")}))
 
-        if res.status_code == 200:
-            logging.info(
-                f"After demo has been uploaded, container running matchid: {match.matchid}, (name={server.container_name}) has been stopped")
-        else:
-            logging.error(f"Unable to stop container for match: {match}, server: {server} -> {res.text}")
+    if res.status_code == 200:
+        logging.info(
+            f"After demo has been uploaded, container running matchid: {match.matchid}, (name={server.container_name}) has been stopped")
     else:
-        logging.info(f"Shutting down local container: server={server.ip}, match_id={match.matchid}")
-        server_manger.stop_match(server.id, 2)
+        logging.error(f"Unable to stop container for match: {match}, server: {server} -> {res.text}")
 
 
 def map_result(event: Dict):
     match: db_models.Match = db_models.Match.select().where(db_models.Match.matchid == event["matchid"]).get()
     if event["winner"]["team"] == "team1":
         match.series_score_team1 += 1
-        match.update_attribute("series_score_team1")
+        match.save()
     elif event["winner"]["team"] == "team2":
         match.series_score_team2 += 1
-        match.update_attribute("series_score_team2")
+        match.save()
     else:
         logging.error(f"Got a map_result event with no team winning? -> {event}")
 
@@ -75,8 +74,8 @@ def map_result(event: Dict):
     logging.info(f"Updating ELO: {team1.elo}, {team2.elo}, {event['team1_score']}, {event['team2_score']}")
 
     team1.elo, team2.elo = calculate_elo(team1.elo, team2.elo, event["team1_score"], event["team2_score"])
-    team1.update_attribute("elo")
-    team2.update_attribute("elo")
+    team1.save()
+    team2.save()
 
     logging.info(f"Updated ELO: {team1.elo}, {team2.elo}, {event['team1_score']}, {event['team2_score']}")
 
@@ -92,7 +91,7 @@ def series_end(event: Dict):
     match.series_score_team1 = event["team1_series_score"]
     match.series_score_team2 = event["team2_series_score"]
     match.finished = 1
-    match.update_attribute("finished")
+    match.save()
 
 
 def player_say(event: Dict):
@@ -157,6 +156,43 @@ def set_api_routes(app):
             callbacks[event["event"]](event)
 
         return ""
+
+    @app.post("/demo")
+    async def upload_demo(request: Request, current_user: db_models.Account = Depends(auth_api.get_admin_user)):
+        if "get5-filename" in request.headers.keys():
+            logging.info(f"get5-filename: {request.headers['get5-filename']}")
+            filename = os.path.split(request.headers["get5-filename"])[-1]
+        else:
+            logging.info("No get5-filename header found, using default name")
+            filename = f"{time.time()}.dem"
+
+        logging.info(f"Called POST /demo filename: {filename} and matchid: {request.headers['get5-matchid']}")
+
+        async with aiofiles.open(os.path.join(os.getenv("DEMO_FILE_PATH", "/demofiles"), filename), 'wb') as out_file:
+            content = await request.body()
+            await out_file.write(content)
+
+        logging.info(f"Done writing file: {filename}")
+        return {"filename": filename}
+
+    @app.post("/backup")
+    async def upload_backup(request: Request, current_user: db_models.Account = Depends(auth_api.get_admin_user)):
+        if "get5-filename" in request.headers.keys():
+            logging.info(f"get5-filename: {request.headers['get5-filename']}")
+            filename = os.path.split(request.headers["get5-filename"])[-1]
+        else:
+            logging.info("No get5-filename header found, using default name")
+            filename = f"{time.time()}.cfg"
+
+        logging.info(f"Called POST /backup filename: {filename} and matchid: {request.headers['get5-matchid']}")
+
+        async with aiofiles.open(os.path.join(os.getenv("BACKUP_FILE_PATH", "/backupfiles"), filename),
+                                 'wb') as out_file:
+            content = await request.body()
+            await out_file.write(content)
+
+        logging.info(f"Done writing file: {filename}")
+        return {"filename": filename}
 
 
 def set_server_manager(server_manager: ServerManager):
