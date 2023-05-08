@@ -10,6 +10,7 @@ RUN pip install --no-cache-dir --upgrade -r requirements.txt
 COPY worker/ app
 COPY webserver/endpoints/ app/endpoints
 COPY webserver/utils/ app/utils
+COPY webserver/templates/ app/templates
 
 WORKDIR /app
 

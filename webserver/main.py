@@ -11,12 +11,10 @@ import json
 
 import requests
 from fastapi_cache import FastAPICache
-from fastapi_cache.decorator import cache
 from starlette.responses import JSONResponse, RedirectResponse
 
 from endpoints import csgo_events, error_routes, config_webinterface_routes, auth_api
 from utils.rcon import RCON
-from servers import ServerManager
 from utils import db, db_models, limiter, db_migrations
 
 from fastapi import FastAPI, Request, HTTPException, Depends
@@ -51,9 +49,6 @@ app.mount("/auth", auth)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
-
-server_manger = ServerManager()
-csgo_events.set_server_manager(server_manger)
 
 error_routes.set_routes(app, templates)
 error_routes.set_api_routes(api)

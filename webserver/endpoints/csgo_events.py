@@ -11,12 +11,9 @@ from fastapi import Request, Depends
 
 from endpoints import csgo_stats_event, auth_api
 from utils.rcon import RCON
-from servers import ServerManager
 from utils import db, db_models
 from elo import calculate_elo
 from utils.utils_funcs import get_body
-
-server_manger: ServerManager = None
 
 
 def going_live(event: Dict):
@@ -193,8 +190,3 @@ def set_api_routes(app):
 
         logging.info(f"Done writing file: {filename}")
         return {"filename": filename}
-
-
-def set_server_manager(server_manager: ServerManager):
-    global server_manger
-    server_manger = server_manager
