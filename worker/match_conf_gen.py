@@ -22,7 +22,7 @@ class MatchConfig(dict):
         self["side_type"] = "standard"
         self["min_players_to_ready"] = 1
         self["min_spectators_to_ready"] = 0
-        self["maplist"] = ["de_inferno", "de_mirage", "cs_agency", "de_cobblestone", "de_overpass", "de_vertigo",
+        self["maplist"] = ["de_inferno", "de_mirage", "cs_agency", "de_cbble", "de_overpass", "de_vertigo",
                            "de_anubis"]
         self["cvars"] = {}
 
@@ -52,7 +52,7 @@ class MatchConfig(dict):
 
         # otherwise get5 won't recognize the team
         team_dict = model_to_dict(team)
-        final_team_dict = {"id": team_dict["id"], "name": team_dict["name"], "tag": team_dict["tag"], "flag": "AT",
+        final_team_dict = {"id": str(team_dict["id"]), "name": team_dict["name"], "tag": team_dict["tag"], "flag": "AT",
                            "players": dict((player.steam_id, player.name) for player in db.get_team_players(team_id))}
 
         self[key] = final_team_dict

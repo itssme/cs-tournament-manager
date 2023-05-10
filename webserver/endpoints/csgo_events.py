@@ -1,5 +1,8 @@
-import json
 import logging
+
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+
+import json
 import os
 import random
 import time
@@ -115,7 +118,7 @@ def player_say(event: Dict):
     if "!spin" in message.lower():
         server = db.get_server_for_match(event["matchid"])
 
-        with RCON(server.ip, server.port) as rconn:
+        with RCON(str(server.ip.ip), server.port) as rconn:
             rconn.exec_command("say A new challenge has been set for the team that used the command:")
             rconn.exec_command("say " + random.choice(challenges))
 
