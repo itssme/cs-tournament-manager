@@ -6,7 +6,7 @@
                 Create Match
             </h5>
 
-            <div class="relative mb-4 flex w-full flex-wrap items-stretch">
+            <div class="relative mb-4">
                 <select data-te-select-init id="team1">
                     {% for team in teams %}
                         <option value="{{ team.id }}">{{ team.name }}</option>
@@ -15,7 +15,7 @@
                 <label data-te-select-label-ref>Team1</label>
             </div>
 
-            <div class="relative mb-4 flex w-full flex-wrap items-stretch">
+            <div class="relative mb-4">
                 <select data-te-select-init id="team2">
                     {% for team in teams %}
                         <option value="{{ team.id }}">{{ team.name }}</option>
@@ -24,7 +24,7 @@
                 <label data-te-select-label-ref>Team2</label>
             </div>
 
-            <div class="relative mb-4 flex w-full flex-wrap items-stretch">
+            <div class="relative mb-4">
                 <select data-te-select-init id="host">
                     <option value="None">Least used host</option>
                     {% for host in hosts %}

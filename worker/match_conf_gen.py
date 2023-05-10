@@ -2,8 +2,10 @@ import json
 import os
 import time
 
-from endpoints import auth_api
-from utils import db
+from playhouse.shortcuts import model_to_dict
+
+from utils import db, db_models
+from utils.utils_funcs import get_api_login_token
 
 
 class MatchConfig(dict):
@@ -20,7 +22,8 @@ class MatchConfig(dict):
         self["side_type"] = "standard"
         self["min_players_to_ready"] = 1
         self["min_spectators_to_ready"] = 0
-        self["maplist"] = ["de_anubis", "de_inferno", "de_mirage", "de_cbbl", "de_ancient", "de_vertigo", "de_overpass"]
+        self["maplist"] = ["de_inferno", "de_mirage", "cs_agency", "de_cobblestone", "de_overpass", "de_vertigo",
+                           "de_anubis"]
         self["cvars"] = {}
 
     # override print and to str because json uses " and not ' to represent strings
@@ -40,18 +43,19 @@ class MatchConfig(dict):
         self["num_maps"] = maps
 
     def add_team(self, team_id: int):
-        team = db.get_team_by_id(team_id)
+        team = db_models.Team.select().where(db_models.Team.id == team_id).get_or_none()
+        if team is None:
+            raise ValueError(f"Team with id {team_id} does not exist")
         key = "team1"
         if "team1" in self.keys():
             key = "team2"
 
         # otherwise get5 won't recognize the team
-        del team.elo
-        del team.competing
+        team_dict = model_to_dict(team)
+        final_team_dict = {"id": team_dict["id"], "name": team_dict["name"], "tag": team_dict["tag"], "flag": "AT",
+                           "players": dict((player.steam_id, player.name) for player in db.get_team_players(team_id))}
 
-        self[key] = team.to_json()
-        self[key]["flag"] = "AT"
-        self[key]["players"] = dict((player.steam_id, player.name) for player in db.get_team_players(team_id))
+        self[key] = final_team_dict
 
     def add_cvar(self, cvar_key, cvar_value):
         self["cvars"][cvar_key] = cvar_value
@@ -81,19 +85,19 @@ class MatchGen:
         matchcfg.add_cvar("get5_kick_when_no_match_loaded", 1)
 
         matchcfg.add_cvar("get5_remote_log_url",
-                          f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP', '127.0.0.1')}/api/csgo/")
+                          f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/csgo/")
         matchcfg.add_cvar("get5_remote_log_header_key", "Authorization")
-        matchcfg.add_cvar("get5_remote_log_header_value", auth_api.login_to_master())
+        matchcfg.add_cvar("get5_remote_log_header_value", get_api_login_token())
 
         matchcfg.add_cvar("get5_demo_upload_url",
-                          f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP', '127.0.0.1')}/api/demo")
+                          f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/demo")
         matchcfg.add_cvar("get5_demo_upload_header_key", "Authorization")
-        matchcfg.add_cvar("get5_demo_upload_header_value", auth_api.login_to_master())
+        matchcfg.add_cvar("get5_demo_upload_header_value", get_api_login_token())
 
         matchcfg.add_cvar("get5_remote_backup_url",
-                          f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP', '127.0.0.1')}/api/backup")
+                          f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/backup")
         matchcfg.add_cvar("get5_remote_backup_header_key", "Authorization")
-        matchcfg.add_cvar("get5_remote_backup_header_value", auth_api.login_to_master())
+        matchcfg.add_cvar("get5_remote_backup_header_value", get_api_login_token())
 
         matchcfg.add_cvar("get5_print_update_notice", 0)
         matchcfg.add_cvar("get5_reset_cvars_on_end", 0)

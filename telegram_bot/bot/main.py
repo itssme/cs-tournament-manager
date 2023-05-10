@@ -97,7 +97,7 @@ class TelegramBOT:
 
             logging.info(f"Parsed /createMatch -> {data}")
 
-            res = requests.post(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP')}/api/team", json=data,
+            res = requests.post(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/team", json=data,
                                 headers=login_to_master_headers())
             if res.status_code == 200:
                 bot.send_message(chat_id, f"Successfully created team '{data['name']}' with tag '{data['tag']}'")
@@ -116,7 +116,7 @@ class TelegramBOT:
 
             data = {"steam_id": steam_id, "name": name}
 
-            res = requests.post(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP')}/api/player",
+            res = requests.post(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/player",
                                 json=data,
                                 headers=login_to_master_headers())
             if res.status_code == 200:
@@ -133,7 +133,7 @@ class TelegramBOT:
 
             team_id = context.args[0]
 
-            res = requests.delete(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP')}/api/team/",
+            res = requests.delete(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/team/",
                                   params={"team_id": team_id},
                                   headers=login_to_master_headers())
 
@@ -148,7 +148,7 @@ class TelegramBOT:
             chat_id = update.effective_chat["id"]
             user_id = update.effective_user["id"]
 
-            res = requests.get(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP')}/api/teams",
+            res = requests.get(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/teams",
                                headers=login_to_master_headers())
             if res.status_code == 200:
                 parsed = json.loads(res.text)
@@ -163,7 +163,7 @@ class TelegramBOT:
             chat_id = update.effective_chat["id"]
             user_id = update.effective_user["id"]
 
-            res = requests.get(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP')}/api/players",
+            res = requests.get(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/players",
                                headers=login_to_master_headers())
             if res.status_code == 200:
                 parsed = json.loads(res.text)
@@ -178,7 +178,7 @@ class TelegramBOT:
             chat_id = update.effective_chat["id"]
             user_id = update.effective_user["id"]
 
-            res = requests.get(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP')}/api/matches",
+            res = requests.get(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/matches",
                                headers=login_to_master_headers())
             if res.status_code == 200:
                 parsed = json.loads(res.text)
@@ -196,7 +196,7 @@ class TelegramBOT:
             team_id = context.args[0]
             player_id = context.args[1]
             data = {"team_id": team_id, "player_id": player_id}
-            res = requests.post(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP')}/api/teamAssignment",
+            res = requests.post(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/teamAssignment",
                                 json=data, headers=login_to_master_headers())
             if res.status_code == 200:
                 bot.send_message(chat_id, f"Successfully added player {player_id} to team {team_id}")
@@ -212,7 +212,7 @@ class TelegramBOT:
             team_id = context.args[0]
             player_id = context.args[1]
             data = {"team_id": team_id, "player_id": player_id}
-            res = requests.delete(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP')}/api/teamAssignment",
+            res = requests.delete(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/teamAssignment",
                                   json=data,
                                   headers=login_to_master_headers())
             if res.status_code == 200:
@@ -227,7 +227,7 @@ class TelegramBOT:
             user_id = update.effective_user["id"]
 
             team_id = context.args[0]
-            res = requests.get(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP')}/api/teamPlayers/",
+            res = requests.get(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/teamPlayers/",
                                params={"team_id": team_id},
                                headers=login_to_master_headers())
             if res.status_code == 200:
@@ -262,7 +262,7 @@ class TelegramBOT:
                     "check_auths": checkAuths}
 
             logging.info(f"Parsed POST /match -> {data}")
-            res = requests.post(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP')}/api/match", json=data,
+            res = requests.post(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/match", json=data,
                                 headers=login_to_master_headers())
             if res.status_code == 200:
                 bot.send_message(chat_id, res.text)
@@ -290,7 +290,7 @@ class TelegramBOT:
                     "competing": competing}
 
             logging.info(f"Parsed POST /competing -> {data}")
-            res = requests.post(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP')}/api/competing",
+            res = requests.post(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/competing",
                                 json=data, headers=login_to_master_headers())
             if res.status_code == 200:
                 bot.send_message(chat_id,
@@ -430,12 +430,12 @@ def matchmaker():
         time.sleep(10)
         if matchmaking_enabled:
             free_teams = [(team["id"], team["elo"], team["tag"]) for team in
-                          requests.get(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP')}/api/freeTeams",
+                          requests.get(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/freeTeams",
                                        headers=login_to_master_headers()).json()]
             all_matches = [(match["team1"], match["team2"]) for match in
                            list(filter(lambda x: 0 < x["finished"] < 3,
                                        requests.get(
-                                           f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP')}/api/matches",
+                                           f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/matches",
                                            headers=login_to_master_headers()).json()))]
             logging.info(f"Found {len(free_teams)} free teams and {len(all_matches)} matches.")
             if len(free_teams) < 3:
@@ -477,7 +477,7 @@ def matchmaker():
                 for match in start_matches])
             for match in start_matches:
                 data = {"team1": match[0], "team2": match[1], "best_of": 1, "check_auths": True}
-                res = requests.post(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP')}/api/match",
+                res = requests.post(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/match",
                                     json=data, headers=login_to_master_headers())
                 json_res = res.json()
                 name_length = max(len(match[-2]), len(match[-1]))

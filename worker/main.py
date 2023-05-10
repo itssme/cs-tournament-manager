@@ -1,25 +1,23 @@
 import logging
-import os
 
-import docker
-from redis import asyncio as aioredis
-from fastapi_cache.backends.redis import RedisBackend
-
-from match_conf_gen import MatchGen
-from servers import ServerManager
+from starlette.responses import JSONResponse
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-from fastapi_cache import FastAPICache
+import os
+import docker
 
-from endpoints import error_routes, auth_api
-from utils import db_models, limiter, db_migrations
-
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-
+from match_conf_gen import MatchGen
+from servers import ServerManager
+from utils import db_models, limiter, db_migrations, db
 from utils.json_objects import *
+
+from fastapi_cache import FastAPICache
+from endpoints import error_routes, auth_api
+from fastapi import FastAPI, Request, HTTPException, Depends
+from fastapi.templating import Jinja2Templates
+from redis import asyncio as aioredis
+from fastapi_cache.backends.redis import RedisBackend
 
 logging.info("server running")
 
@@ -59,8 +57,8 @@ async def startup():
     FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
 
 
-@api.post("/match")
-async def create_match(request: Request, match: MatchInfo):
+@api.post("/match", dependencies=[Depends(db.get_db)])
+def create_match(request: Request, match: MatchInfo, current_user: db_models.Account = Depends(auth_api.get_admin_user)):
     logging.info(
         f"Called POST /match with MatchInfo: Team1: '{match.team1}', Team2: '{match.team2}', "
         f"best_of: '{match.best_of}', 'check_auths: {match.check_auths}', 'host: {match.host}'")
@@ -80,7 +78,7 @@ async def create_match(request: Request, match: MatchInfo):
 
         match_old.finished = 3
         match_old.save()
-        match.from_backup_url = f"http://{os.getenv('MASTER_IP', '127.0.0.1')}/api/backup/" + match.from_backup_url
+        match.from_backup_url = f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/backup/" + match.from_backup_url
         # TODO: delete server in db if exists
     else:
         logging.info(f"Creating new match not using any backup")
@@ -102,6 +100,13 @@ async def create_match(request: Request, match: MatchInfo):
                 "match_id": match_cfg["matchid"]}
     else:
         raise HTTPException(status_code=500, detail="Unable to start container")
+
+
+@api.delete("/match", response_class=JSONResponse, dependencies=[Depends(db.get_db)])
+def status(request: Request, server: ServerID, current_user: db_models.Account = Depends(auth_api.get_admin_user)):
+    logging.info(f"Called DELETE /match with server id: {server.id}")
+    server_manager.stop_match(server.id)
+    return {"status": 0}
 
 
 @api.get("/healthcheck")

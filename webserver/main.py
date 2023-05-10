@@ -133,6 +133,13 @@ def create_match(request: Request, match: MatchInfo,
         match.host = db.get_least_used_host_ips()
         logging.info(f"No host specified, using least used host -> {match.host}")
 
+    host = db_models.Host.select().where(db_models.Host.ip == match.host).get_or_none()
+    if host is None:
+        logging.error(f"Unable to find host with ip: {match.host}")
+        raise HTTPException(status_code=404, detail="Host not found")
+
+    match.host = f"{host.ip}:{host.port}"
+
     logging.info(f"Creating match on remote server: {match.host} -> {match.json()}")
     if request.headers.get("Authorization", None) is None:
         res = requests.post(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{match.host}/api/match",
@@ -151,22 +158,40 @@ def create_match(request: Request, match: MatchInfo,
                             detail=f"Unable to start container on remote host: {match.host}, status={res.status_code}<br>{res.text}")
 
 
-@api.post("/host", dependencies=[Depends(db.get_db)])
-def create_host(request: Request, host: HostInfo,
-                current_user: db_models.Account = Depends(auth_api.get_admin_user)):
-    logging.info(f"Called POST /host with Host: Ip: '{host.ip}'")
+@api.delete("/match", response_class=JSONResponse, dependencies=[Depends(db.get_db)])
+def status(request: Request, server: ServerID, current_user: db_models.Account = Depends(auth_api.get_admin_user)):
+    logging.info(f"Called DELETE /match with server id: {server.id}")
 
-    try:
-        res = requests.get(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{host.ip}/api/healthcheck", timeout=2)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Unable to connect to host: {host.ip} ({e})")
+    server_db = db_models.Server.select().where(db_models.Server.id == server.id).get_or_none()
+    host = db_models.Host.select().where(db_models.Host.ip == server_db.ip).get_or_none()
+
+    res = requests.delete(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{host.ip}:{host.port}/api/match",
+                          json={"id": server.id},
+                          cookies={"access_token": request.cookies.get("access_token")})
 
     if res.status_code == 200:
-        db_models.Host.create(ip=host.ip)
         return {"status": "ok"}
     else:
         raise HTTPException(status_code=500,
-                            detail=f"Unable to connect to host: {host.ip}, status={res.status_code}<br>{res.text}")
+                            detail=f"Unable to stop container on remote host: {host.ip}:{host.port}, status={res.status_code}<br>{res.text}")
+
+
+@api.post("/host", dependencies=[Depends(db.get_db)])
+def create_host(request: Request, host: HostInfo,
+                current_user: db_models.Account = Depends(auth_api.get_admin_user)):
+    logging.info(f"Called POST /host with Host: Ip: '{host.ip}', Port: '{host.port}'")
+
+    try:
+        res = requests.get(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{host.ip}:{host.port}/api/healthcheck", timeout=2)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unable to connect to host: {host.ip}:{host.port} ({e})")
+
+    if res.status_code == 200:
+        db_models.Host.create(ip=host.ip, port=host.port)
+        return {"status": "ok"}
+    else:
+        raise HTTPException(status_code=500,
+                            detail=f"Unable to connect to host: {host.ip}:{host.port} , status={res.status_code}<br>{res.text}")
 
 
 @api.get("/healthcheck")
