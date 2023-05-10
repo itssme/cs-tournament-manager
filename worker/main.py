@@ -1,11 +1,12 @@
 import logging
 import os
 
+import docker
 from redis import asyncio as aioredis
 from fastapi_cache.backends.redis import RedisBackend
 
-from endpoints.csgo_events import server_manger
 from match_conf_gen import MatchGen
+from servers import ServerManager
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
@@ -45,9 +46,11 @@ app.mount("/auth", auth)
 
 templates = Jinja2Templates(directory="templates")
 
-error_routes.set_routes(app, templates)
-error_routes.set_api_routes(api)
+error_routes.set_routes(app, templates, False)
+error_routes.set_api_routes(api, False)
 auth_api.set_api_routes(auth, templates)
+
+server_manager = ServerManager()
 
 
 @app.on_event("startup")
@@ -89,10 +92,10 @@ async def create_match(request: Request, match: MatchInfo):
     logging.info(match_cfg)
     if match.from_backup_url is not None:
         match_cfg.set_match_id(match_id)
-        new_match = server_manger.create_match(match_cfg,
-                                               loadbackup_url=match.from_backup_url)
+        new_match = server_manager.create_match(match_cfg,
+                                                loadbackup_url=match.from_backup_url)
     else:
-        new_match = server_manger.create_match(match_cfg)
+        new_match = server_manager.create_match(match_cfg)
 
     if new_match[0]:
         return {"ip": os.getenv('EXTERNAL_IP', '127.0.0.1'), "port": new_match[1],
@@ -103,4 +106,9 @@ async def create_match(request: Request, match: MatchInfo):
 
 @api.get("/healthcheck")
 async def healthcheck(request: Request):
-    return {"status": "ok"}
+    client = docker.from_env()
+    try:
+        client.images.get("get5-csgo")
+        return {"status": "ok"}
+    except docker.errors.ImageNotFound:
+        raise HTTPException(status_code=500, detail="CSGO Docker image not found")

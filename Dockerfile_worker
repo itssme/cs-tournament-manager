@@ -14,5 +14,5 @@ COPY webserver/templates/ app/templates
 
 WORKDIR /app
 
-ENV PORT=8080
-EXPOSE 8080 8080
+ENV PORT=5000
+EXPOSE 5000 5000

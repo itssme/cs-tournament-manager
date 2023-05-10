@@ -1,1 +1,90 @@
-config
+{% extends "base.html" %}
+{% block content %}
+    <div class="flex justify-center p-6">
+        <div class="block max-w-sm rounded-lg bg-white p-6 shadow-lg dark:bg-neutral-700 w-full lg:min-w-[50%] text-neutral-700 dark:text-neutral-200">
+            <h5 class="mb-2 text-xl font-medium leading-tight text-neutral-800 dark:text-neutral-50">
+                Add Host
+            </h5>
+
+            <div class="relative mb-3" data-te-input-wrapper-init>
+                <input type="text"
+                       class="peer block min-h-[auto] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[1.6] outline-none transition-all duration-200 ease-linear focus:placeholder:opacity-100 peer-focus:text-primary data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-neutral-200 dark:placeholder:text-neutral-200 dark:peer-focus:text-primary [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
+                       id="ip"
+                       placeholder="IP of the host"
+                       value="host.docker.internal:5000"/>
+                <label for="ip"
+                       class="pointer-events-none absolute left-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[1.6] text-neutral-500 transition-all duration-200 ease-out peer-focus:-translate-y-[0.9rem] peer-focus:scale-[0.8] peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[0.9rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-neutral-200 dark:peer-focus:text-primary">
+                    IP
+                </label>
+            </div>
+
+            <button type="button"
+                    class="inline-block rounded bg-primary px-6 pt-2.5 pb-2 text-xs font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_#3b71ca] transition duration-150 ease-in-out hover:bg-primary-600 hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:bg-primary-600 focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:outline-none focus:ring-0 active:bg-primary-700 active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] disabled:opacity-70"
+                    data-te-ripple-init
+                    data-te-ripple-color="light"
+                    onclick="addHost()">
+                Submit
+            </button>
+
+            <div id="error-msg" role="alert" style="visibility: hidden">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addHost() {
+            fetch('/api/host', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ip: document.getElementById("ip").value
+                })
+            })
+                .then(res => {
+                    if (res.status === 200) {
+                        window.location.reload()
+                    } else {
+                        console.error(res.statusText);
+
+                        let error_msg = document.getElementById("error-msg");
+                        error_msg.className = 'mb-4 rounded-lg bg-danger-100 py-5 px-6 text-base text-danger-700';
+                        error_msg.style.marginTop = '20px';
+                        error_msg.style.marginBottom = '0px';
+                        error_msg.style.visibility = 'visible';
+
+                        res.json().then(j => {
+                            if (typeof j.detail === "string")
+                                error_msg.textContent = j.detail;
+                            else
+                                error_msg.textContent = res.statusText;
+                        }).catch(() => error_msg.textContent = res.statusText);
+                    }
+                })
+        }
+    </script>
+    <div class="flex flex-col">
+        <div class="">
+            <div class="inline-block min-w-full py-2 sm:px-6 lg:px-8">
+                <div class="overflow-hidden">
+                    <table class="min-w-full text-center text-sm font-light">
+                        <thead class="border-b bg-neutral-800 font-medium text-white dark:border-neutral-500 dark:bg-neutral-900">
+                        <tr>
+                            <th scope="col" class="px-2 py-2">ip</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for host in hosts %}
+                            <tr class="border-b dark:border-neutral-500 text-black dark:text-white">
+                                <td class="whitespace-nowrap px-2 py-2">{{ host.ip }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

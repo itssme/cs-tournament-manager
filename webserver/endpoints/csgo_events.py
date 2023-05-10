@@ -12,7 +12,7 @@ from fastapi import Request, Depends
 from endpoints import csgo_stats_event, auth_api
 from utils.rcon import RCON
 from utils import db, db_models
-from elo import calculate_elo
+from utils.elo import calculate_elo
 from utils.utils_funcs import get_body
 
 

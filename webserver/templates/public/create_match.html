@@ -24,6 +24,16 @@
                 <label data-te-select-label-ref>Team2</label>
             </div>
 
+            <div class="relative mb-4 flex w-full flex-wrap items-stretch">
+                <select data-te-select-init id="host">
+                    <option value="None">Least used host</option>
+                    {% for host in hosts %}
+                        <option value="{{ host.ip }}">{{ host.ip }}</option>
+                    {% endfor %}
+                </select>
+                <label data-te-select-label-ref>Host</label>
+            </div>
+
             <div class="relative mb-3" data-te-input-wrapper-init>
                 <input type="number"
                        class="peer block min-h-[auto] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[1.6] outline-none transition-all duration-200 ease-linear focus:placeholder:opacity-100 peer-focus:text-primary data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-neutral-200 dark:placeholder:text-neutral-200 dark:peer-focus:text-primary [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
@@ -71,6 +81,7 @@
                 body: JSON.stringify({
                     team1: parseInt(document.getElementById("team1").value),
                     team2: parseInt(document.getElementById("team2").value),
+                    host: document.getElementById("host").value,
                     best_of: parseInt(document.getElementById("best_of").value),
                     check_auths: document.getElementById("check_auths").checked
                 })

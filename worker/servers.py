@@ -131,6 +131,7 @@ class ServerManager:
 
     def reserve_free_gslt_token(self, server: db_models.Server) -> str:
         with self.gslt_lock:
+            # TODO: make request from main server and get tokens from there
             available_tokens = self.gslt_tokens.copy()
             reserved_tokens = [server.gslt_token for server in db_models.Server.select()]
             free_tokens = list(filter(lambda token: False if token in reserved_tokens else True, available_tokens))

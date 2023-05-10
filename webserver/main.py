@@ -1,11 +1,13 @@
 import logging
 
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+
+import os
+
 from redis import asyncio as aioredis
 from fastapi_cache.backends.redis import RedisBackend
 
 from endpoints.auth_api import get_password_hash
-
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 import json
 
@@ -50,8 +52,8 @@ app.mount("/auth", auth)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-error_routes.set_routes(app, templates)
-error_routes.set_api_routes(api)
+error_routes.set_routes(app, templates, False)
+error_routes.set_api_routes(api, False)
 csgo_events.set_api_routes(csgo_api)
 config_webinterface_routes.set_routes(public, templates)
 auth_api.set_api_routes(auth, templates)
@@ -127,16 +129,18 @@ def create_match(request: Request, match: MatchInfo,
         f"Called POST /match with MatchInfo: Team1: '{match.team1}', Team2: '{match.team2}', "
         f"best_of: '{match.best_of}', 'check_auths: {match.check_auths}', 'host: {match.host}'")
 
-    if match.host is None:
+    if match.host is None or match.host == "None":
         match.host = db.get_least_used_host_ips()
         logging.info(f"No host specified, using least used host -> {match.host}")
 
     logging.info(f"Creating match on remote server: {match.host} -> {match.json()}")
     if request.headers.get("Authorization", None) is None:
-        res = requests.post(f"http://{match.host}/api/match", json=json.loads(match.json()),
+        res = requests.post(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{match.host}/api/match",
+                            json=json.loads(match.json()),
                             cookies={"access_token": request.cookies.get("access_token")})
     else:
-        res = requests.post(f"http://{match.host}/api/match", json=json.loads(match.json()),
+        res = requests.post(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{match.host}/api/match",
+                            json=json.loads(match.json()),
                             headers={"Authorization": request.headers["Authorization"]})
 
     try:
@@ -145,6 +149,24 @@ def create_match(request: Request, match: MatchInfo,
     except Exception as e:
         raise HTTPException(status_code=500,
                             detail=f"Unable to start container on remote host: {match.host}, status={res.status_code}<br>{res.text}")
+
+
+@api.post("/host", dependencies=[Depends(db.get_db)])
+def create_host(request: Request, host: HostInfo,
+                current_user: db_models.Account = Depends(auth_api.get_admin_user)):
+    logging.info(f"Called POST /host with Host: Ip: '{host.ip}'")
+
+    try:
+        res = requests.get(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{host.ip}/api/healthcheck", timeout=2)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Unable to connect to host: {host.ip} ({e})")
+
+    if res.status_code == 200:
+        db_models.Host.create(ip=host.ip)
+        return {"status": "ok"}
+    else:
+        raise HTTPException(status_code=500,
+                            detail=f"Unable to connect to host: {host.ip}, status={res.status_code}<br>{res.text}")
 
 
 @api.get("/healthcheck")
