@@ -1,52 +1,64 @@
 import logging
 
-from redis import asyncio as aioredis
-from fastapi_cache.backends.redis import RedisBackend
+from starlette.responses import JSONResponse
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-import json
 import os
+import docker
 
-import requests
-from fastapi_cache import FastAPICache
-from fastapi_cache.decorator import cache
-from starlette.responses import JSONResponse
-
-from endpoints import csgo_events, error_routes, config_webinterface_routes, public_routes, api_liveinfos, auth_api
-from endpoints.db_endpoints import get
-from utils.rcon import RCON
-from servers import ServerManager
 from match_conf_gen import MatchGen
-from utils import db, db_models
-
-from fastapi import FastAPI, Request, HTTPException, Depends
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-
+from servers import ServerManager
+from utils import db_models, limiter, db_migrations, db
 from utils.json_objects import *
+
+from fastapi_cache import FastAPICache
+from endpoints import error_routes, auth_api
+from fastapi import FastAPI, Request, HTTPException, Depends
+from fastapi.templating import Jinja2Templates
+from redis import asyncio as aioredis
+from fastapi_cache.backends.redis import RedisBackend
 
 logging.info("server running")
 
+logging.info("applying migrations")
+db_migrations.apply_migrations()
+logging.info("applying migrations - done")
+
+# uncomment for dev stuff
+# db_models.Account.create(username="admin", password=get_password_hash("admin"), verification_code="", verified=1, role="admin")
+
 app = FastAPI()
+limiter.init_limiter(app)
+
 api = FastAPI()
+public = FastAPI()
+csgo_api = FastAPI()
 auth = FastAPI()
+limiter.init_limiter(auth)
+
 app.mount("/api", api)
+
+api.mount("/csgo", csgo_api)
 app.mount("/auth", auth)
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-server_manger = ServerManager()
-csgo_events.set_server_manager(server_manger)
-
-error_routes.set_routes(app, templates)
-error_routes.set_api_routes(api)
+error_routes.set_routes(app, templates, False)
+error_routes.set_api_routes(api, False)
 auth_api.set_api_routes(auth, templates)
 
+server_manager = ServerManager()
 
-@api.post("/match")
-async def create_match(request: Request, match: MatchInfo):
+
+@app.on_event("startup")
+async def startup():
+    redis = aioredis.from_url("redis://redis", encoding="utf8", decode_responses=True)
+    FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
+
+
+@api.post("/match", dependencies=[Depends(db.get_db)])
+def create_match(request: Request, match: MatchInfo, current_user: db_models.Account = Depends(auth_api.get_admin_user)):
     logging.info(
         f"Called POST /match with MatchInfo: Team1: '{match.team1}', Team2: '{match.team2}', "
         f"best_of: '{match.best_of}', 'check_auths: {match.check_auths}', 'host: {match.host}'")
@@ -66,7 +78,7 @@ async def create_match(request: Request, match: MatchInfo):
 
         match_old.finished = 3
         match_old.save()
-        match.from_backup_url = f"http://{os.getenv('MASTER_IP', '127.0.0.1')}/api/backup/" + match.from_backup_url
+        match.from_backup_url = f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/backup/" + match.from_backup_url
         # TODO: delete server in db if exists
     else:
         logging.info(f"Creating new match not using any backup")
@@ -78,10 +90,10 @@ async def create_match(request: Request, match: MatchInfo):
     logging.info(match_cfg)
     if match.from_backup_url is not None:
         match_cfg.set_match_id(match_id)
-        new_match = server_manger.create_match(match_cfg,
-                                               loadbackup_url=match.from_backup_url)
+        new_match = server_manager.create_match(match_cfg,
+                                                loadbackup_url=match.from_backup_url)
     else:
-        new_match = server_manger.create_match(match_cfg)
+        new_match = server_manager.create_match(match_cfg)
 
     if new_match[0]:
         return {"ip": os.getenv('EXTERNAL_IP', '127.0.0.1'), "port": new_match[1],
@@ -90,6 +102,18 @@ async def create_match(request: Request, match: MatchInfo):
         raise HTTPException(status_code=500, detail="Unable to start container")
 
 
+@api.delete("/match", response_class=JSONResponse, dependencies=[Depends(db.get_db)])
+def status(request: Request, server: ServerID, current_user: db_models.Account = Depends(auth_api.get_admin_user)):
+    logging.info(f"Called DELETE /match with server id: {server.id}")
+    server_manager.stop_match(server.id)
+    return {"status": 0}
+
+
 @api.get("/healthcheck")
 async def healthcheck(request: Request):
-    return {"status": "ok"}
+    client = docker.from_env()
+    try:
+        client.images.get("get5-csgo")
+        return {"status": "ok"}
+    except docker.errors.ImageNotFound:
+        raise HTTPException(status_code=500, detail="CSGO Docker image not found")

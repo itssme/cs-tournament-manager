@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="flex flex-col">
+        <div id="error-msg" role="alert" style="visibility: hidden">
+        </div>
+        <div class="">
+            <div class="inline-block min-w-full py-2 sm:px-6 lg:px-8">
+                <div class="overflow-hidden">
+                    <table class="min-w-full text-center text-sm font-light">
+                        <thead class="border-b bg-neutral-800 font-medium text-white dark:border-neutral-500 dark:bg-neutral-900">
+                        <tr>
+                            <th scope="col" class="px-2 py-2">#</th>
+                            <th scope="col" class="px-2 py-2">ip</th>
+                            <th scope="col" class="px-2 py-2">port</th>
+                            <th scope="col" class="px-2 py-2">gslt_token</th>
+                            <th scope="col" class="px-2 py-2">container_name</th>
+                            <th scope="col" class="px-2 py-2">match_id</th>
+                            <th scope="col" class="px-2 py-2">Delete</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for server in servers %}
+                            <tr class="border-b dark:border-neutral-500 text-black dark:text-white">
+                                <td class="whitespace-nowrap px-2 py-2 font-medium">{{ server.id }}</td>
+                                <td class="whitespace-nowrap px-2 py-2">{{ server.ip }}</td>
+                                <td class="whitespace-nowrap px-2 py-2">{{ server.port }}</td>
+                                <td class="whitespace-nowrap px-2 py-2">{{ server.gslt_token }}</td>
+                                <td class="whitespace-nowrap px-2 py-2">{{ server.container_name }}</td>
+                                <td class="whitespace-nowrap px-2 py-2">{{ server.match.matchid }}</td>
+                                <td class="whitespace-nowrap px-2 py-2">
+                                    <button type="button"
+                                            class="inline-block rounded bg-primary px-6 pt-2.5 pb-2 text-xs font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_#3b71ca] transition duration-150 ease-in-out hover:bg-primary-600 hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:bg-primary-600 focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:outline-none focus:ring-0 active:bg-primary-700 active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] disabled:opacity-70"
+                                            data-te-ripple-init
+                                            data-te-ripple-color="light"
+                                            onclick="stopServer({{ server.id }})">
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function stopServer(server_id) {
+            fetch('/api/match', {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    id: server_id
+                })
+            })
+                .then(res => {
+                    if (res.status === 200) {
+                        window.location.reload()
+                    } else {
+                        console.error(res.statusText);
+
+                        let error_msg = document.getElementById("error-msg");
+                        error_msg.className = 'mb-4 rounded-lg bg-danger-100 py-5 px-6 text-base text-danger-700';
+                        error_msg.style.marginTop = '20px';
+                        error_msg.style.marginBottom = '0px';
+                        error_msg.style.visibility = 'visible';
+
+                        res.json().then(j => {
+                            if (typeof j.detail === "string")
+                                error_msg.textContent = j.detail;
+                            else
+                                error_msg.textContent = res.statusText;
+                        }).catch(() => error_msg.textContent = res.statusText);
+                    }
+                })
+        }
+    </script>
+{% endblock content %}

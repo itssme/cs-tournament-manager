@@ -6,7 +6,7 @@
                 Create Match
             </h5>
 
-            <div class="relative mb-4 flex w-full flex-wrap items-stretch">
+            <div class="relative mb-4">
                 <select data-te-select-init id="team1">
                     {% for team in teams %}
                         <option value="{{ team.id }}">{{ team.name }}</option>
@@ -15,13 +15,23 @@
                 <label data-te-select-label-ref>Team1</label>
             </div>
 
-            <div class="relative mb-4 flex w-full flex-wrap items-stretch">
+            <div class="relative mb-4">
                 <select data-te-select-init id="team2">
                     {% for team in teams %}
                         <option value="{{ team.id }}">{{ team.name }}</option>
                     {% endfor %}
                 </select>
                 <label data-te-select-label-ref>Team2</label>
+            </div>
+
+            <div class="relative mb-4">
+                <select data-te-select-init id="host">
+                    <option value="None">Least used host</option>
+                    {% for host in hosts %}
+                        <option value="{{ host.ip }}">{{ host.ip }}</option>
+                    {% endfor %}
+                </select>
+                <label data-te-select-label-ref>Host</label>
             </div>
 
             <div class="relative mb-3" data-te-input-wrapper-init>
@@ -71,6 +81,7 @@
                 body: JSON.stringify({
                     team1: parseInt(document.getElementById("team1").value),
                     team2: parseInt(document.getElementById("team2").value),
+                    host: document.getElementById("host").value,
                     best_of: parseInt(document.getElementById("best_of").value),
                     check_auths: document.getElementById("check_auths").checked
                 })

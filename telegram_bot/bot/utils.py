@@ -32,10 +32,12 @@ def str2bool(v):
 
 
 def login_to_api() -> str:
-    logging.info(f"Logging in to master -> {os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP')}/auth/token")
+    logging.info(
+        f"Logging in to master -> {os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/auth/token")
     session = requests.Session()
-    res = session.post(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MASTER_IP')}/auth/token",
-                       data={"username": "api_req", "password": os.getenv("API_PASSWORD", "admin")})
+    res = session.post(
+        f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/auth/token",
+        data={"username": "api_req", "password": os.getenv("API_PASSWORD", "admin")})
     return session.cookies.get("access_token")
 
 

@@ -1,5 +1,8 @@
-import json
 import logging
+
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+
+import json
 import os
 import random
 import time
@@ -11,12 +14,9 @@ from fastapi import Request, Depends
 
 from endpoints import csgo_stats_event, auth_api
 from utils.rcon import RCON
-from servers import ServerManager
 from utils import db, db_models
-from elo import calculate_elo
+from utils.elo import calculate_elo
 from utils.utils_funcs import get_body
-
-server_manger: ServerManager = None
 
 
 def going_live(event: Dict):
@@ -118,7 +118,7 @@ def player_say(event: Dict):
     if "!spin" in message.lower():
         server = db.get_server_for_match(event["matchid"])
 
-        with RCON(server.ip, server.port) as rconn:
+        with RCON(str(server.ip.ip), server.port) as rconn:
             rconn.exec_command("say A new challenge has been set for the team that used the command:")
             rconn.exec_command("say " + random.choice(challenges))
 
@@ -193,8 +193,3 @@ def set_api_routes(app):
 
         logging.info(f"Done writing file: {filename}")
         return {"filename": filename}
-
-
-def set_server_manager(server_manager: ServerManager):
-    global server_manger
-    server_manger = server_manager
