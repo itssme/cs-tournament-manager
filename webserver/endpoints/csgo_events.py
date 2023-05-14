@@ -1,5 +1,7 @@
 import logging
 
+from starlette.responses import JSONResponse
+
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 import json
@@ -13,10 +15,10 @@ import requests
 from fastapi import Request, Depends
 
 from endpoints import csgo_stats_event, auth_api
-from utils.rcon import RCON
+from utils.rcon import RCON, get5_status
 from utils import db, db_models
 from utils.elo import calculate_elo
-from utils.utils_funcs import get_body
+from utils.utils_funcs import get_body, get_api_login_token
 
 
 def going_live(event: Dict):
@@ -45,8 +47,7 @@ def demo_upload_ended(event: Dict):
     logging.info(f"Shutting down remote container: server={server.ip}, match_id={match.matchid}")
     res = requests.delete(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{server.ip}/api/match", json={"id": server.id},
                           timeout=60,
-                          headers=auth_api.create_access_token(
-                              data={"sub": os.getenv("API_USERNAME", "API")}))
+                          cookies={"access_token": get_api_login_token()})
 
     if res.status_code == 200:
         logging.info(
@@ -147,7 +148,7 @@ def set_api_routes(app):
     @app.post("/", dependencies=[Depends(db.get_db)])
     def get5_event(body=Depends(get_body),
                    current_user: db_models.Account = Depends(auth_api.get_admin_user)):
-        json_str = body.decode("utf-8")  # TODO: is decode right here?
+        json_str = body.decode("utf-8")
         event = json.loads(json_str)
         logging.info(f"Event: {event['event']}")
         logging.info(event)
@@ -193,3 +194,45 @@ def set_api_routes(app):
 
         logging.info(f"Done writing file: {filename}")
         return {"filename": filename}
+
+    @app.get("/info", response_class=JSONResponse, dependencies=[Depends(db.get_db)])
+    # @cache(namespace="info", expire=1)
+    def status(request: Request, current_user: db_models.Account = Depends(auth_api.get_current_user)):
+        servers = db_models.Server.select()  # do not call server.update() later! It will overwrite the gslt token
+
+        for server in servers:
+            server.gslt_token = None  # avoid leaking gslt tokens
+
+        status_json = []
+
+        for server in servers:
+            get5_stats = None
+            stats = None
+            try:
+                get5_stats = get5_status(server.ip.ip, server.port)
+                with RCON(server.ip.ip, server.port) as rconn:
+                    # need to parse values: CPU   NetIn   NetOut    Uptime  Maps   FPS   Players  Svms    +-ms   ~tick
+                    stats = rconn.exec_command("stats")
+            except ConnectionRefusedError as e:
+                pass
+
+            stats_parsed = [float(value) for value in stats.split("\\n")[1].split(" ") if
+                            value != ''] if stats is not None else []
+
+            match = db_models.Match.select().where(db_models.Match.id == server.match).get()
+            team_1 = db_models.Team.get(db_models.Team.id == match.team1)
+            team_2 = db_models.Team.get(db_models.Team.id == match.team2)
+
+            if get5_stats is None:
+                get5_stats = {"gamestate": "unreachable"}
+
+            get5_stats["matchid"] = f"{team_1.name} vs {team_2.name}"
+
+            status_json.append({"id": server.id,
+                                "ip": server.ip.ip + ":" + str(server.port),
+                                "get5_stats": get5_stats,
+                                "stats": stats_parsed,
+                                "team1": team_1,
+                                "team2": team_2})
+
+        return status_json

@@ -66,26 +66,26 @@ def stats_event(event: Dict):
     match: db_models.Match = db_models.Match.select().where(db_models.Match.matchid == event["matchid"]).get()
     if event_type != Events.bomb_exploded:  # Events with player reference
         player = db.get_player_by_steam_id(commid_to_steamid(event["player"]["steamid"]))
-        db_models.Stats.create(match=match, player=player, event=event_type.value)
+        db_models.Stats.create(match=match, player=player, type=event_type.value)
 
         if event_type == Events.player_death:
             player = db.get_player_by_steam_id(commid_to_steamid(event["attacker"]["steamid"]))
 
             if event["friendly_fire"]:
-                db_models.Stats.create(match=match, player=player, event=Events.friendly_fire.value)
+                db_models.Stats.create(match=match, player=player, type=Events.friendly_fire.value)
             else:
-                db_models.Stats.create(match=match, player=player, event=Events.player_kills.value)
+                db_models.Stats.create(match=match, player=player, type=Events.player_kills.value)
 
                 if event["headshot"]:
                     db_models.Stats.create(match=match, player=player,
-                                           event=Events.headshot_kills.value)
+                                           type=Events.headshot_kills.value)
 
         if event_type == Events.flashbang_detonated:
             for victim in event["victims"]:
                 player_victim = db.get_player_by_steam_id(commid_to_steamid(victim["player"]["steamid"]))
-                db_models.Stats.create(match=match, player=player_victim, event=Events.player_flashed.value)
+                db_models.Stats.create(match=match, player=player_victim, type=Events.player_flashed.value)
 
                 if victim["friendly_fire"]:
-                    db_models.Stats.create(match=match, player=player_victim, event=Events.friendly_flash.value)
+                    db_models.Stats.create(match=match, player=player_victim, type=Events.friendly_flash.value)
     else:  # Events without player reference
-        db_models.Stats.create(match=match, event=event_type.value)
+        db_models.Stats.create(match=match, type=event_type.value)

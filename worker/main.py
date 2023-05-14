@@ -78,7 +78,7 @@ def create_match(request: Request, match: MatchInfo, current_user: db_models.Acc
 
         match_old.finished = 3
         match_old.save()
-        match.from_backup_url = f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/backup/" + match.from_backup_url
+        match.from_backup_url = f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/csgo/backup/" + match.from_backup_url
         # TODO: delete server in db if exists
     else:
         logging.info(f"Creating new match not using any backup")
