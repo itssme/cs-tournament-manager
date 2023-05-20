@@ -32,6 +32,7 @@ services:
       - "host.docker.internal:host-gateway"
     environment:
       - MAX_WORKERS=10
+      - STEAM_KEY=${STEAM_KEY}
   telegram_bot:
     depends_on:
       - csgo_manager

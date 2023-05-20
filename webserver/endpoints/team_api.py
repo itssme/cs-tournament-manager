@@ -1,5 +1,6 @@
+import logging
 import time
-from typing import Optional
+from typing import Optional, List
 
 from fastapi import Depends, HTTPException
 from pydantic import BaseModel
@@ -38,6 +39,11 @@ class PlayerJson(BaseModel):
     last_updated: Optional[int] = None
 
 
+class TeamAssignmentJson(BaseModel):
+    team_id: int = None
+    player_id: int = None
+
+
 class Player(BaseModel):
     name: str
     profile_url: str
@@ -50,7 +56,7 @@ def set_api_routes(app, cache):
         team: db_models.Team = db_models.Team.get(db_models.Team.id == team_id)
 
         if team.locked_changes == 1:
-            raise HTTPException(status_code=400, detail="Players cannot be added to that team anymore")
+            raise HTTPException(status_code=400, detail="Players cannot be added to that team anymore (locked)")
 
         if len(db.get_team_players(team.id)) >= 5:
             raise HTTPException(status_code=400, detail="Team already has five members")
@@ -76,21 +82,17 @@ def set_api_routes(app, cache):
 
         return Response(status_code=200)
 
-    @app.delete("/{team_id}/member/{member_id}", dependencies=[Depends(db.get_db)])
-    def remove_team_member(request: Request, member_id: int, team_id: int,
-                           user: db_models.Account = Depends(get_admin_user)):
-        team: db_models.Team = db_models.Team.get(db_models.Team.id == team_id)
-        team_assignment: db_models.TeamAssignment = db_models.TeamAssignment.get(
-            db_models.TeamAssignment.team == team.id,
-            db_models.TeamAssignment.player == member_id)
+    @app.delete("/player/{player_id}", dependencies=[Depends(db.get_db)])
+    def remove_team_member(request: Request, player_id: int, user: db_models.Account = Depends(get_admin_user)):
+        team_assignments: List[db_models.TeamAssignment] = db_models.TeamAssignment.select().where(
+            db_models.TeamAssignment.player == player_id)
 
-        if team.locked_changes == 1:
-            raise HTTPException(status_code=403, detail="Players cannot be removed from that team anymore")
+        for assignment in team_assignments:
+            if assignment.team.locked_changes == 1:
+                raise HTTPException(status_code=403,
+                                    detail=f"Players cannot be removed from that team ({assignment.team.name}) anymore")
 
-        if team_assignment is None:
-            raise HTTPException(status_code=403, detail="Player is not in your team")
-
-        db_player = db_models.Player.get(db_models.Player.id == member_id)
+        db_player = db_models.Player.get(db_models.Player.id == player_id)
         db_player.delete_instance()
 
         return Response(status_code=200)

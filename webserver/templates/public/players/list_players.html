@@ -1,5 +1,187 @@
 {% extends "base.html" %}
 {% block content %}
+    <!-- Remove Player Modal -->
+    <div data-te-modal-init
+         class="fixed left-0 top-0 z-[1055] hidden h-full w-full overflow-y-auto overflow-x-hidden outline-none"
+         id="exampleModal"
+         tabindex="-1"
+         aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div data-te-modal-dialog-ref
+             class="pointer-events-none relative w-auto translate-y-[-50px] opacity-0 transition-all duration-300 ease-in-out min-[576px]:mx-auto min-[576px]:mt-7 min-[576px]:max-w-[500px]">
+            <div class="min-[576px]:shadow-[0_0.5rem_1rem_rgba(#000, 0.15)] pointer-events-auto relative flex w-full flex-col rounded-md border-none bg-white bg-clip-padding text-current shadow-lg outline-none dark:bg-neutral-600">
+                <div class="flex flex-shrink-0 items-center justify-between rounded-t-md border-b-2 border-neutral-100 border-opacity-100 p-4 dark:border-opacity-50">
+                    <!--Modal title-->
+                    <h5 class="text-xl font-medium leading-normal text-neutral-800 dark:text-neutral-200"
+                        id="exampleModalLabel">
+                        Delete Player
+                    </h5>
+                    <!--Close button-->
+                    <button type="button"
+                            class="box-content rounded-none border-none hover:no-underline hover:opacity-75 focus:opacity-100 focus:shadow-none focus:outline-none"
+                            data-te-modal-dismiss
+                            aria-label="Close">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             fill="none"
+                             viewBox="0 0 24 24"
+                             stroke-width="1.5"
+                             stroke="currentColor"
+                             class="h-6 w-6">
+                            <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!--Modal body-->
+                <div class="relative flex-auto p-4" data-te-modal-body-ref>
+                    Are you sure you want to delete that player?
+                </div>
+
+                <!--Modal footer-->
+                <div class="flex flex-shrink-0 flex-wrap items-center justify-end rounded-b-md border-t-2 border-neutral-100 border-opacity-100 p-4 dark:border-opacity-50">
+                    <button type="button"
+                            class="inline-block rounded bg-primary-100 px-6 pb-2 pt-2.5 text-xs font-medium uppercase leading-normal text-primary-700 transition duration-150 ease-in-out hover:bg-primary-accent-100 focus:bg-primary-accent-100 focus:outline-none focus:ring-0 active:bg-primary-accent-200"
+                            data-te-modal-dismiss
+                            data-te-ripple-init
+                            data-te-ripple-color="light">
+                        Close
+                    </button>
+                    <button type="button"
+                            class="ml-1 inline-block rounded bg-primary px-6 pb-2 pt-2.5 text-xs font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_#3b71ca] transition duration-150 ease-in-out hover:bg-primary-600 hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:bg-primary-600 focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:outline-none focus:ring-0 active:bg-primary-700 active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] dark:shadow-[0_4px_9px_-4px_rgba(59,113,202,0.5)] dark:hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)]"
+                            data-te-ripple-init
+                            data-te-ripple-color="light"
+                            onclick="deletePlayer()">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex justify-center p-6">
+        <div class="block max-w-sm rounded-lg bg-white p-6 shadow-lg dark:bg-neutral-700 w-full lg:min-w-[50%] text-neutral-700 dark:text-neutral-200">
+            <h5 class="mb-2 text-xl font-medium leading-tight text-neutral-800 dark:text-neutral-50">
+                Create Player
+            </h5>
+
+            <div class="relative mb-3" data-te-input-wrapper-init>
+                <input type="text"
+                       class="peer block min-h-[auto] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[1.6] outline-none transition-all duration-200 ease-linear focus:placeholder:opacity-100 peer-focus:text-primary data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-neutral-200 dark:placeholder:text-neutral-200 dark:peer-focus:text-primary [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
+                       id="name"
+                       placeholder="Name"
+                       value="name"/>
+                <label for="name"
+                       class="pointer-events-none absolute left-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[1.6] text-neutral-500 transition-all duration-200 ease-out peer-focus:-translate-y-[0.9rem] peer-focus:scale-[0.8] peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[0.9rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-neutral-200 dark:peer-focus:text-primary">
+                    Name
+                </label>
+            </div>
+
+            <div class="relative mb-3" data-te-input-wrapper-init>
+                <input type="text"
+                       class="peer block min-h-[auto] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[1.6] outline-none transition-all duration-200 ease-linear focus:placeholder:opacity-100 peer-focus:text-primary data-[te-input-state-active]:placeholder:opacity-100 motion-reduce:transition-none dark:text-neutral-200 dark:placeholder:text-neutral-200 dark:peer-focus:text-primary [&:not([data-te-input-placeholder-active])]:placeholder:opacity-0"
+                       id="profile_url"
+                       placeholder="Profile URL"
+                       value="profile_url"/>
+                <label for="profile_url"
+                       class="pointer-events-none absolute left-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[1.6] text-neutral-500 transition-all duration-200 ease-out peer-focus:-translate-y-[0.9rem] peer-focus:scale-[0.8] peer-focus:text-primary peer-data-[te-input-state-active]:-translate-y-[0.9rem] peer-data-[te-input-state-active]:scale-[0.8] motion-reduce:transition-none dark:text-neutral-200 dark:peer-focus:text-primary">
+                    Profile URL
+                </label>
+            </div>
+
+            <div class="relative mb-4">
+                <select data-te-select-init id="team">
+                    {% for team in teams %}
+                        <option value="{{ team.id }}">{{ team.name }}</option>
+                    {% endfor %}
+                </select>
+                <label data-te-select-label-ref>Team</label>
+            </div>
+
+            <button type="button"
+                    class="inline-block rounded bg-primary px-6 pt-2.5 pb-2 text-xs font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_#3b71ca] transition duration-150 ease-in-out hover:bg-primary-600 hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:bg-primary-600 focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:outline-none focus:ring-0 active:bg-primary-700 active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] disabled:opacity-70"
+                    data-te-ripple-init
+                    data-te-ripple-color="light"
+                    onclick="createPlayer()">
+                Submit
+            </button>
+
+            <div id="error-msg" role="alert" style="visibility: hidden">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function createPlayer() {
+            team_id = parseInt(document.getElementById("team").value);
+            fetch(`/api/team/${team_id}/member`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: document.getElementById("name").value,
+                    profile_url: document.getElementById("profile_url").value
+                })
+            })
+                .then(res => {
+                    if (res.status === 200) {
+                        window.location.reload()
+                    } else {
+                        console.error(res.statusText);
+
+                        let error_msg = document.getElementById("error-msg");
+                        error_msg.className = 'mb-4 rounded-lg bg-danger-100 py-5 px-6 text-base text-danger-700';
+                        error_msg.style.marginTop = '20px';
+                        error_msg.style.marginBottom = '0px';
+                        error_msg.style.visibility = 'visible';
+
+                        res.json().then(j => {
+                            if (typeof j.detail === "string")
+                                error_msg.textContent = j.detail;
+                            else
+                                error_msg.textContent = res.statusText;
+                        }).catch(() => error_msg.textContent = res.statusText);
+                    }
+                })
+        }
+
+        var player_id = null;
+
+        function setDeletePlayer(del_player_id) {
+            player_id = parseInt(del_player_id);
+        }
+
+        function deletePlayer() {
+            fetch(`/api/team/player/${player_id}`, {
+                method: 'DELETE',
+            })
+                .then(res => {
+                    if (res.status === 200) {
+                        window.location.reload()
+                    } else {
+                        console.error(res.statusText);
+
+                        let error_msg = document.getElementById("error-msg");
+                        error_msg.className = 'mb-4 rounded-lg bg-danger-100 py-5 px-6 text-base text-danger-700';
+                        error_msg.style.marginTop = '20px';
+                        error_msg.style.marginBottom = '0px';
+                        error_msg.style.visibility = 'visible';
+
+                        res.json().then(j => {
+                            if (typeof j.detail === "string")
+                                error_msg.textContent = j.detail;
+                            else
+                                error_msg.textContent = res.statusText;
+                        }).catch(() => error_msg.textContent = res.statusText);
+                    }
+                })
+        }
+    </script>
+
     <div class="flex flex-col">
         <div class="text-black dark:text-white">
             <div class="inline-block min-w-full py-2 sm:px-6 lg:px-8">
@@ -15,6 +197,7 @@
                             <th scope="col" class="px-2 py-2">Profile URL</th>
                             <th scope="col" class="px-2 py-2">Avatar URL</th>
                             <th scope="col" class="px-2 py-2">Last Updated</th>
+                            <th scope="col" class="px-2 py-2">Delete</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -63,6 +246,17 @@
                                     />
                                 </td>
                                 <td class="whitespace-nowrap px-2 py-2">{{ player.last_updated }}</td>
+                                <td class="whitespace-nowrap px-2 py-2">
+                                    <button type="button"
+                                            class="inline-block rounded bg-primary px-6 pb-2 pt-2.5 text-xs font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_#3b71ca] transition duration-150 ease-in-out hover:bg-primary-600 hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:bg-primary-600 focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:outline-none focus:ring-0 active:bg-primary-700 active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] dark:shadow-[0_4px_9px_-4px_rgba(59,113,202,0.5)] dark:hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)] dark:active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.2),0_4px_18px_0_rgba(59,113,202,0.1)]"
+                                            data-te-toggle="modal"
+                                            data-te-target="#exampleModal"
+                                            data-te-ripple-init
+                                            data-te-ripple-color="light"
+                                            onclick="setDeletePlayer({{ player.id }})">
+                                        Delete
+                                    </button>
+                                </td>
                             </tr>
                         {% endfor %}
                         </tbody>

@@ -71,15 +71,15 @@ def set_routes(app, templates):
 
     @app.get("/config/teams", response_class=HTMLResponse, dependencies=[Depends(db.get_db)])
     def config(request: Request, current_user: db_models.Account = Depends(auth_api.get_admin_user)):
-        teams = db_models.Team.select()
+        teams = db_models.Team.select().order_by(db_models.Team.id)
 
         return templates.TemplateResponse("public/players/list_teams.html",
                                           {"request": request, "teams": teams})
 
     @app.get("/config/players", response_class=HTMLResponse, dependencies=[Depends(db.get_db)])
     def config(request: Request, current_user: db_models.Account = Depends(auth_api.get_admin_user)):
-        teams = db_models.Team.select()
-        players = db_models.Player.select()
+        teams = db_models.Team.select().order_by(db_models.Team.id)
+        players = db_models.Player.select().order_by(db_models.Player.id)
 
         return templates.TemplateResponse("public/players/list_players.html",
                                           {"request": request, "teams": teams, "players": players})
