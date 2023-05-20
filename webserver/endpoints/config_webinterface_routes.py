@@ -45,15 +45,6 @@ def set_routes(app, templates):
 
         return templates.TemplateResponse("public/backups.html", {"request": request, "backups": backups})
 
-    @app.get("/config", response_class=HTMLResponse, dependencies=[Depends(db.get_db)])
-    def config(request: Request, current_user: db_models.Account = Depends(auth_api.get_admin_user)):
-        teams = [model_to_dict(team) for team in db_models.Team.select()]
-        servers = [model_to_dict(server) for server in db_models.Server.select()]
-        hosts = [model_to_dict(host) for host in db_models.Host.select()]
-
-        return templates.TemplateResponse("public/config.html",
-                                          {"request": request, "teams": teams, "servers": servers, "hosts": hosts})
-
     @app.get("/create_match", response_class=HTMLResponse, dependencies=[Depends(db.get_db)])
     def backups(request: Request, current_user: db_models.Account = Depends(auth_api.get_admin_user)):
         return templates.TemplateResponse("public/create_match.html",
@@ -68,3 +59,27 @@ def set_routes(app, templates):
 
         return templates.TemplateResponse("public/analytics.html",
                                           {"request": request, "teams": teams, "servers": servers, "hosts": hosts})
+
+    @app.get("/config", response_class=HTMLResponse, dependencies=[Depends(db.get_db)])
+    def config(request: Request, current_user: db_models.Account = Depends(auth_api.get_admin_user)):
+        teams = [model_to_dict(team) for team in db_models.Team.select()]
+        servers = [model_to_dict(server) for server in db_models.Server.select()]
+        hosts = [model_to_dict(host) for host in db_models.Host.select()]
+
+        return templates.TemplateResponse("public/config.html",
+                                          {"request": request, "teams": teams, "servers": servers, "hosts": hosts})
+
+    @app.get("/config/teams", response_class=HTMLResponse, dependencies=[Depends(db.get_db)])
+    def config(request: Request, current_user: db_models.Account = Depends(auth_api.get_admin_user)):
+        teams = db_models.Team.select()
+
+        return templates.TemplateResponse("public/players/list_teams.html",
+                                          {"request": request, "teams": teams})
+
+    @app.get("/config/players", response_class=HTMLResponse, dependencies=[Depends(db.get_db)])
+    def config(request: Request, current_user: db_models.Account = Depends(auth_api.get_admin_user)):
+        teams = db_models.Team.select()
+        players = db_models.Player.select()
+
+        return templates.TemplateResponse("public/players/list_players.html",
+                                          {"request": request, "teams": teams, "players": players})

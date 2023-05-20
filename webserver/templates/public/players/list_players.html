@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="flex flex-col">
+        <div class="text-black dark:text-white">
+            <div class="inline-block min-w-full py-2 sm:px-6 lg:px-8">
+                <div class="overflow-hidden">
+                    <table class="min-w-full text-center text-sm font-light">
+                        <thead class="border-b bg-neutral-800 font-medium text-white dark:border-neutral-500 dark:bg-neutral-900">
+                        <tr>
+                            <th scope="col" class="px-2 py-2">#</th>
+                            <th scope="col" class="px-2 py-2">Name</th>
+                            <th scope="col" class="px-2 py-2">Team</th>
+                            <th scope="col" class="px-2 py-2">Steam ID</th>
+                            <th scope="col" class="px-2 py-2">Steam Name</th>
+                            <th scope="col" class="px-2 py-2">Profile URL</th>
+                            <th scope="col" class="px-2 py-2">Avatar URL</th>
+                            <th scope="col" class="px-2 py-2">Last Updated</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for player in players %}
+                            <tr class="border-b dark:border-neutral-500">
+                                <td class="whitespace-nowrap px-2 py-2 font-medium">{{ player.id }}</td>
+                                <td class="whitespace-nowrap px-2 py-2">
+                                    <input type="text"
+                                           class="relative m-0 block w-full rounded min-w-0 flex-auto border border-solid border-neutral-300 bg-transparent bg-clip-padding px-3 py-[0.25rem] text-base font-normal leading-[1.6] text-neutral-700 outline-none transition ease-in-out focus:z-[3] focus:border-primary-600 focus:text-neutral-700 focus:shadow-te-primary focus:outline-none dark:border-neutral-600 dark:text-neutral-200 dark:focus:text-neutral-200 dark:placeholder:text-neutral-200"
+                                           placeholder="Name"
+                                           value="{{ player.name }}"
+                                           onchange="updateTeamAttr({{ player.id }}, 'name', this.value)"
+                                    />
+                                </td>
+                                <td class="whitespace-nowrap px-2 py-2">{{ player.team }}</td>
+                                <td class="whitespace-nowrap px-2 py-2">
+                                    <input type="text"
+                                           class="relative m-0 block w-full rounded min-w-0 flex-auto border border-solid border-neutral-300 bg-transparent bg-clip-padding px-3 py-[0.25rem] text-base font-normal leading-[1.6] text-neutral-700 outline-none transition ease-in-out focus:z-[3] focus:border-primary-600 focus:text-neutral-700 focus:shadow-te-primary focus:outline-none dark:border-neutral-600 dark:text-neutral-200 dark:focus:text-neutral-200 dark:placeholder:text-neutral-200"
+                                           placeholder="Steam ID"
+                                           value="{{ player.steam_id }}"
+                                           onchange="updateTeamAttr({{ player.id }}, 'steam_id', this.value)"
+                                    />
+                                </td>
+                                <td class="whitespace-nowrap px-2 py-2">
+                                    <input type="text"
+                                           class="relative m-0 block w-full rounded min-w-0 flex-auto border border-solid border-neutral-300 bg-transparent bg-clip-padding px-3 py-[0.25rem] text-base font-normal leading-[1.6] text-neutral-700 outline-none transition ease-in-out focus:z-[3] focus:border-primary-600 focus:text-neutral-700 focus:shadow-te-primary focus:outline-none dark:border-neutral-600 dark:text-neutral-200 dark:focus:text-neutral-200 dark:placeholder:text-neutral-200"
+                                           placeholder="Steam Name"
+                                           value="{{ player.steam_name }}"
+                                           onchange="updateTeamAttr({{ player.id }}, 'steam_name', this.value)"
+                                    />
+                                </td>
+                                <td>
+                                    <input type="text"
+                                           class="relative m-0 block w-full rounded min-w-0 flex-auto border border-solid border-neutral-300 bg-transparent bg-clip-padding px-3 py-[0.25rem] text-base font-normal leading-[1.6] text-neutral-700 outline-none transition ease-in-out focus:z-[3] focus:border-primary-600 focus:text-neutral-700 focus:shadow-te-primary focus:outline-none dark:border-neutral-600 dark:text-neutral-200 dark:focus:text-neutral-200 dark:placeholder:text-neutral-200"
+                                           placeholder="Profile URL"
+                                           value="{{ player.profile_url }}"
+                                           onchange="updateTeamAttr({{ player.id }}, 'profile_url', this.value)"
+                                    />
+                                </td>
+                                <td>
+                                    <input type="text"
+                                           class="relative m-0 block w-full rounded min-w-0 flex-auto border border-solid border-neutral-300 bg-transparent bg-clip-padding px-3 py-[0.25rem] text-base font-normal leading-[1.6] text-neutral-700 outline-none transition ease-in-out focus:z-[3] focus:border-primary-600 focus:text-neutral-700 focus:shadow-te-primary focus:outline-none dark:border-neutral-600 dark:text-neutral-200 dark:focus:text-neutral-200 dark:placeholder:text-neutral-200"
+                                           placeholder="Avatar URL"
+                                           value="{{ player.avatar_url }}"
+                                           onchange="updateTeamAttr({{ player.id }}, 'avatar_url', this.value)"
+                                    />
+                                </td>
+                                <td class="whitespace-nowrap px-2 py-2">{{ player.last_updated }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateTeamAttr(player_id, attribute, value) {
+            fetch('/api/team/update/player', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    player_id: player_id,
+                    [attribute]: value
+                })
+            })
+                .then(res => {
+                    if (res.status === 200) {
+                        window.location.reload()
+                    }
+                })
+        }
+    </script>
+{% endblock content %}

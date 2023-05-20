@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="flex flex-col">
+        <div class="text-black dark:text-white">
+            <div class="inline-block min-w-full py-2 sm:px-6 lg:px-8">
+                <div class="overflow-hidden">
+                    <table class="min-w-full text-center text-sm font-light">
+                        <thead class="border-b bg-neutral-800 font-medium text-white dark:border-neutral-500 dark:bg-neutral-900">
+                        <tr>
+                            <th scope="col" class="px-2 py-2">#</th>
+                            <th scope="col" class="px-2 py-2">Name</th>
+                            <th scope="col" class="px-2 py-2">Tag</th>
+                            <th scope="col" class="px-2 py-2">Elo</th>
+                            <th scope="col" class="px-2 py-2">Competing</th>
+                            <th scope="col" class="px-2 py-2">Paid Registration Fee</th>
+                            <th scope="col" class="px-2 py-2">Registration Fee rnd</th>
+                            <th scope="col" class="px-2 py-2">Verified</th>
+                            <th scope="col" class="px-2 py-2">Account</th>
+                            <th scope="col" class="px-2 py-2">Locked Changes</th>
+                            <th scope="col" class="px-2 py-2">Locked Changes (time)</th>
+                            <th scope="col" class="px-2 py-2">Sponsored</th>
+                            <th scope="col" class="px-2 py-2">Verify</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for team in teams %}
+                            <tr class="border-b dark:border-neutral-500">
+                                <td class="whitespace-nowrap px-2 py-2 font-medium">{{ team.id }}</td>
+                                <td class="whitespace-nowrap px-2 py-2">
+                                    <input type="text"
+                                           class="relative m-0 block w-full rounded min-w-0 flex-auto border border-solid border-neutral-300 bg-transparent bg-clip-padding px-3 py-[0.25rem] text-base font-normal leading-[1.6] text-neutral-700 outline-none transition ease-in-out focus:z-[3] focus:border-primary-600 focus:text-neutral-700 focus:shadow-te-primary focus:outline-none dark:border-neutral-600 dark:text-neutral-200 dark:focus:text-neutral-200 dark:placeholder:text-neutral-200"
+                                           placeholder="Teamname"
+                                           value="{{ team.name }}"
+                                           onchange="updateTeamAttr({{ team.id }}, 'name', this.value)"/>
+                                </td>
+                                <td class="whitespace-nowrap px-2 py-2">
+                                    <input type="text"
+                                           class="relative m-0 block w-full rounded min-w-0 flex-auto border border-solid border-neutral-300 bg-transparent bg-clip-padding px-3 py-[0.25rem] text-base font-normal leading-[1.6] text-neutral-700 outline-none transition ease-in-out focus:z-[3] focus:border-primary-600 focus:text-neutral-700 focus:shadow-te-primary focus:outline-none dark:border-neutral-600 dark:text-neutral-200 dark:focus:text-neutral-200 dark:placeholder:text-neutral-200"
+                                           placeholder="Tag"
+                                           value="{{ team.tag }}"
+                                           onchange="updateTeamAttr({{ team.id }}, 'tag', this.value)"/>
+                                </td>
+                                <td class="whitespace-nowrap px-2 py-2">
+                                    <input type="text"
+                                           class="relative m-0 block w-full rounded min-w-0 flex-auto border border-solid border-neutral-300 bg-transparent bg-clip-padding px-3 py-[0.25rem] text-base font-normal leading-[1.6] text-neutral-700 outline-none transition ease-in-out focus:z-[3] focus:border-primary-600 focus:text-neutral-700 focus:shadow-te-primary focus:outline-none dark:border-neutral-600 dark:text-neutral-200 dark:focus:text-neutral-200 dark:placeholder:text-neutral-200"
+                                           placeholder="Elo"
+                                           value="{{ team.elo }}"
+                                           onchange="updateTeamAttr({{ team.id }}, 'elo', this.value)"/>
+                                </td>
+                                <td>
+                                    <input type="number"
+                                           class="relative m-0 block w-full rounded min-w-0 flex-auto border border-solid border-neutral-300 bg-transparent bg-clip-padding px-3 py-[0.25rem] text-base font-normal leading-[1.6] text-neutral-700 outline-none transition ease-in-out focus:z-[3] focus:border-primary-600 focus:text-neutral-700 focus:shadow-te-primary focus:outline-none dark:border-neutral-600 dark:text-neutral-200 dark:focus:text-neutral-200 dark:placeholder:text-neutral-200"
+                                           placeholder="Competing"
+                                           value="{{ team.competing }}"
+                                           onchange="updateTeamAttr({{ team.id }}, 'competing', this.value)"/>
+                                </td>
+                                <td>
+                                    <input class="mt-[0.3rem] mr-2 h-3.5 w-8 appearance-none rounded-[0.4375rem] bg-[rgba(0,0,0,0.25)] outline-none before:pointer-events-none before:absolute before:h-3.5 before:w-3.5 before:rounded-full before:bg-transparent before:content-[''] after:absolute after:z-[2] after:-mt-[0.1875rem] after:h-5 after:w-5 after:rounded-full after:border-none after:bg-white after:shadow-[0_0px_3px_0_rgb(0_0_0_/_7%),_0_2px_2px_0_rgb(0_0_0_/_4%)] after:transition-[background-color_0.2s,transform_0.2s] after:content-[''] checked:bg-primary checked:after:absolute checked:after:z-[2] checked:after:-mt-[3px] checked:after:ml-[1.0625rem] checked:after:h-5 checked:after:w-5 checked:after:rounded-full checked:after:border-none checked:after:bg-primary checked:after:shadow-[0_3px_1px_-2px_rgba(0,0,0,0.2),_0_2px_2px_0_rgba(0,0,0,0.14),_0_1px_5px_0_rgba(0,0,0,0.12)] checked:after:transition-[background-color_0.2s,transform_0.2s] checked:after:content-[''] hover:cursor-pointer focus:before:scale-100 focus:before:opacity-[0.12] focus:before:shadow-[3px_-1px_0px_13px_rgba(0,0,0,0.6)] focus:before:transition-[box-shadow_0.2s,transform_0.2s] focus:after:absolute focus:after:z-[1] focus:after:block focus:after:h-5 focus:after:w-5 focus:after:rounded-full focus:after:content-[''] checked:focus:border-primary checked:focus:bg-primary checked:focus:before:ml-[1.0625rem] checked:focus:before:scale-100 checked:focus:before:shadow-[3px_-1px_0px_13px_#3b71ca] checked:focus:before:transition-[box-shadow_0.2s,transform_0.2s]"
+                                           type="checkbox"
+                                           role="switch"
+                                           onchange="updateTeam({{ team.id }})"
+                                           id="{{ team.id }}_paid_registration_fee"
+                                           {% if team.paid_registration_fee %}checked{% endif %}/>
+                                </td>
+                                <td class="whitespace-nowrap px-2 py-2">{{ team.registration_fee_rnd }}</td>
+                                <td>
+                                    <input class="mt-[0.3rem] mr-2 h-3.5 w-8 appearance-none rounded-[0.4375rem] bg-[rgba(0,0,0,0.25)] outline-none before:pointer-events-none before:absolute before:h-3.5 before:w-3.5 before:rounded-full before:bg-transparent before:content-[''] after:absolute after:z-[2] after:-mt-[0.1875rem] after:h-5 after:w-5 after:rounded-full after:border-none after:bg-white after:shadow-[0_0px_3px_0_rgb(0_0_0_/_7%),_0_2px_2px_0_rgb(0_0_0_/_4%)] after:transition-[background-color_0.2s,transform_0.2s] after:content-[''] checked:bg-primary checked:after:absolute checked:after:z-[2] checked:after:-mt-[3px] checked:after:ml-[1.0625rem] checked:after:h-5 checked:after:w-5 checked:after:rounded-full checked:after:border-none checked:after:bg-primary checked:after:shadow-[0_3px_1px_-2px_rgba(0,0,0,0.2),_0_2px_2px_0_rgba(0,0,0,0.14),_0_1px_5px_0_rgba(0,0,0,0.12)] checked:after:transition-[background-color_0.2s,transform_0.2s] checked:after:content-[''] hover:cursor-pointer focus:before:scale-100 focus:before:opacity-[0.12] focus:before:shadow-[3px_-1px_0px_13px_rgba(0,0,0,0.6)] focus:before:transition-[box-shadow_0.2s,transform_0.2s] focus:after:absolute focus:after:z-[1] focus:after:block focus:after:h-5 focus:after:w-5 focus:after:rounded-full focus:after:content-[''] checked:focus:border-primary checked:focus:bg-primary checked:focus:before:ml-[1.0625rem] checked:focus:before:scale-100 checked:focus:before:shadow-[3px_-1px_0px_13px_#3b71ca] checked:focus:before:transition-[box-shadow_0.2s,transform_0.2s]"
+                                           type="checkbox"
+                                           role="switch"
+                                           onchange="updateTeam({{ team.id }})"
+                                           id="{{ team.id }}_verified"
+                                           {% if team.verified %}checked{% endif %}/>
+                                </td>
+                                <td class="whitespace-nowrap px-2 py-2">{{ team.account }}</td>
+                                <td>
+                                    <input class="mt-[0.3rem] mr-2 h-3.5 w-8 appearance-none rounded-[0.4375rem] bg-[rgba(0,0,0,0.25)] outline-none before:pointer-events-none before:absolute before:h-3.5 before:w-3.5 before:rounded-full before:bg-transparent before:content-[''] after:absolute after:z-[2] after:-mt-[0.1875rem] after:h-5 after:w-5 after:rounded-full after:border-none after:bg-white after:shadow-[0_0px_3px_0_rgb(0_0_0_/_7%),_0_2px_2px_0_rgb(0_0_0_/_4%)] after:transition-[background-color_0.2s,transform_0.2s] after:content-[''] checked:bg-primary checked:after:absolute checked:after:z-[2] checked:after:-mt-[3px] checked:after:ml-[1.0625rem] checked:after:h-5 checked:after:w-5 checked:after:rounded-full checked:after:border-none checked:after:bg-primary checked:after:shadow-[0_3px_1px_-2px_rgba(0,0,0,0.2),_0_2px_2px_0_rgba(0,0,0,0.14),_0_1px_5px_0_rgba(0,0,0,0.12)] checked:after:transition-[background-color_0.2s,transform_0.2s] checked:after:content-[''] hover:cursor-pointer focus:before:scale-100 focus:before:opacity-[0.12] focus:before:shadow-[3px_-1px_0px_13px_rgba(0,0,0,0.6)] focus:before:transition-[box-shadow_0.2s,transform_0.2s] focus:after:absolute focus:after:z-[1] focus:after:block focus:after:h-5 focus:after:w-5 focus:after:rounded-full focus:after:content-[''] checked:focus:border-primary checked:focus:bg-primary checked:focus:before:ml-[1.0625rem] checked:focus:before:scale-100 checked:focus:before:shadow-[3px_-1px_0px_13px_#3b71ca] checked:focus:before:transition-[box-shadow_0.2s,transform_0.2s]"
+                                           type="checkbox"
+                                           role="switch"
+                                           onchange="updateTeam({{ team.id }})"
+                                           id="{{ team.id }}_locked_changes"
+                                           {% if team.locked_changes %}checked{% endif %}/>
+                                </td>
+                                <td class="whitespace-nowrap px-2 py-2">{{ team.locked_changes_time }}</td>
+                                <td>
+                                    <input class="mt-[0.3rem] mr-2 h-3.5 w-8 appearance-none rounded-[0.4375rem] bg-[rgba(0,0,0,0.25)] outline-none before:pointer-events-none before:absolute before:h-3.5 before:w-3.5 before:rounded-full before:bg-transparent before:content-[''] after:absolute after:z-[2] after:-mt-[0.1875rem] after:h-5 after:w-5 after:rounded-full after:border-none after:bg-white after:shadow-[0_0px_3px_0_rgb(0_0_0_/_7%),_0_2px_2px_0_rgb(0_0_0_/_4%)] after:transition-[background-color_0.2s,transform_0.2s] after:content-[''] checked:bg-primary checked:after:absolute checked:after:z-[2] checked:after:-mt-[3px] checked:after:ml-[1.0625rem] checked:after:h-5 checked:after:w-5 checked:after:rounded-full checked:after:border-none checked:after:bg-primary checked:after:shadow-[0_3px_1px_-2px_rgba(0,0,0,0.2),_0_2px_2px_0_rgba(0,0,0,0.14),_0_1px_5px_0_rgba(0,0,0,0.12)] checked:after:transition-[background-color_0.2s,transform_0.2s] checked:after:content-[''] hover:cursor-pointer focus:before:scale-100 focus:before:opacity-[0.12] focus:before:shadow-[3px_-1px_0px_13px_rgba(0,0,0,0.6)] focus:before:transition-[box-shadow_0.2s,transform_0.2s] focus:after:absolute focus:after:z-[1] focus:after:block focus:after:h-5 focus:after:w-5 focus:after:rounded-full focus:after:content-[''] checked:focus:border-primary checked:focus:bg-primary checked:focus:before:ml-[1.0625rem] checked:focus:before:scale-100 checked:focus:before:shadow-[3px_-1px_0px_13px_#3b71ca] checked:focus:before:transition-[box-shadow_0.2s,transform_0.2s]"
+                                           type="checkbox"
+                                           role="switch"
+                                           onchange="updateTeam({{ team.id }})"
+                                           id="{{ team.id }}_sponsored"
+                                           {% if team.sponsored %}checked{% endif %}/>
+                                </td>
+                                <td>
+                                    <button type="button"
+                                            class="inline-block rounded bg-primary px-6 pt-2.5 pb-2 text-xs font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_#3b71ca] transition duration-150 ease-in-out hover:bg-primary-600 hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:bg-primary-600 focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:outline-none focus:ring-0 active:bg-primary-700 active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] disabled:opacity-70"
+                                            {% if team.verified != 0 %} disabled {% endif %}
+                                            onclick="verify_team({{ team.id }})">
+                                        Verify
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateTeam(team_id) {
+            fetch('/api/team/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    team_id: team_id,
+                    paid_registration_fee: document.getElementById(team_id + '_paid_registration_fee').checked,
+                    verified: document.getElementById(team_id + '_verified').checked,
+                    locked_changes: document.getElementById(team_id + '_locked_changes').checked,
+                    sponsored: document.getElementById(team_id + '_sponsored').checked
+                })
+            })
+                .then(res => {
+                    if (res.status === 200) {
+                        window.location.reload()
+                    }
+                })
+        }
+
+        function updateTeamAttr(team_id, attribute, value) {
+            fetch('/api/team/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    team_id: team_id,
+                    [attribute]: value
+                })
+            })
+                .then(res => {
+                    if (res.status === 200) {
+                        window.location.reload()
+                    }
+                })
+        }
+
+        function verify_team(team_id) {
+            fetch('/api/team/update/verify', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    team_id: team_id
+                })
+            })
+                .then(res => {
+                    if (res.status === 200) {
+                        window.location.reload()
+                    }
+                })
+        }
+    </script>
+{% endblock content %}
