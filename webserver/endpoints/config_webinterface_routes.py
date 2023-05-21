@@ -1,4 +1,6 @@
+import logging
 import os
+from typing import List
 
 from fastapi import Depends
 from playhouse.shortcuts import model_to_dict
@@ -78,8 +80,22 @@ def set_routes(app, templates):
 
     @app.get("/config/players", response_class=HTMLResponse, dependencies=[Depends(db.get_db)])
     def config(request: Request, current_user: db_models.Account = Depends(auth_api.get_admin_user)):
-        teams = db_models.Team.select().order_by(db_models.Team.id)
-        players = db_models.Player.select().order_by(db_models.Player.id)
+        teams = list(db_models.Team.select().order_by(db_models.Team.id))
+        teams.append({"id": -1, "name": "Unassigned"})
+        players = [model_to_dict(player) for player in db_models.Player.select().order_by(db_models.Player.id)]
+
+        players_dict = {}
+        for player in players:
+            player["team_id"] = -1
+            player["team_name"] = "Unassigned"
+            players_dict[player["id"]] = player
+
+        team_assignments: List[db_models.TeamAssignment] = db_models.TeamAssignment.select()
+        for assignments in team_assignments:
+            if assignments.player_id not in players_dict:
+                continue
+            players_dict[assignments.player_id]["team_id"] = assignments.team.id
+            players_dict[assignments.player_id]["team_name"] = assignments.team.name
 
         return templates.TemplateResponse("public/players/list_players.html",
                                           {"request": request, "teams": teams, "players": players})

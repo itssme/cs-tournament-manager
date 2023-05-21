@@ -93,6 +93,7 @@
 
             <div class="relative mb-4">
                 <select data-te-select-init id="team">
+                    <option value="-1">No Team</option>
                     {% for team in teams %}
                         <option value="{{ team.id }}">{{ team.name }}</option>
                     {% endfor %}
@@ -212,7 +213,16 @@
                                            onchange="updateTeamAttr({{ player.id }}, 'name', this.value)"
                                     />
                                 </td>
-                                <td class="whitespace-nowrap px-2 py-2">{{ player.team }}</td>
+                                <td class="whitespace-nowrap px-2 py-2">
+                                    <select id="team"
+                                            class="relative m-0 block w-full rounded min-w-0 flex-auto border border-solid border-neutral-300 bg-transparent bg-clip-padding px-3 py-[0.25rem] text-base font-normal leading-[1.6] text-neutral-700 outline-none transition ease-in-out focus:z-[3] focus:border-primary-600 focus:text-neutral-700 focus:shadow-te-primary focus:outline-none dark:border-neutral-600 dark:text-neutral-200 dark:focus:text-neutral-200 dark:placeholder:text-neutral-200"
+                                            onchange="updateTeamAttr({{ player.id }}, 'team_id', this.value)">
+                                        {% for team in teams %}
+                                            <option value="{{ team.id }}"
+                                                    {% if team.id == player.team_id %}selected{% endif %}>{{ team.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
                                 <td class="whitespace-nowrap px-2 py-2">
                                     <input type="text"
                                            class="relative m-0 block w-full rounded min-w-0 flex-auto border border-solid border-neutral-300 bg-transparent bg-clip-padding px-3 py-[0.25rem] text-base font-normal leading-[1.6] text-neutral-700 outline-none transition ease-in-out focus:z-[3] focus:border-primary-600 focus:text-neutral-700 focus:shadow-te-primary focus:outline-none dark:border-neutral-600 dark:text-neutral-200 dark:focus:text-neutral-200 dark:placeholder:text-neutral-200"

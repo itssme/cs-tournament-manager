@@ -37,6 +37,7 @@ class PlayerJson(BaseModel):
     profile_url: Optional[str] = None
     avatar_url: Optional[str] = None
     last_updated: Optional[int] = None
+    team_id: Optional[int] = None  # must be specially handled
 
 
 class TeamAssignmentJson(BaseModel):
@@ -50,16 +51,28 @@ class Player(BaseModel):
 
 
 def set_api_routes(app, cache):
+    @app.post("/", dependencies=[Depends(db.get_db)])
+    def add_team(request: Request, team: TeamJson,
+                 user: db_models.Account = Depends(get_admin_user)):
+        new_team = db_models.Team.create(tag=team.tag, name=team.name, registration_fee_rnd="NOT SET",
+                                         account=db_models.Account.get(db_models.Account.username == "api"))
+        team.team_id = new_team.id
+        update_team_with_json(team)
+
+        return Response(status_code=200)
+
     @app.post("/{team_id}/member", dependencies=[Depends(db.get_db)])
     def add_team_member(request: Request, player: Player, team_id: int,
                         user: db_models.Account = Depends(get_admin_user)):
-        team: db_models.Team = db_models.Team.get(db_models.Team.id == team_id)
+        team: db_models.Team = None
+        if team_id != -1:
+            team: db_models.Team = db_models.Team.get(db_models.Team.id == team_id)
 
-        if team.locked_changes == 1:
-            raise HTTPException(status_code=400, detail="Players cannot be added to that team anymore (locked)")
+            if team.locked_changes == 1:
+                raise HTTPException(status_code=400, detail="Players cannot be added to that team anymore (locked)")
 
-        if len(db.get_team_players(team.id)) >= 5:
-            raise HTTPException(status_code=400, detail="Team already has five members")
+            if len(db.get_team_players(team.id)) >= 5:
+                raise HTTPException(status_code=400, detail="Team already has five members")
 
         steam_id = steam.get_steam_id(player.profile_url)
         if steam_id is None:
@@ -78,7 +91,9 @@ def set_api_routes(app, cache):
         db_player = db_models.Player.create(name=player.name, steam_id=steam_id, steam_name=steam_players.steam_name,
                                             profile_url=steam_players.profile_url, avatar_url=steam_players.avatar_url,
                                             last_updated=time.time())
-        db_models.TeamAssignment.create(team=team, player=db_player)
+
+        if team is not None:
+            db_models.TeamAssignment.create(team=team, player=db_player)
 
         return Response(status_code=200)
 
@@ -94,6 +109,25 @@ def set_api_routes(app, cache):
 
         db_player = db_models.Player.get(db_models.Player.id == player_id)
         db_player.delete_instance()
+
+        return Response(status_code=200)
+
+    @app.delete("/{team_id}", dependencies=[Depends(db.get_db)])
+    def remove_team(request: Request, team_id: int, user: db_models.Account = Depends(get_admin_user)):
+        team = db_models.Team.get(db_models.Team.id == team_id)
+
+        if team.locked_changes == 1:
+            raise HTTPException(status_code=403,
+                                detail=f"Team ({team.name}) cannot be removed (locked)")
+
+        team_assignments: List[db_models.TeamAssignment] = db_models.TeamAssignment.select().where(
+            db_models.TeamAssignment.team == team_id)
+
+        if len(team_assignments) > 0:
+            raise HTTPException(status_code=403,
+                                detail=f"Team ({team.name}) cannot be removed (has players) ({', '.join([assignment.player.name for assignment in team_assignments])})")
+
+        team.delete_instance()
 
         return Response(status_code=200)
 
@@ -123,6 +157,30 @@ def set_api_routes(app, cache):
 
     @app.post("/update/player", dependencies=[Depends(db.get_db)])
     def update_player(request: Request, player: PlayerJson, user: db_models.Account = Depends(get_admin_user)):
+        if player.team_id is not None:
+            team: Optional[db_models.Team] = None
+            if player.team_id != -1:
+                team: db_models.Team = db_models.Team.get(db_models.Team.id == player.team_id)
+
+                if team.locked_changes == 1:
+                    raise HTTPException(status_code=400, detail="Players cannot be added to that team anymore (locked)")
+
+                if len(db.get_team_players(team.id)) >= 5:
+                    raise HTTPException(status_code=400, detail="Team already has five members")
+
+            current_assignment = db_models.TeamAssignment.get_or_none(
+                db_models.TeamAssignment.player == player.player_id)
+            if current_assignment is not None:
+                current_team = db_models.Team.get(db_models.Team.id == current_assignment.team.id)
+                if current_team.locked_changes == 1:
+                    raise HTTPException(status_code=400, detail="Players cannot be removed from that team anymore")
+
+                current_assignment.delete_instance()
+
+            if team is not None:
+                db_models.TeamAssignment.create(team=team,
+                                                player=db_models.Player.get(db_models.Player.id == player.player_id))
+
         update_player_with_json(player)
         return Response(status_code=200)
 
