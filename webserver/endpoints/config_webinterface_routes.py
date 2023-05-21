@@ -42,8 +42,8 @@ def set_routes(app, templates):
         backups = os.listdir(os.getenv("BACKUP_FILE_PATH", "/backupfiles"))
         try:
             backups = sorted(sorted(backups, key=lambda backup: int(backup.split("_")[-3])))
-        except Exception as e:
-            pass
+        except Exception as e:  # backups will be unsorted :(
+            logging.warning(f"Sorting of backup files did not work -> {backups}")
 
         return templates.TemplateResponse("public/backups.html", {"request": request, "backups": backups})
 

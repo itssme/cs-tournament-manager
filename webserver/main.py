@@ -13,7 +13,7 @@ import json
 
 import requests
 from fastapi_cache import FastAPICache
-from starlette.responses import JSONResponse, RedirectResponse
+from starlette.responses import JSONResponse, RedirectResponse, FileResponse
 
 from endpoints import csgo_events, error_routes, config_webinterface_routes, auth_api, team_api
 from utils.rcon import RCON
@@ -197,6 +197,20 @@ def create_host(request: Request, host: HostInfo,
     else:
         raise HTTPException(status_code=500,
                             detail=f"Unable to connect to host: {host.ip}:{host.port} , status={res.status_code}<br>{res.text}")
+
+
+@api.get("/demo/{filename}")
+async def get_demo(filename: str):
+    logging.info(f"Called GET /demo filename: {filename}")
+    filename = os.path.split(filename)[-1]
+    return FileResponse(os.path.join(os.getenv("DEMO_FILE_PATH", "/demofiles"), filename))
+
+
+@api.get("/backup/{filename}")
+async def get_backup(request: Request, filename: str):
+    logging.info(f"Called GET /backup filename: {filename}")
+    filename = os.path.split(filename)[-1]
+    return FileResponse(os.path.join(os.getenv("BACKUP_FILE_PATH", "/backupfiles"), filename))
 
 
 @api.get("/healthcheck")
