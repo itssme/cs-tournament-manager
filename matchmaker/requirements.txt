@@ -2,3 +2,4 @@ requests
 psycopg2
 peewee
 pika
+numpy
