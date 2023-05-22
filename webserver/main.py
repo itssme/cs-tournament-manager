@@ -33,7 +33,7 @@ db_migrations.apply_migrations()
 logging.info("applying migrations - done")
 
 # uncomment for dev stuff
-# db_models.Account.create(username="admin", password=get_password_hash("admin"), verification_code="", verified=1, role="admin")
+# db_models.Account.create(username="admin@admin.com", password=get_password_hash("admin"), verification_code="", verified=1, role="admin")
 
 app = FastAPI()
 limiter.init_limiter(app)

@@ -26,7 +26,7 @@ db_migrations.apply_migrations()
 logging.info("applying migrations - done")
 
 # uncomment for dev stuff
-# db_models.Account.create(username="admin", password=get_password_hash("admin"), verification_code="", verified=1, role="admin")
+# db_models.Account.create(username="admin@admin.com", password=get_password_hash("admin"), verification_code="", verified=1, role="admin")
 
 app = FastAPI()
 limiter.init_limiter(app)
@@ -58,7 +58,8 @@ async def startup():
 
 
 @api.post("/match", dependencies=[Depends(db.get_db)])
-def create_match(request: Request, match: MatchInfo, current_user: db_models.Account = Depends(auth_api.get_admin_user)):
+def create_match(request: Request, match: MatchInfo,
+                 current_user: db_models.Account = Depends(auth_api.get_admin_user)):
     logging.info(
         f"Called POST /match with MatchInfo: Team1: '{match.team1}', Team2: '{match.team2}', "
         f"best_of: '{match.best_of}', 'check_auths: {match.check_auths}', 'host: {match.host}'")

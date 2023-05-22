@@ -6,7 +6,6 @@ services:
       dockerfile: Dockerfile_worker
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./teams.json:/app/teams.json
       - ./gslt.json:/app/gslt.json
     ports:
       - 5000:5000
@@ -14,5 +13,6 @@ services:
       - "host.docker.internal:host-gateway"
     environment:
       - MAX_WORKERS=10
+      - ACCESS_SECRET_KEY=${ACCESS_SECRET_KEY}
     env_file:
       - ./csgo_host.env
