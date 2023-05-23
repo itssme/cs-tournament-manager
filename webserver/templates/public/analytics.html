@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="flex justify-center p-6">
+        {% for server in servers %}
+            <div class="block max-w-sm rounded-lg bg-white p-6 shadow-lg dark:bg-neutral-700 w-full lg:min-w-[40%] text-neutral-700 dark:text-neutral-200">
+                <h5 class="mb-2 text-xl font-medium leading-tight text-neutral-800 dark:text-neutral-50">
+                    Server #{{ server.id }} Info
+                </h5>
+                <h2 class="text-center" id="{{ server.id }}get5_matchname"></h2>
+                <hr>
+
+                <h3>Gamestate:</h3>
+                <div id="{{ server.id }}get5_gamestate"></div>
+                <hr>
+
+                <table style="width:100%" class="table-fixed">
+                    <tr>
+                        <th>IP:</th>
+                        <th id="{{ server.id }}ip"></th>
+                    </tr>
+                    <tr>
+                        <th>Game Paused?</th>
+                        <th id="{{ server.id }}get5_paused"></th>
+                    </tr>
+                    <tr>
+                        <th>Map Number</th>
+                        <th id="{{ server.id }}get5_map_number"></th>
+                    </tr>
+                    <tr>
+                        <th>Maps</th>
+                        <th id="{{ server.id }}get5_maps"></th>
+                    </tr>
+                </table>
+                <hr>
+
+                <h3>Team#1</h3>
+                <table style="width:100%" class="table-fixed">
+                    <tr>
+                        <th>Players Connected</th>
+                        <th id="{{ server.id }}get5_team1_connected_clients"></th>
+                    </tr>
+                    <tr>
+                        <th>Current Map Score</th>
+                        <th id="{{ server.id }}get5_team1_current_map_score"></th>
+                    </tr>
+                    <tr>
+                        <th>Ready</th>
+                        <th id="{{ server.id }}get5_team1_ready"></th>
+                    </tr>
+                    <tr>
+                        <th>Teamname</th>
+                        <th id="{{ server.id }}get5_team1_name"></th>
+                    </tr>
+                    <tr>
+                        <th>Series Score</th>
+                        <th id="{{ server.id }}get5_team1_series_score"></th>
+                    </tr>
+                    <tr>
+                        <th>Side</th>
+                        <th id="{{ server.id }}get5_team1_side"></th>
+                    </tr>
+                    <tr>
+                        <th>Elo</th>
+                        <th id="{{ server.id }}_team1_elo"></th>
+                    </tr>
+                </table>
+                <hr>
+
+                <h3>Team#2</h3>
+                <table style="width:100%" class="table-fixed">
+                    <tr>
+                        <th>Players Connected</th>
+                        <th id="{{ server.id }}get5_team2_connected_clients"></th>
+                    </tr>
+                    <tr>
+                        <th>Current Map Score</th>
+                        <th id="{{ server.id }}get5_team2_current_map_score"></th>
+                    </tr>
+                    <tr>
+                        <th>Ready</th>
+                        <th id="{{ server.id }}get5_team2_ready"></th>
+                    </tr>
+                    <tr>
+                        <th>Teamname</th>
+                        <th id="{{ server.id }}get5_team2_name"></th>
+                    </tr>
+                    <tr>
+                        <th>Series Score</th>
+                        <th id="{{ server.id }}get5_team2_series_score"></th>
+                    </tr>
+                    <tr>
+                        <th>Side</th>
+                        <th id="{{ server.id }}get5_team2_side"></th>
+                    </tr>
+                    <tr>
+                        <th>Elo</th>
+                        <th id="{{ server.id }}_team2_elo"></th>
+                    </tr>
+                </table>
+                <hr>
+                <button id="stop_button_{{ server.id }}"
+                        onclick="endMatch({{ server.id }})"
+                        type="button"
+                        class="inline-block rounded bg-primary px-6 pt-2.5 pb-2 text-xs font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_#3b71ca] transition duration-150 ease-in-out hover:bg-primary-600 hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:bg-primary-600 focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:outline-none focus:ring-0 active:bg-primary-700 active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] disabled:opacity-70"
+                        data-te-ripple-init
+                        data-te-ripple-color="light">
+                    Stop
+                </button>
+                <button id="pause_button_{{ server.id }}"
+                        onclick="pauseMatch({{ server.id }})"
+                        type="button"
+                        class="inline-block rounded bg-primary px-6 pt-2.5 pb-2 text-xs font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_#3b71ca] transition duration-150 ease-in-out hover:bg-primary-600 hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:bg-primary-600 focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:outline-none focus:ring-0 active:bg-primary-700 active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] disabled:opacity-70"
+                        data-te-ripple-init
+                        data-te-ripple-color="light">
+                    Pause
+                </button>
+                <button id="unpause_button_{{ server.id }}"
+                        onclick="unpauseMatch({{ server.id }})"
+                        type="button"
+                        class="inline-block rounded bg-primary px-6 pt-2.5 pb-2 text-xs font-medium uppercase leading-normal text-white shadow-[0_4px_9px_-4px_#3b71ca] transition duration-150 ease-in-out hover:bg-primary-600 hover:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:bg-primary-600 focus:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] focus:outline-none focus:ring-0 active:bg-primary-700 active:shadow-[0_8px_9px_-4px_rgba(59,113,202,0.3),0_4px_18px_0_rgba(59,113,202,0.2)] disabled:opacity-70"
+                        data-te-ripple-init
+                        data-te-ripple-color="light">
+                    Unpause
+                </button>
+            </div>
+        {% endfor %}
+    </div>
+
+    <script onload="getInfo();">
+        function getInfo() {
+            let xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("GET", "/api/csgo/info", false);
+            xmlHttp.send(null);
+
+            let res = JSON.parse(xmlHttp.responseText);
+
+            for (server in res) {
+                server = res[server];
+                server_id = server["id"];
+
+                document.getElementById(`${server_id}ip`).innerText = server["ip"];
+
+                if (server["team1"].hasOwnProperty("elo")) {
+                    document.getElementById(`${server_id}_team1_elo`).innerText = server["team1"]["elo"];
+                }
+
+                if (server["team2"].hasOwnProperty("elo")) {
+                    document.getElementById(`${server_id}_team2_elo`).innerText = server["team2"]["elo"];
+                }
+
+                json_res = server["get5_stats"];
+                document.getElementById(`${server_id}get5_gamestate`).innerText = json_res["gamestate"];
+
+                if (json_res.hasOwnProperty("matchid")) {
+                    document.getElementById(`${server_id}get5_matchname`).innerText = json_res["matchid"];
+                } else {
+                    document.getElementById(`${server_id}get5_matchname`).innerText = "No Match";
+                }
+
+                if (json_res.hasOwnProperty("paused")) {
+                    document.getElementById(`${server_id}get5_paused`).innerText = json_res["paused"];
+                }
+
+                if (json_res.hasOwnProperty("maps")) {
+                    document.getElementById(`${server_id}get5_maps`).innerText = json_res["maps"];
+                } else {
+                    document.getElementById(`${server_id}get5_maps`).innerText = "";
+                }
+
+                if (json_res.hasOwnProperty("map_number")) {
+                    document.getElementById(`${server_id}get5_map_number`).innerText = json_res["map_number"];
+                } else {
+                    document.getElementById(`${server_id}get5_map_number`).innerText = "";
+                }
+
+                if (json_res.hasOwnProperty("team1")) {
+                    for (key in json_res["team1"]) {
+                        document.getElementById(`${server_id}get5_team1_${key}`).innerText = json_res["team1"][key];
+                    }
+                } else {
+                    get5_team1 = document.querySelectorAll(`[id^="${server_id}get5_team1_"]`);
+                    get5_team1.forEach(function (value) {
+                        value.innerText = "";
+                    });
+                }
+
+                if (json_res.hasOwnProperty("team1")) {
+                    for (key in json_res["team2"]) {
+                        document.getElementById(`${server_id}get5_team2_${key}`).innerText = json_res["team2"][key];
+                    }
+                } else {
+                    get5_team2 = document.querySelectorAll(`[id^="${server_id}get5_team2_"]`);
+                    get5_team2.forEach(function (value) {
+                        value.innerText = "";
+                    });
+                }
+            }
+        }
+
+        setInterval(getInfo, 1000);
+
+        function endMatch(id) {
+            let xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("DELETE", "/api/match", false);
+            xmlHttp.setRequestHeader("Content-Type", "application/json");
+            document.getElementById(`stop_button_${id}`).disabled = true;
+            xmlHttp.send(JSON.stringify({"id": id}));
+
+            let res = JSON.parse(xmlHttp.responseText);
+            if (xmlHttp.status === 200) {
+                window.location.reload();
+            } else {
+                document.getElementById(`stop_button_${id}`).disabled = false;
+                alert("Unable to stop match, see server logs");
+            }
+        }
+
+        function pauseMatch(id) {
+            let xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("POST", "/api/pause", false);
+            xmlHttp.setRequestHeader("Content-Type", "application/json");
+            xmlHttp.send(JSON.stringify({"id": id}));
+
+            let res = JSON.parse(xmlHttp.responseText);
+            if (xmlHttp.status !== 200) {
+                alert("Unable to pause match, see server logs");
+            }
+            console.log(res);
+        }
+
+        function unpauseMatch(id) {
+            let xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("POST", "/api/unpause", false);
+            xmlHttp.setRequestHeader("Content-Type", "application/json");
+            xmlHttp.send(JSON.stringify({"id": id}));
+
+            let res = JSON.parse(xmlHttp.responseText);
+            if (xmlHttp.status !== 200) {
+                alert("Unable to unpause match, see server logs");
+            }
+            console.log(res);
+        }
+
+    </script>
+{% endblock content %}

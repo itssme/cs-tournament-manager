@@ -13,15 +13,16 @@ import json
 
 import requests
 from fastapi_cache import FastAPICache
-from starlette.responses import JSONResponse, RedirectResponse
+from starlette.responses import JSONResponse, RedirectResponse, FileResponse
 
-from endpoints import csgo_events, error_routes, config_webinterface_routes, auth_api
+from endpoints import csgo_events, error_routes, config_webinterface_routes, auth_api, team_api
 from utils.rcon import RCON
 from utils import db, db_models, limiter, db_migrations
 
 from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi_cache.decorator import cache
 
 from utils.json_objects import *
 
@@ -32,7 +33,7 @@ db_migrations.apply_migrations()
 logging.info("applying migrations - done")
 
 # uncomment for dev stuff
-# db_models.Account.create(username="admin", password=get_password_hash("admin"), verification_code="", verified=1, role="admin")
+# db_models.Account.create(username="admin@admin.com", password=get_password_hash("admin"), verification_code="", verified=1, role="admin")
 
 app = FastAPI()
 limiter.init_limiter(app)
@@ -40,12 +41,15 @@ limiter.init_limiter(app)
 api = FastAPI()
 public = FastAPI()
 csgo_api = FastAPI()
+team = FastAPI()
 auth = FastAPI()
 limiter.init_limiter(auth)
 
 app.mount("/api", api)
 
 api.mount("/csgo", csgo_api)
+api.mount("/team", team)
+
 app.mount("/public", public)
 app.mount("/auth", auth)
 
@@ -55,6 +59,7 @@ templates = Jinja2Templates(directory="templates")
 error_routes.set_routes(app, templates, False)
 error_routes.set_api_routes(api, False)
 csgo_events.set_api_routes(csgo_api)
+team_api.set_api_routes(team, cache)
 config_webinterface_routes.set_routes(public, templates)
 auth_api.set_api_routes(auth, templates)
 
@@ -192,6 +197,20 @@ def create_host(request: Request, host: HostInfo,
     else:
         raise HTTPException(status_code=500,
                             detail=f"Unable to connect to host: {host.ip}:{host.port} , status={res.status_code}<br>{res.text}")
+
+
+@api.get("/demo/{filename}")
+async def get_demo(filename: str):
+    logging.info(f"Called GET /demo filename: {filename}")
+    filename = os.path.split(filename)[-1]
+    return FileResponse(os.path.join(os.getenv("DEMO_FILE_PATH", "/demofiles"), filename))
+
+
+@api.get("/backup/{filename}")
+async def get_backup(request: Request, filename: str):
+    logging.info(f"Called GET /backup filename: {filename}")
+    filename = os.path.split(filename)[-1]
+    return FileResponse(os.path.join(os.getenv("BACKUP_FILE_PATH", "/backupfiles"), filename))
 
 
 @api.get("/healthcheck")

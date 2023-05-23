@@ -59,10 +59,11 @@ RUN apt-get -qq update \
        "mkdir $CSGO_DIR \
        && bash $HOME_DIR/server-update.sh"
 
-ENV METAMOD_URL=https://mms.alliedmods.net/mmsdrop/1.11/mmsource-1.11.0-git1148-linux.tar.gz \
-    SOURCEMOD_URL=https://sm.alliedmods.net/smdrop/1.11/sourcemod-1.11.0-git6934-linux.tar.gz \
+# starting from GET5 v0.13, the veto system uses in game chat instead of a handy menu...
+ENV METAMOD_URL=https://mms.alliedmods.net/mmsdrop/1.12/mmsource-1.12.0-git1167-linux.tar.gz \
+    SOURCEMOD_URL=https://sm.alliedmods.net/smdrop/1.12/sourcemod-1.12.0-git7017-linux.tar.gz \
     STEAMWORKS_URL=https://github.com/KyleSanderson/SteamWorks/releases/download/1.2.3c/package-lin.tgz \
-    GET5_URL=https://github.com/splewis/get5/releases/download/v0.14.7/get5-v0.14.7.tar.gz
+    GET5_URL=https://github.com/splewis/get5/releases/download/v0.12.1/get5-v0.12.1.tar.gz
 
 RUN su user -c  \
        "wget -q -O - $METAMOD_URL | tar -xz -C $CSGO_DIR/csgo \
@@ -98,7 +99,7 @@ COPY --chown=user --chmod=755 server-scripts/server-launch.sh $HOME_DIR/
 COPY --chown=user cfg/* $CSGO_DIR/csgo/cfg/
 
 # FORCE MANUAL UPDATE IN CONTAINER, simply increment the number on the echo command, this is not very clever or a good solution but, well... it works
-RUN su user -c "bash $HOME_DIR/server-update.sh" && echo "3"
+RUN su user -c "bash $HOME_DIR/server-update.sh" && echo "1"
 
 RUN echo '"STEAM_0:0:64160074" "99:z"' >> $CSGO_DIR/csgo/addons/sourcemod/configs/admins_simple.ini \
     && echo '"STEAM_0:1:124584389" "99:z"' >> $CSGO_DIR/csgo/addons/sourcemod/configs/admins_simple.ini

@@ -90,12 +90,12 @@ class MatchGen:
         matchcfg.add_cvar("get5_remote_log_header_value", get_api_login_token())
 
         matchcfg.add_cvar("get5_demo_upload_url",
-                          f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/demo")
+                          f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/csgo/demo")
         matchcfg.add_cvar("get5_demo_upload_header_key", "Authorization")
         matchcfg.add_cvar("get5_demo_upload_header_value", get_api_login_token())
 
         matchcfg.add_cvar("get5_remote_backup_url",
-                          f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/backup")
+                          f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/csgo/backup")
         matchcfg.add_cvar("get5_remote_backup_header_key", "Authorization")
         matchcfg.add_cvar("get5_remote_backup_header_value", get_api_login_token())
 
