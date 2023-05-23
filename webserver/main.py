@@ -135,7 +135,10 @@ def create_match(request: Request, match: MatchInfo,
         f"best_of: '{match.best_of}', 'check_auths: {match.check_auths}', 'host: {match.host}'")
 
     if match.host is None or match.host == "None":
-        match.host = db.get_least_used_host_ips()
+        try:
+            match.host = db.get_least_used_host_ips()
+        except ValueError as e:
+            raise HTTPException(status_code=404, detail="No hosts available")
         logging.info(f"No host specified, using least used host -> {match.host}")
 
     host = db_models.Host.select().where(db_models.Host.ip == match.host).get_or_none()

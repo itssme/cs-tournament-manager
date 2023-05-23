@@ -117,3 +117,11 @@ etc. will be necessary.
 |---------------------|-------------------------------------|
 | STEAM_0:1:148684053 | Cheating during airlan21 (wallhack) |
 | STEAM_0:1:159656029 | Cheating during airlan21 (wallhack) |
+
+# Useful commands
+
+```bash
+docker-compose -f docker-compose-webserver.yml up --build db adminer redis
+docker-compose -f docker-compose-webserver.yml up --build csgo_manager
+docker-compose -f docker-compose-worker.yml up --build csgo_worker
+```
