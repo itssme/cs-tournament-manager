@@ -9,6 +9,7 @@ RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
 COPY matchmaker/ app
 COPY webserver/utils/ app/utils
+COPY webserver/endpoints/auth_api.py app/endpoints/auth_api.py
 
 WORKDIR /app
 

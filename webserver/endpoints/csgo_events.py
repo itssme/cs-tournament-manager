@@ -74,7 +74,8 @@ def map_result(event: Dict):
     team2_elo = team2.elo
     logging.info(f"Updating ELO: {team1.elo}, {team2.elo}, {event['team1_score']}, {event['team2_score']}")
 
-    team1.elo, team2.elo = calculate_elo(team1.elo, team2.elo, event["team1_score"], event["team2_score"])
+    team1.elo, team2.elo = calculate_elo(team1.elo, team2.elo, event["team1_score"], event["team2_score"],
+                                         int(db_models.Config.get(db_models.Config.key == "elo_k_factor").value))
     team1.save()
     team2.save()
 

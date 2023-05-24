@@ -123,5 +123,6 @@ etc. will be necessary.
 ```bash
 docker-compose -f docker-compose-webserver.yml up --build db adminer redis
 docker-compose -f docker-compose-webserver.yml up --build csgo_manager
+docker-compose -f docker-compose-webserver.yml up --build matchmaker
 docker-compose -f docker-compose-worker.yml up --build csgo_worker
 ```
