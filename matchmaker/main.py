@@ -85,7 +85,7 @@ def main():
                     continue
 
                 possible_matches.append((team1, team2, abs(team1.elo - team2.elo) + played_matches_matrix[team1.id][
-                    team2.id] * ALREADY_PLAYED_PUNISHER))
+                    team2.id] * elo_already_played_punisher))
 
         logging.info(f"Found {len(possible_matches)} possible matches: {possible_matches}")
 
