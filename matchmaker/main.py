@@ -10,13 +10,6 @@ from utils.utils_funcs import get_api_login_token
 from typing import List
 from utils import elo, db_models
 
-elo_already_played_punisher = int(db_models.Config.get(db_models.Config.key == "elo_already_played_punisher").value)
-k_factor = int(db_models.Config.get(db_models.Config.key == "elo_k_factor").value)
-
-logging.info("Loaded config")
-logging.info(f"elo_already_played_punisher: {elo_already_played_punisher}")
-logging.info(f"k_factor: {k_factor}")
-
 MANAGER_IP = os.getenv("MANAGER_IP", "csgo_manager")
 logging.info(f"Manager IP: {MANAGER_IP}")
 
@@ -62,6 +55,15 @@ def main():
         if len(competing_teams) < 2:
             logging.info("Not enough competing teams to start a match")
             continue
+
+        logging.info("Starting new round of matchmaking")
+        elo_already_played_punisher = int(
+            db_models.Config.get(db_models.Config.key == "elo_already_played_punisher").value)
+        k_factor = int(db_models.Config.get(db_models.Config.key == "elo_k_factor").value)
+
+        logging.info("Loaded config")
+        logging.info(f"elo_already_played_punisher: {elo_already_played_punisher}")
+        logging.info(f"k_factor: {k_factor}")
 
         logging.info("Extracting elo of teams...")
         team_elo_ratings = {team.id: team.elo for team in competing_teams}
