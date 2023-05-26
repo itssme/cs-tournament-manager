@@ -38,7 +38,10 @@ def start_match(team1: db_models.Team, team2: db_models.Team) -> bool:
 
 def main():
     while True:
-        competing_teams = db_models.Team.select().where(db_models.Team.competing <= 1)
+        logging.info("Starting matchmaker loop, sleeping for 10 seconds")
+        time.sleep(10)
+
+        competing_teams = db_models.Team.select().where(db_models.Team.competing == 0)
         logging.info(
             f"Found {len(competing_teams)} competing teams for consideration ({', '.join([str(team.name) for team in competing_teams])})")
 
