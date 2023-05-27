@@ -39,7 +39,7 @@ def start_match(team1: db_models.Team, team2: db_models.Team) -> bool:
 def main():
     while True:
         logging.info("Starting matchmaker loop, sleeping for 10 seconds")
-        time.sleep(10)
+        time.sleep(1)
 
         competing_teams = db_models.Team.select().where(db_models.Team.competing == 0)
         logging.info(
@@ -55,7 +55,7 @@ def main():
         logging.info(
             f"Found {len(competing_teams)} competing teams that are not in a match ({', '.join([str(team.name) for team in competing_teams])})")
 
-        if len(competing_teams) < 2:
+        if len(competing_teams) <= 2:
             logging.info("Not enough competing teams to start a match")
             continue
 
@@ -77,8 +77,11 @@ def main():
 
         finished_matches = db_models.Match.select().where(db_models.Match.finished == 3)
         for match in finished_matches:
-            played_matches_matrix[match.team1.id][match.team2.id] += 1
-            played_matches_matrix[match.team2.id][match.team1.id] += 1
+            if match.team1.competing == 0 and match.team2.competing == 0 and match.team2 in competing_teams and match.team1 in competing_teams:
+                logging.info(match.team1.name)
+                logging.info(match.team2.name)
+                played_matches_matrix[match.team1.id][match.team2.id] += 1
+                played_matches_matrix[match.team2.id][match.team1.id] += 1
 
         logging.info(f"Played matches matrix: {played_matches_matrix}")
 
