@@ -1,6 +1,6 @@
 version: '3'
 services:
-  csgo_worker:
+  cs2_worker:
     build:
       context: .
       dockerfile: Dockerfile_worker
@@ -15,4 +15,4 @@ services:
       - MAX_WORKERS=10
       - ACCESS_SECRET_KEY=${ACCESS_SECRET_KEY}
     env_file:
-      - ./csgo_host.env
+      - ./cs2_host.env

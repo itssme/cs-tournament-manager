@@ -3,7 +3,7 @@ echo "running server-launch.sh"
 ######################
 # Set launch options #
 ######################
-ARGS="-game csgo -console -usercon +net_public_adr 0.0.0.0"
+ARGS="-game cs2 -console -usercon +net_public_adr 0.0.0.0"
 
 if [ -v SERVER_TOKEN ]
 then
@@ -106,26 +106,26 @@ fi
 
 if [ -v LOAD_BACKUP ]
 then
-    echo "Running backup of previous game, writing load command 'get5_loadmatch_url $LOAD_BACKUP' to $CSGO_DIR/csgo/cfg/sourcemod/get5.cfg"
-    echo "get5_loadbackup_url \"$LOAD_BACKUP\"" > $CSGO_DIR/csgo/cfg/sourcemod/get5.cfg
+    echo "Running backup of previous game, writing load command 'get5_loadmatch_url $LOAD_BACKUP' to $cs2_DIR/cs2/cfg/sourcemod/get5.cfg"
+    echo "get5_loadbackup_url \"$LOAD_BACKUP\"" > $cs2_DIR/cs2/cfg/sourcemod/get5.cfg
 else
   if [ -v MATCH_CONFIG ]
   then
-      echo "Found match_config, writing load command to $CSGO_DIR/csgo/cfg/sourcemod/get5.cfg"
-      echo $MATCH_CONFIG > $CSGO_DIR/csgo/match_config.json
-      echo 'get5_autoload_config match_config.json' > $CSGO_DIR/csgo/cfg/sourcemod/get5.cfg
-      cat $CSGO_DIR/csgo/match_config.json
-      cat $CSGO_DIR/csgo/cfg/sourcemod/get5.cfg
+      echo "Found match_config, writing load command to $cs2_DIR/cs2/cfg/sourcemod/get5.cfg"
+      echo $MATCH_CONFIG > $cs2_DIR/cs2/match_config.json
+      echo 'get5_autoload_config match_config.json' > $cs2_DIR/cs2/cfg/sourcemod/get5.cfg
+      cat $cs2_DIR/cs2/match_config.json
+      cat $cs2_DIR/cs2/cfg/sourcemod/get5.cfg
       echo "Done adding match_config to server"
   else
       echo "No match_config supplied, running server without loading a match"
-      echo 'get5_check_auths 0' > $CSGO_DIR/csgo/cfg/sourcemod/get5.cfg
+      echo 'get5_check_auths 0' > $cs2_DIR/cs2/cfg/sourcemod/get5.cfg
     fi
 fi
 
 #################
 # Launch server #
 #################
-cd $CSGO_DIR
+cd $cs2_DIR
 echo "./srcds_run $ARGS"
 ./srcds_run $ARGS

@@ -14,7 +14,7 @@ import aiofiles
 import requests
 from fastapi import Request, Depends
 
-from endpoints import csgo_stats_event, auth_api
+from endpoints import cs2_stats_event, auth_api
 from utils.rcon import RCON, get5_status
 from utils import db, db_models
 from utils.elo import calculate_elo
@@ -131,17 +131,17 @@ callbacks = {
     "series_end": series_end,
     "demo_upload_ended": demo_upload_ended,
     "going_live": going_live,
-    "round_mvp": csgo_stats_event.stats_event,
-    "grenade_thrown": csgo_stats_event.stats_event,
-    "player_death": csgo_stats_event.stats_event,
-    "hegrenade_detonated": csgo_stats_event.stats_event,
-    "molotov_detonated": csgo_stats_event.stats_event,
-    "flashbang_detonated": csgo_stats_event.stats_event,
-    "smokegrenade_detonated": csgo_stats_event.stats_event,
-    "decoygrenade_started": csgo_stats_event.stats_event,
-    "bomb_planted": csgo_stats_event.stats_event,
-    "bomb_defused": csgo_stats_event.stats_event,
-    "bomb_exploded": csgo_stats_event.stats_event
+    "round_mvp": cs2_stats_event.stats_event,
+    "grenade_thrown": cs2_stats_event.stats_event,
+    "player_death": cs2_stats_event.stats_event,
+    "hegrenade_detonated": cs2_stats_event.stats_event,
+    "molotov_detonated": cs2_stats_event.stats_event,
+    "flashbang_detonated": cs2_stats_event.stats_event,
+    "smokegrenade_detonated": cs2_stats_event.stats_event,
+    "decoygrenade_started": cs2_stats_event.stats_event,
+    "bomb_planted": cs2_stats_event.stats_event,
+    "bomb_defused": cs2_stats_event.stats_event,
+    "bomb_exploded": cs2_stats_event.stats_event
 }
 
 

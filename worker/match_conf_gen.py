@@ -85,17 +85,17 @@ class MatchGen:
         matchcfg.add_cvar("get5_kick_when_no_match_loaded", 1)
 
         matchcfg.add_cvar("get5_remote_log_url",
-                          f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/csgo/")
+                          f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/cs2/")
         matchcfg.add_cvar("get5_remote_log_header_key", "Authorization")
         matchcfg.add_cvar("get5_remote_log_header_value", get_api_login_token())
 
         matchcfg.add_cvar("get5_demo_upload_url",
-                          f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/csgo/demo")
+                          f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/cs2/demo")
         matchcfg.add_cvar("get5_demo_upload_header_key", "Authorization")
         matchcfg.add_cvar("get5_demo_upload_header_value", get_api_login_token())
 
         matchcfg.add_cvar("get5_remote_backup_url",
-                          f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/csgo/backup")
+                          f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/cs2/backup")
         matchcfg.add_cvar("get5_remote_backup_header_key", "Authorization")
         matchcfg.add_cvar("get5_remote_backup_header_value", get_api_login_token())
 

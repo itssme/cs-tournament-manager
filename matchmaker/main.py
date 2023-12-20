@@ -10,7 +10,7 @@ from utils.utils_funcs import get_api_login_token
 from typing import List
 from utils import elo, db_models
 
-MANAGER_IP = os.getenv("MANAGER_IP", "csgo_manager")
+MANAGER_IP = os.getenv("MANAGER_IP", "cs2_manager")
 logging.info(f"Manager IP: {MANAGER_IP}")
 
 

@@ -42,7 +42,7 @@ class ServerManager:
     def __start_container(self, match_cfg: dict, loadbackup_url: str = None) -> tuple[bool, int]:
         client = docker.from_env()
 
-        container_name = f"CSGO_{match_cfg['team1']['id']}_{match_cfg['team2']['id']}"
+        container_name = f"cs2_{match_cfg['team1']['id']}_{match_cfg['team2']['id']}"
 
         if loadbackup_url is None:
             match: db_models.Match = db_models.Match.create(name=container_name, matchid=match_cfg["matchid"],
@@ -85,13 +85,13 @@ class ServerManager:
             logging.info(f"Starting container for match: {match.matchid}")
             if os.getenv("WINDOWS", "0") == "1":
                 logging.info("Starting container on Windows")
-                container = client.containers.run("get5-csgo:latest",
+                container = client.containers.run("get5-cs2:latest",
                                                   name=container_name,
                                                   environment=container_variables,
                                                   detach=True, ports={port: port})
             else:
                 logging.info("Starting container on linux host")
-                container = client.containers.run("get5-csgo:latest",
+                container = client.containers.run("get5-cs2:latest",
                                                   name=container_name,
                                                   environment=container_variables,
                                                   detach=True, network="host")

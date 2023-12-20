@@ -33,13 +33,13 @@ limiter.init_limiter(app)
 
 api = FastAPI()
 public = FastAPI()
-csgo_api = FastAPI()
+cs2_api = FastAPI()
 auth = FastAPI()
 limiter.init_limiter(auth)
 
 app.mount("/api", api)
 
-api.mount("/csgo", csgo_api)
+api.mount("/cs2", cs2_api)
 app.mount("/auth", auth)
 
 templates = Jinja2Templates(directory="templates")
@@ -79,7 +79,7 @@ def create_match(request: Request, match: MatchInfo,
 
         match_old.finished = 3
         match_old.save()
-        match.from_backup_url = f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/csgo/backup/" + match.from_backup_url
+        match.from_backup_url = f"{os.getenv('HTTP_PROTOCOL', 'http://')}{os.getenv('MANAGER_IP', 'host.docker.internal')}/api/cs2/backup/" + match.from_backup_url
         # TODO: delete server in db if exists
     else:
         logging.info(f"Creating new match not using any backup")
@@ -114,7 +114,7 @@ def status(request: Request, server: ServerID, current_user: db_models.Account =
 async def healthcheck(request: Request):
     client = docker.from_env()
     try:
-        client.images.get("get5-csgo")
+        client.images.get("get5-cs2")
         return {"status": "ok"}
     except docker.errors.ImageNotFound:
-        raise HTTPException(status_code=500, detail="CSGO Docker image not found")
+        raise HTTPException(status_code=500, detail="cs2 Docker image not found")

@@ -15,7 +15,7 @@ import requests
 from fastapi_cache import FastAPICache
 from starlette.responses import JSONResponse, RedirectResponse, FileResponse
 
-from endpoints import csgo_events, error_routes, config_webinterface_routes, auth_api, team_api
+from endpoints import cs2_events, error_routes, config_webinterface_routes, auth_api, team_api
 from utils.rcon import RCON
 from utils import db, db_models, limiter, db_migrations
 
@@ -40,14 +40,14 @@ limiter.init_limiter(app)
 
 api = FastAPI()
 public = FastAPI()
-csgo_api = FastAPI()
+cs2_api = FastAPI()
 team = FastAPI()
 auth = FastAPI()
 limiter.init_limiter(auth)
 
 app.mount("/api", api)
 
-api.mount("/csgo", csgo_api)
+api.mount("/cs2", cs2_api)
 api.mount("/team", team)
 
 app.mount("/public", public)
@@ -58,7 +58,7 @@ templates = Jinja2Templates(directory="templates")
 
 error_routes.set_routes(app, templates, False)
 error_routes.set_api_routes(api, False)
-csgo_events.set_api_routes(csgo_api)
+cs2_events.set_api_routes(cs2_api)
 team_api.set_api_routes(team, cache)
 config_webinterface_routes.set_routes(public, templates)
 auth_api.set_api_routes(auth, templates)

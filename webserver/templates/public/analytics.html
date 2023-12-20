@@ -129,7 +129,7 @@
     <script onload="getInfo();">
         function getInfo() {
             let xmlHttp = new XMLHttpRequest();
-            xmlHttp.open("GET", "/api/csgo/info", false);
+            xmlHttp.open("GET", "/api/cs2/info", false);
             xmlHttp.send(null);
 
             let res = JSON.parse(xmlHttp.responseText);

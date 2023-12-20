@@ -1,8 +1,8 @@
-# CSGO Tournament Manager
+# cs2 Tournament Manager
 
 ## Status
 
-The software has been developed for the airlan21 (25.06.2021). A small csgo tournament organized for
+The software has been developed for the airlan21 (25.06.2021). A small cs2 tournament organized for
 team-building by robo4you.at. It was also used at the airlan23 winter (07.01.2023).
 
 **Currently, it is being updated and rewritten** for the 'airLAN23' which will take place in around 'Pfingsten' 2023 (
@@ -15,7 +15,7 @@ team-building by robo4you.at. It was also used at the airlan23 winter (07.01.202
 It manages a number of get5 servers for small to medium lan parties. E.g. the webinterface (and the telegram bot) lets
 you define new matches
 by selecting players and creating teams. A new get5 server will then be started in a docker container and the match
-config file will be transferred and loaded to the csgo server. It also displays some basic statistics about the servers.
+config file will be transferred and loaded to the cs2 server. It also displays some basic statistics about the servers.
 
 ### Create matches in the webinterface
 
@@ -27,17 +27,17 @@ config file will be transferred and loaded to the csgo server. It also displays 
 
 ## How to use this software
 
-### 1. Create csgo docker container
+### 1. Create cs2 docker container
 
 + Go to the folder `get5_image` and run the `build_image.sh` script.
-+ This will download the csgo server and automatically install get5. (this step may take some time)
++ This will download the cs2 server and automatically install get5. (this step may take some time)
 
 ### 2. Create Teams and GSLT file
 
 + Edit the `teams.json` file to include all your teams and players. This file will be mounted in the dockerfile.
 + Edit the `gslt.json` file and include all your GSLT tokens in a list like: `["TOKEN1", "TOKEN2"]`. If you plan on only
   using the servers in a LAN setting, you can simply create the file and leave the list empty (like: `[]`) and then the
-  server manager will start the CSGO servers without a GSLT Token. (More information about GSLT
+  server manager will start the cs2 servers without a GSLT Token. (More information about GSLT
   Tokens: https://developer.valvesoftware.com/wiki/Counter-Strike:_Global_Offensive_Dedicated_Servers)
 + Create a postgres.env file with the following content:
   ```
@@ -90,8 +90,8 @@ TODO
 + `API_USERNAME`="API": The username that is used in the background for API requests.
 + `ADMIN_PASSWORD`="admin": The password for the admin user in the webinterface (login at: `/auth/login`)
 + `HTTP_PROTOCOL`="http": The protocol used to connect to the api
-+ `RCON_PASSWORD`="pass": The password for the rcon connections to the csgo servers.
-+ `GOTV_PASSWORD`="pass": The password for the GOTV connections to the csgo servers.
++ `RCON_PASSWORD`="pass": The password for the rcon connections to the cs2 servers.
++ `GOTV_PASSWORD`="pass": The password for the GOTV connections to the cs2 servers.
 + `POSTGRES_DB`="postgres": The postgres database name.
 + `POSTGRES_DB_HOST`="db": Hostname/ IP of the database.
 + `POSTGRES_DB_PORT`="5432": The port of the database.
@@ -122,7 +122,7 @@ etc. will be necessary.
 
 ```bash
 docker-compose -f docker-compose-webserver.yml up --build db adminer redis
-docker-compose -f docker-compose-webserver.yml up --build csgo_manager
+docker-compose -f docker-compose-webserver.yml up --build cs2_manager
 docker-compose -f docker-compose-webserver.yml up --build matchmaker
-docker-compose -f docker-compose-worker.yml up --build csgo_worker
+docker-compose -f docker-compose-worker.yml up --build cs2_worker
 ```

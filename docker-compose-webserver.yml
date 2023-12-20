@@ -15,7 +15,7 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-  csgo_manager:
+  cs2_manager:
     depends_on:
       - db
       - redis
@@ -43,4 +43,4 @@ services:
     environment:
       - ACCESS_SECRET_KEY=${ACCESS_SECRET_KEY}
     env_file:
-      - ./csgo_host.env
+      - ./cs2_host.env
