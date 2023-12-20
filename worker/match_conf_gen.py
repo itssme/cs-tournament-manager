@@ -57,6 +57,12 @@ class MatchConfig(dict):
 
         self[key] = final_team_dict
 
+    def add_spectator(self):
+        self["spectators"] = {"name": "airLAN 2023",
+                              "players": {
+                                  "76561199365892878": "Casters"
+                              }}
+
     def add_cvar(self, cvar_key, cvar_value):
         self["cvars"][cvar_key] = cvar_value
 
@@ -79,6 +85,7 @@ class MatchGen:
         matchcfg = MatchConfig()
         matchcfg.add_team(team1)
         matchcfg.add_team(team2)
+        matchcfg.add_spectator()
         matchcfg.set_num_of_maps(best_out_of)
         matchcfg.add_cvar("get5_demo_path", "demos/")
         matchcfg.add_cvar("get5_demo_name_format", "{TIME}_{MATCHID}_map{MAPNUMBER}_{MAPNAME}")
@@ -102,6 +109,8 @@ class MatchGen:
         matchcfg.add_cvar("get5_print_update_notice", 0)
         matchcfg.add_cvar("get5_reset_cvars_on_end", 0)
         matchcfg.add_cvar("tv_enable", 1)
+        matchcfg.add_cvar("tv_delay", 1)
+        matchcfg.add_cvar("tv_advertise_watchable", 1)
         matchcfg.add_cvar("get5_time_to_start_veto", 10 * 60)
         matchcfg.add_cvar("get5_time_to_start", 10 * 60)
         matchcfg.add_cvar("get5_auto_tech_pause_missing_players", 1)
