@@ -1,1 +1,1 @@
-DOCKER_BUILDKIT=1 docker build . -t get5-cs2:latest || exit
+DOCKER_BUILDKIT=1 docker build . -t matchzy-cs2:latest || exit
