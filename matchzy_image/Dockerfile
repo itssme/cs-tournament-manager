@@ -73,16 +73,25 @@ RUN bash "${STEAMCMDDIR}/steamcmd.sh" +force_install_dir "${STEAMAPPDIR}" \
 				+app_update "${STEAMAPPID}" \
 				+quit
 
+ENV METAMOD_URL=https://mms.alliedmods.net/mmsdrop/2.0/mmsource-2.0.0-git1277-linux.tar.gz
+
+RUN wget wget -q -O - $METAMOD_URL | tar -xz -C ${STEAMAPPDIR}/game/csgo
+
+#RUN ls ${STEAMAPPDIR}/game/csgo && pwd ${STEAMAPPDIR}/game/csgo && quit 1
+
 USER root
+
+# Give ${USER} permission for cs2 game folder
+RUN chown -R "${USER}:${USER}" "${HOMEDIR}/entry.sh" "${STEAMAPPDIR}"
 
 COPY etc/entry.sh "${HOMEDIR}/entry.sh"
 COPY etc/server.cfg "/etc/server.cfg"
 COPY etc/pre.sh "/etc/pre.sh"
 COPY etc/post.sh "/etc/post.sh"
+COPY etc/acmrs.sh "/etc/acmrs.sh"
 
 # Add entry script
-RUN chmod +x "${HOMEDIR}/entry.sh" \
-	&& chown -R "${USER}:${USER}" "${HOMEDIR}/entry.sh" "${STEAMAPPDIR}"
+RUN chmod +x "${HOMEDIR}/entry.sh"
 
 # Switch to user
 USER ${USER}

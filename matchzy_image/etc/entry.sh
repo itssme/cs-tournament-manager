@@ -4,6 +4,12 @@
 mkdir -p ~/.steam/sdk64
 ln -sfT ${STEAMCMDDIR}/linux64/steamclient.so ~/.steam/sdk64/steamclient.so
 
+# Run metamod gameinfo.gi fix (see https://cs2.poggu.me/metamod/installation/)
+echo "running metamod fix"
+bash "/etc/acmrs.sh"
+cat /home/steam/cs2-dedicated/game/csgo/gameinfo.gi
+sleep 4
+
 # Install server.cfg
 cp /etc/server.cfg "${STEAMAPPDIR}"/game/csgo/cfg/server.cfg
 
