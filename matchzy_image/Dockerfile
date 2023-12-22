@@ -82,13 +82,14 @@ USER ${USER}
 
 ENV METAMOD_URL=https://mms.alliedmods.net/mmsdrop/2.0/mmsource-2.0.0-git1278-linux.tar.gz
 
-RUN wget wget -q -O - $METAMOD_URL | tar -xz -C ${STEAMAPPDIR}/game/csgo && \
-    chown -R "${USER}:${USER}" "${STEAMAPPDIR}/game/csgo" && \
-    chmod 777 ${STEAMAPPDIR}/game/csgo/addons/ -R
+RUN wget wget -q -O - $METAMOD_URL | tar -xz -C ${STEAMAPPDIR}/game/csgo
 
 #RUN ls ${STEAMAPPDIR}/game/csgo/addons -l && pwd ${STEAMAPPDIR}/game/csgo && quit 1
 
 USER root
+
+RUN chown -R "${USER}:${USER}" "${STEAMAPPDIR}/game/csgo/addons" && \
+    chmod 777 ${STEAMAPPDIR}/game/csgo/addons -R
 
 COPY etc/entry.sh "${HOMEDIR}/entry.sh"
 COPY etc/server.cfg "/etc/server.cfg"
