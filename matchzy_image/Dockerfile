@@ -17,8 +17,9 @@ RUN set -x \
 		wget \
 		ca-certificates \
 		lib32z1 \
-                simpleproxy \
-                libicu-dev \
+        simpleproxy \
+        libicu-dev \
+        unzip \
 	&& mkdir -p "${STEAMAPPDIR}" \
 	# Clean up
         && apt-get clean \
@@ -80,10 +81,17 @@ RUN chown -R "${USER}:${USER}" "${STEAMAPPDIR}"
 
 USER ${USER}
 
+# TODO: remove .tar.gz files after installation
+
+# Installation of metamod
 ENV METAMOD_URL=https://mms.alliedmods.net/mmsdrop/2.0/mmsource-2.0.0-git1278-linux.tar.gz
+RUN wget -q -O - $METAMOD_URL | tar -xz -C ${STEAMAPPDIR}/game/csgo
 
-RUN wget wget -q -O - $METAMOD_URL | tar -xz -C ${STEAMAPPDIR}/game/csgo
+# Installation of matchzy (with cssharp)
+ENV MATCHZY_URL=https://github.com/shobhit-pathak/MatchZy/releases/download/0.6.1-alpha/matchzy-0.6.1-with-cssharp.zip
+RUN wget -O matchzy.zip $MATCHZY_URL && unzip matchzy.zip -d ${STEAMAPPDIR}/game/csgo && rm matchzy.zip
 
+# DEBUG
 #RUN ls ${STEAMAPPDIR}/game/csgo/addons -l && pwd ${STEAMAPPDIR}/game/csgo && quit 1
 
 USER root
