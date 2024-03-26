@@ -7,8 +7,6 @@ import os
 from redis import asyncio as aioredis
 from fastapi_cache.backends.redis import RedisBackend
 
-from endpoints.auth_api import get_password_hash
-
 import json
 
 import requests
@@ -31,9 +29,6 @@ logging.info("server running")
 logging.info("applying migrations")
 db_migrations.apply_migrations()
 logging.info("applying migrations - done")
-
-# uncomment for dev stuff
-# db_models.Account.create(username="admin@admin.com", password=get_password_hash("admin"), verification_code="", verified=1, role="admin")
 
 app = FastAPI()
 limiter.init_limiter(app)
@@ -73,58 +68,6 @@ async def startup():
 @app.get("/")
 def rcon(request: Request):
     return RedirectResponse(url="/auth/login")
-
-
-@api.post("/rcon", response_class=JSONResponse, dependencies=[Depends(db.get_db)])
-def rcon(request: Request, rcon_command: RconCommand,
-         current_user: db_models.Account = Depends(auth_api.get_admin_user)):
-    logging.info(
-        f"Running command: {rcon_command.rcon} on server: ip={rcon_command.server_ip} port={rcon_command.server_port}")
-    try:
-        with RCON(rcon_command.server_ip, rcon_command.server_port) as rconn:
-            res = rconn.exec_command(rcon_command.rcon)
-    except ConnectionError as e:
-        logging.error(f"Unable to run rcon command: {e}")
-        return {"error": "Unable to connect to this server"}
-    return res
-
-
-@api.post("/pause", response_class=JSONResponse, dependencies=[Depends(db.get_db)])
-def pause(request: Request, server_id: ServerID,
-          current_user: db_models.Account = Depends(auth_api.get_admin_user)):
-    logging.info(f"Running command: pause on server: id={server_id.id}")
-
-    server = db_models.Server.select().where(db_models.Server.id == server_id.id).get_or_none()
-    if server is None:
-        logging.error(f"Unable to find server with id: {server_id.id}")
-        raise HTTPException(status_code=404, detail="Server not found")
-
-    try:
-        with RCON(server.ip, server.port) as rconn:
-            res = rconn.exec_command("sm_pause")
-    except ConnectionError as e:
-        logging.error(f"Unable to run pause rcon command: {e}")
-        return {"error": "Unable to connect to this server"}
-    return res
-
-
-@api.post("/unpause", response_class=JSONResponse, dependencies=[Depends(db.get_db)])
-def unpause(request: Request, server_id: ServerID,
-            current_user: db_models.Account = Depends(auth_api.get_admin_user)):
-    logging.info(f"Running command: unpause on server: id={server_id.id}")
-
-    server = db_models.Server.select().where(db_models.Server.id == server_id.id).get_or_none()
-    if server is None:
-        logging.error(f"Unable to find server with id: {server_id.id}")
-        raise HTTPException(status_code=404, detail="Server not found")
-
-    try:
-        with RCON(server.ip, server.port) as rconn:
-            res = rconn.exec_command("sm_unpause")
-    except ConnectionError as e:
-        logging.error(f"Unable to run unpause rcon command: {e}")
-        return {"error": "Unable to connect to this server"}
-    return res
 
 
 @api.post("/match", dependencies=[Depends(db.get_db)])

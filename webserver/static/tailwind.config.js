@@ -1,8 +1,8 @@
 module.exports = {
-    content: ['/app/templates/**/*.html', './node_modules/tw-elements/dist/js/**/*.js'],
+    content: ['/app/**/*.html', './node_modules/tw-elements/dist/js/**/*.js'],
     darkMode: 'media',
     variants: {extend: {},},
-    plugins: [require('tw-elements/dist/plugin')],
+    plugins: [require('tw-elements/dist/plugin.cjs')],
     theme: {
         extend: {
             colors: {
