@@ -1,8 +1,0 @@
-requests
-psycopg2
-peewee
-pika
-numpy
-fastapi
-python-jose[cryptography]
-passlib[bcrypt]

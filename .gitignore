@@ -3,6 +3,4 @@ __pycache__/
 .idea
 backupfiles
 demofiles
-app/utils/postgres/postgres.env
-master.env
-slave.env
+.venv

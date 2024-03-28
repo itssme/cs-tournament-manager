@@ -13,9 +13,9 @@ import requests
 from fastapi_cache import FastAPICache
 from starlette.responses import JSONResponse, RedirectResponse, FileResponse
 
-from endpoints import cs2_events, error_routes, config_webinterface_routes, auth_api, team_api
+from endpoints import cs_events, error_routes
 from utils.rcon import RCON
-from utils import db, db_models, limiter, db_migrations
+from utils import db, limiter, db_migrations
 
 from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.staticfiles import StaticFiles
@@ -35,28 +35,20 @@ limiter.init_limiter(app)
 
 api = FastAPI()
 public = FastAPI()
-cs2_api = FastAPI()
-team = FastAPI()
-auth = FastAPI()
-limiter.init_limiter(auth)
+cs_api = FastAPI()
 
 app.mount("/api", api)
 
-api.mount("/cs2", cs2_api)
-api.mount("/team", team)
+api.mount("/cs", cs_api)
 
 app.mount("/public", public)
-app.mount("/auth", auth)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 error_routes.set_routes(app, templates, False)
 error_routes.set_api_routes(api, False)
-cs2_events.set_api_routes(cs2_api)
-team_api.set_api_routes(team, cache)
-config_webinterface_routes.set_routes(public, templates)
-auth_api.set_api_routes(auth, templates)
+cs_events.set_api_routes(cs_api)
 
 
 @app.on_event("startup")
@@ -71,78 +63,18 @@ def rcon(request: Request):
 
 
 @api.post("/match", dependencies=[Depends(db.get_db)])
-def create_match(request: Request, match: MatchInfo,
-                 current_user: db_models.Account = Depends(auth_api.get_admin_user)):
-    logging.info(
-        f"Called POST /match with MatchInfo: Team1: '{match.team1}', Team2: '{match.team2}', "
-        f"best_of: '{match.best_of}', 'check_auths: {match.check_auths}', 'host: {match.host}'")
-
-    if match.host is None or match.host == "None":
-        try:
-            match.host = db.get_least_used_host_ips()
-        except ValueError as e:
-            raise HTTPException(status_code=404, detail="No hosts available")
-        logging.info(f"No host specified, using least used host -> {match.host}")
-
-    host = db_models.Host.select().where(db_models.Host.ip == match.host).get_or_none()
-    if host is None:
-        logging.error(f"Unable to find host with ip: {match.host}")
-        raise HTTPException(status_code=404, detail="Host not found")
-
-    match.host = f"{host.ip}:{host.port}"
-
-    logging.info(f"Creating match on remote server: {match.host} -> {match.json()}")
-    if request.headers.get("Authorization", None) is None:
-        res = requests.post(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{match.host}/api/match",
-                            json=json.loads(match.json()),
-                            cookies={"access_token": request.cookies.get("access_token")})
-    else:
-        res = requests.post(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{match.host}/api/match",
-                            json=json.loads(match.json()),
-                            headers={"Authorization": request.headers["Authorization"]})
-
-    try:
-        response_data = res.json()
-        return response_data
-    except Exception as e:
-        raise HTTPException(status_code=500,
-                            detail=f"Unable to start container on remote host: {match.host}, status={res.status_code}<br>{res.text}")
+def create_match(request: Request):
+    pass
 
 
-@api.delete("/match", response_class=JSONResponse, dependencies=[Depends(db.get_db)])
-def status(request: Request, server: ServerID, current_user: db_models.Account = Depends(auth_api.get_admin_user)):
-    logging.info(f"Called DELETE /match with server id: {server.id}")
-
-    server_db = db_models.Server.select().where(db_models.Server.id == server.id).get_or_none()
-    host = db_models.Host.select().where(db_models.Host.ip == server_db.ip).get_or_none()
-
-    res = requests.delete(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{host.ip}:{host.port}/api/match",
-                          json={"id": server.id},
-                          cookies={"access_token": request.cookies.get("access_token")})
-
-    if res.status_code == 200:
-        return {"status": "ok"}
-    else:
-        raise HTTPException(status_code=500,
-                            detail=f"Unable to stop container on remote host: {host.ip}:{host.port}, status={res.status_code}<br>{res.text}")
+@api.delete("/match", dependencies=[Depends(db.get_db)])
+def delete_match(request: Request):
+    pass
 
 
 @api.post("/host", dependencies=[Depends(db.get_db)])
-def create_host(request: Request, host: HostInfo,
-                current_user: db_models.Account = Depends(auth_api.get_admin_user)):
-    logging.info(f"Called POST /host with Host: Ip: '{host.ip}', Port: '{host.port}'")
-
-    try:
-        res = requests.get(f"{os.getenv('HTTP_PROTOCOL', 'http://')}{host.ip}:{host.port}/api/healthcheck", timeout=2)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Unable to connect to host: {host.ip}:{host.port} ({e})")
-
-    if res.status_code == 200:
-        db_models.Host.create(ip=host.ip, port=host.port)
-        return {"status": "ok"}
-    else:
-        raise HTTPException(status_code=500,
-                            detail=f"Unable to connect to host: {host.ip}:{host.port} , status={res.status_code}<br>{res.text}")
+def create_host(request: Request):
+    pass
 
 
 @api.get("/demo/{filename}")
@@ -157,6 +89,12 @@ async def get_backup(request: Request, filename: str):
     logging.info(f"Called GET /backup filename: {filename}")
     filename = os.path.split(filename)[-1]
     return FileResponse(os.path.join(os.getenv("BACKUP_FILE_PATH", "/backupfiles"), filename))
+
+
+@api.get("/match/{match_id}")
+async def get_matchjson(match_id: int):
+    # TODO: return match_json
+    return {"match_id": match_id}
 
 
 @api.get("/healthcheck")

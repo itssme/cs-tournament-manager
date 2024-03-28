@@ -6,7 +6,7 @@ services:
     ports:
       - 5432:5432
     env_file:
-      - webserver/utils/postgres/postgres.env
+      - webserver/utils/postgres.env
   adminer:
     image: adminer
     restart: unless-stopped
@@ -15,7 +15,7 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-  cs2_manager:
+  cs_manager:
     depends_on:
       - db
       - redis
@@ -43,4 +43,4 @@ services:
     environment:
       - ACCESS_SECRET_KEY=${ACCESS_SECRET_KEY}
     env_file:
-      - ./cs2_host.env
+      - ./cs_host.env
